@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null;
+    }
+    match /groups/{groupId} {
+      allow read, write: if request.auth != null;
+      match /members/{memberId} {
+        allow read, write: if request.auth != null;
+      }
+      match /invites/{inviteId} {
+        allow read, write: if request.auth != null;
+      }
+    }
+    // collectionGroup rules for "members" query
+    match /{path=**}/members/{memberId} {
+      allow read: if request.auth != null;
+    }
+    // collectionGroup rules for "invites" query
+    match /{path=**}/invites/{inviteId} {
+      allow read: if request.auth != null;
+    }
+    match /alerts/{alertId} {
+      allow read: if request.auth != null && (
+        resource.data.fromUserId == request.auth.uid ||
+        resource.data.toUserId == request.auth.uid
+      );
+      allow create: if false;
+      allow update: if request.auth != null && resource.data.toUserId == request.auth.uid;
+    }
+    match /rateLimits/{docId} {
+      allow read, write: if false;
+    }
+  }
+}
