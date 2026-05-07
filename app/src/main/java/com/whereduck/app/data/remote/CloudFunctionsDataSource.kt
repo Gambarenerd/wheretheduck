@@ -67,6 +67,47 @@ class CloudFunctionsDataSource @Inject constructor(
         return result.getData() as Map<String, Any>
     }
 
+    suspend fun deleteGroup(groupId: String): Map<String, Any> {
+        ensureFreshToken()
+        val data = hashMapOf("groupId" to groupId)
+        val result = functions.getHttpsCallable("deleteGroup")
+            .call(data)
+            .await()
+        @Suppress("UNCHECKED_CAST")
+        return result.getData() as Map<String, Any>
+    }
+
+    suspend fun removeMember(groupId: String, memberId: String): Map<String, Any> {
+        ensureFreshToken()
+        val data = hashMapOf(
+            "groupId" to groupId,
+            "memberId" to memberId
+        )
+        val result = functions.getHttpsCallable("removeMember")
+            .call(data)
+            .await()
+        @Suppress("UNCHECKED_CAST")
+        return result.getData() as Map<String, Any>
+    }
+
+    suspend fun respondStarnazzo(
+        alertId: String,
+        response: String,
+        muteDurationMinutes: Int? = null
+    ): Map<String, Any> {
+        ensureFreshToken()
+        val data = hashMapOf<String, Any>(
+            "alertId" to alertId,
+            "response" to response
+        )
+        muteDurationMinutes?.let { data["muteDurationMinutes"] = it }
+        val result = functions.getHttpsCallable("respondStarnazzo")
+            .call(data)
+            .await()
+        @Suppress("UNCHECKED_CAST")
+        return result.getData() as Map<String, Any>
+    }
+
     suspend fun sendBroadcastStarnazzo(
         groupId: String,
         level: String,

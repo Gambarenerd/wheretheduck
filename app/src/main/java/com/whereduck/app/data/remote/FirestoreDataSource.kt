@@ -131,6 +131,19 @@ class FirestoreDataSource @Inject constructor(
         awaitClose { listener.remove() }
     }
 
+    // ── Alerts ──
+
+    fun observeAlert(alertId: String): Flow<Map<String, Any?>> = callbackFlow {
+        val listener = firestore.collection("alerts")
+            .document(alertId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null || !snapshot.exists()) return@addSnapshotListener
+                val data = snapshot.data ?: return@addSnapshotListener
+                trySend(data)
+            }
+        awaitClose { listener.remove() }
+    }
+
     // ── Invites ──
 
     fun observeGroupInvites(groupId: String): Flow<List<GroupInvite>> = callbackFlow {

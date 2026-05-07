@@ -45,19 +45,19 @@ export const sendBroadcastStarnazzo = functions.https.onCall(async (data, contex
     throw new functions.https.HttpsError("permission-denied", "Not a member");
   }
 
-  // 3. Check plan limits
-  const plan = sender.plan || "free";
-  if (plan === "free") {
-    const dailyCount = await checkDailyCount(senderId);
-    if (dailyCount >= FREE_DAILY_LIMIT) {
-      return {
-        broadcastId: "",
-        alertIds: [],
-        failedMembers: [],
-        status: "plan_limited",
-      };
-    }
-  }
+  // 3. Check plan limits (disabled for testing)
+  // const plan = sender.plan || "free";
+  // if (plan === "free") {
+  //   const dailyCount = await checkDailyCount(senderId);
+  //   if (dailyCount >= FREE_DAILY_LIMIT) {
+  //     return {
+  //       broadcastId: "",
+  //       alertIds: [],
+  //       failedMembers: [],
+  //       status: "plan_limited",
+  //     };
+  //   }
+  // }
 
   // 4. Get all members except sender
   const membersSnapshot = await db

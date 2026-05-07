@@ -1,12 +1,15 @@
 package com.whereduck.app.data.repository
 
 import com.whereduck.app.data.remote.CloudFunctionsDataSource
+import com.whereduck.app.data.remote.FirestoreDataSource
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class AlertRepository @Inject constructor(
-    private val cloudFunctions: CloudFunctionsDataSource
+    private val cloudFunctions: CloudFunctionsDataSource,
+    private val firestoreDataSource: FirestoreDataSource
 ) {
 
     suspend fun sendStarnazzo(
@@ -24,5 +27,9 @@ class AlertRepository @Inject constructor(
         animalType: String? = null
     ): Map<String, Any> {
         return cloudFunctions.sendBroadcastStarnazzo(groupId, level, animalType)
+    }
+
+    fun observeAlert(alertId: String): Flow<Map<String, Any?>> {
+        return firestoreDataSource.observeAlert(alertId)
     }
 }

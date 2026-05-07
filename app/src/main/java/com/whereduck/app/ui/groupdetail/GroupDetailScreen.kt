@@ -53,9 +53,17 @@ import kotlinx.coroutines.delay
 fun GroupDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToGroupManagement: (String) -> Unit,
+    onNavigateToStarnazzoCall: (alertId: String, toName: String, level: String) -> Unit,
     viewModel: GroupDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Navigate to call screen when starnazzo is sent
+    LaunchedEffect(Unit) {
+        viewModel.starnazzoSent.collect { event ->
+            onNavigateToStarnazzoCall(event.alertId, event.toName, event.level)
+        }
+    }
 
     // Auto-dismiss snackbar
     LaunchedEffect(uiState.lastSendResult) {

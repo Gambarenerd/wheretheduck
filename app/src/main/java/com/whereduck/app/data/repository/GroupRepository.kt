@@ -41,6 +41,14 @@ class GroupRepository @Inject constructor(
         return firestoreDataSource.observePendingInvitesForUser(userId)
     }
 
+    suspend fun deleteGroup(groupId: String): Map<String, Any> {
+        return cloudFunctions.deleteGroup(groupId)
+    }
+
+    suspend fun removeMember(groupId: String, memberId: String): Map<String, Any> {
+        return cloudFunctions.removeMember(groupId, memberId)
+    }
+
     suspend fun sendInvite(groupId: String, email: String): Map<String, Any> {
         return cloudFunctions.sendGroupInvite(groupId, email)
     }

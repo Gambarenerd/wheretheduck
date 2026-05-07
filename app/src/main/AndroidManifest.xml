@@ -88,6 +88,11 @@
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
 
+        <!-- Starnazzo Action Receiver (notification buttons) -->
+        <receiver
+            android:name=".service.StarnazzoActionReceiver"
+            android:exported="false" />
+
         <!-- Boot Receiver (Phase 11) -->
         <!--
         <receiver

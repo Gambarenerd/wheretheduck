@@ -47,28 +47,28 @@ export const sendStarnazzo = functions.https.onCall(async (data, context) => {
     );
   }
 
-  // 3. Check plan limits
-  const plan = sender.plan || "free";
-  if (plan === "free") {
-    const dailyCount = await checkDailyCount(senderId);
-    if (dailyCount >= FREE_DAILY_LIMIT) {
-      return {
-        alertId: "",
-        status: "plan_limited",
-        upgradeReason: "daily_limit_reached",
-      };
-    }
-  }
+  // 3. Check plan limits (disabled for testing)
+  // const plan = sender.plan || "free";
+  // if (plan === "free") {
+  //   const dailyCount = await checkDailyCount(senderId);
+  //   if (dailyCount >= FREE_DAILY_LIMIT) {
+  //     return {
+  //       alertId: "",
+  //       status: "plan_limited",
+  //       upgradeReason: "daily_limit_reached",
+  //     };
+  //   }
+  // }
 
-  // 4. Check rate limit
-  const rateCheck = await checkRateLimit(senderId, toUserId);
-  if (!rateCheck.allowed) {
-    return {
-      alertId: "",
-      status: "rate_limited",
-      retryAfterSeconds: rateCheck.retryAfterSeconds,
-    };
-  }
+  // 4. Check rate limit (disabled for testing)
+  // const rateCheck = await checkRateLimit(senderId, toUserId);
+  // if (!rateCheck.allowed) {
+  //   return {
+  //     alertId: "",
+  //     status: "rate_limited",
+  //     retryAfterSeconds: rateCheck.retryAfterSeconds,
+  //   };
+  // }
 
   // 5. Get receiver info
   const receiverDoc = await db.collection("users").doc(toUserId).get();

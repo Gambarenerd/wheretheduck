@@ -17,8 +17,9 @@ class WhereTheDuckApp : Application() {
     private fun createNotificationChannels() {
         val manager = getSystemService(NotificationManager::class.java)
 
-        // Delete old channel if exists (settings are sticky)
+        // Delete old channels if exist (settings are sticky)
         manager.deleteNotificationChannel("starnazzo")
+        manager.deleteNotificationChannel("starnazzo_reminder")
 
         val starnazzoChannel = NotificationChannel(
             "starnazzo_v2",

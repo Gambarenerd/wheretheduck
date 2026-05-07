@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
@@ -49,6 +50,7 @@ fun HomeScreen(
     onNavigateToGroupDetail: (String) -> Unit,
     onNavigateToCreateGroup: () -> Unit,
     onNavigateToInvites: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -72,6 +74,9 @@ fun HomeScreen(
                                 Icon(Icons.Default.Notifications, "Inviti pendenti")
                             }
                         }
+                    }
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(Icons.Default.Settings, "Impostazioni")
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(

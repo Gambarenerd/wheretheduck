@@ -24,6 +24,8 @@ import com.whereduck.app.ui.groupdetail.GroupDetailScreen
 import com.whereduck.app.ui.home.HomeScreen
 import com.whereduck.app.ui.login.LoginScreen
 import com.whereduck.app.ui.permissions.PermissionSetupScreen
+import com.whereduck.app.ui.settings.SettingsScreen
+import com.whereduck.app.ui.starnazzocall.StarnazzoCallScreen
 
 object Route {
     const val LOGIN = "login"
@@ -33,11 +35,14 @@ object Route {
     const val GROUP_DETAIL = "group_detail/{groupId}"
     const val GROUP_MANAGEMENT = "group_management/{groupId}"
     const val PENDING_INVITES = "invites"
+    const val STARNAZZO_CALL = "starnazzo_call/{alertId}/{toName}/{level}"
     const val SETTINGS = "settings"
     const val PREMIUM = "premium"
 
     fun groupDetail(groupId: String) = "group_detail/$groupId"
     fun groupManagement(groupId: String) = "group_management/$groupId"
+    fun starnazzoCall(alertId: String, toName: String, level: String) =
+        "starnazzo_call/$alertId/${java.net.URLEncoder.encode(toName, "UTF-8")}/$level"
 }
 
 @Composable
@@ -82,6 +87,9 @@ fun AppNavGraph() {
                 },
                 onNavigateToInvites = {
                     navController.navigate(Route.PENDING_INVITES)
+                },
+                onNavigateToSettings = {
+                    navController.navigate(Route.SETTINGS)
                 }
             )
         }
@@ -103,6 +111,9 @@ fun AppNavGraph() {
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToGroupManagement = { groupId ->
                     navController.navigate(Route.groupManagement(groupId))
+                },
+                onNavigateToStarnazzoCall = { alertId, toName, level ->
+                    navController.navigate(Route.starnazzoCall(alertId, toName, level))
                 }
             )
         }
@@ -113,7 +124,11 @@ fun AppNavGraph() {
             val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
             GroupManagementScreen(
                 groupId = groupId,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onGroupDeleted = {
+                    // Pop back to home when group is deleted or user leaves
+                    navController.popBackStack(Route.HOME, inclusive = false)
+                }
             )
         }
         composable(Route.PENDING_INVITES) {
@@ -122,8 +137,27 @@ fun AppNavGraph() {
                 onInviteAccepted = { navController.popBackStack() }
             )
         }
+        composable(
+            route = Route.STARNAZZO_CALL,
+            arguments = listOf(
+                navArgument("alertId") { type = NavType.StringType },
+                navArgument("toName") { type = NavType.StringType },
+                navArgument("level") { type = NavType.StringType }
+            )
+        ) {
+            StarnazzoCallScreen(
+                onDismiss = { navController.popBackStack() }
+            )
+        }
         composable(Route.SETTINGS) {
-            PlaceholderScreen("Settings")
+            SettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onLogout = {
+                    navController.navigate(Route.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
         composable(Route.PREMIUM) {
             PlaceholderScreen("Premium")

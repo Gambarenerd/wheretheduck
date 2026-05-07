@@ -4,14 +4,16 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.whereduck.app.data.model.Group
 import com.whereduck.app.data.model.Member
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.data.repository.AlertRepository
 import com.whereduck.app.data.repository.GroupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
@@ -28,6 +30,12 @@ data class GroupDetailUiState(
     val error: String? = null
 )
 
+data class StarnazzoSentEvent(
+    val alertId: String,
+    val toName: String,
+    val level: String
+)
+
 @HiltViewModel
 class GroupDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -41,18 +49,15 @@ class GroupDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(GroupDetailUiState())
     val uiState: StateFlow<GroupDetailUiState> = _uiState.asStateFlow()
 
+    private val _starnazzoSent = MutableSharedFlow<StarnazzoSentEvent>()
+    val starnazzoSent: SharedFlow<StarnazzoSentEvent> = _starnazzoSent.asSharedFlow()
+
     init {
         loadGroupInfo()
         loadMembers()
     }
 
     private fun loadGroupInfo() {
-        viewModelScope.launch {
-            groupRepository.observeGroupMembers(groupId)
-                .catch { /* ignore */ }
-                .collect { /* members loaded separately */ }
-        }
-        // Load group name
         viewModelScope.launch {
             try {
                 val group = groupRepository.getGroup(groupId)
@@ -87,6 +92,8 @@ class GroupDetailViewModel @Inject constructor(
 
     fun sendStarnazzo(toUserId: String) {
         val level = _uiState.value.selectedLevel
+        val toMember = _uiState.value.members.find { it.id == toUserId }
+        val toName = toMember?.displayName ?: "Qualcuno"
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
@@ -101,15 +108,30 @@ class GroupDetailViewModel @Inject constructor(
                     animalType = level.defaultAnimal
                 )
                 val status = result["status"] as? String
-                _uiState.value = _uiState.value.copy(
-                    sendingToUserId = null,
-                    lastSendResult = when (status) {
-                        "sent" -> "Starnazzo inviato!"
-                        "rate_limited" -> "Troppi starnazzi! Aspetta un po'."
-                        "plan_limited" -> "Limite giornaliero raggiunto. Passa a Premium!"
-                        else -> "Errore nell'invio"
+                val alertId = result["alertId"] as? String ?: ""
+
+                _uiState.value = _uiState.value.copy(sendingToUserId = null)
+
+                when (status) {
+                    "sent" -> {
+                        _starnazzoSent.emit(StarnazzoSentEvent(alertId, toName, level.key))
                     }
-                )
+                    "rate_limited" -> {
+                        _uiState.value = _uiState.value.copy(
+                            lastSendResult = "Troppi starnazzi! Aspetta un po'."
+                        )
+                    }
+                    "plan_limited" -> {
+                        _uiState.value = _uiState.value.copy(
+                            lastSendResult = "Limite giornaliero raggiunto. Passa a Premium!"
+                        )
+                    }
+                    else -> {
+                        _uiState.value = _uiState.value.copy(
+                            lastSendResult = "Errore nell'invio"
+                        )
+                    }
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     sendingToUserId = null,
@@ -134,16 +156,34 @@ class GroupDetailViewModel @Inject constructor(
                     animalType = level.defaultAnimal
                 )
                 val status = result["status"] as? String
-                _uiState.value = _uiState.value.copy(
-                    isBroadcasting = false,
-                    lastSendResult = when (status) {
-                        "sent" -> "Starnazzo inviato a tutti!"
-                        "partial" -> "Starnazzo inviato (alcuni membri non raggiunti)"
-                        "rate_limited" -> "Troppi starnazzi! Aspetta un po'."
-                        "plan_limited" -> "Limite broadcast raggiunto. Passa a Premium!"
-                        else -> "Errore nell'invio"
+                val alertId = result["alertId"] as? String ?: ""
+
+                _uiState.value = _uiState.value.copy(isBroadcasting = false)
+
+                @Suppress("UNCHECKED_CAST")
+                val alertIds = result["alertIds"] as? List<String> ?: emptyList()
+                val firstAlertId = alertIds.firstOrNull() ?: alertId
+
+                when (status) {
+                    "sent", "partial" -> {
+                        _starnazzoSent.emit(StarnazzoSentEvent(firstAlertId, "TUTTI", level.key))
                     }
-                )
+                    "rate_limited" -> {
+                        _uiState.value = _uiState.value.copy(
+                            lastSendResult = "Troppi starnazzi! Aspetta un po'."
+                        )
+                    }
+                    "plan_limited" -> {
+                        _uiState.value = _uiState.value.copy(
+                            lastSendResult = "Limite broadcast raggiunto. Passa a Premium!"
+                        )
+                    }
+                    else -> {
+                        _uiState.value = _uiState.value.copy(
+                            lastSendResult = "Errore nell'invio"
+                        )
+                    }
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isBroadcasting = false,
