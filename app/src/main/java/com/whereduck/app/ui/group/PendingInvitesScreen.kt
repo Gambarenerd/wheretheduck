@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,7 +53,7 @@ fun PendingInvitesScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Inviti",
+                        text = "Inviti contatto",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -63,9 +64,9 @@ fun PendingInvitesScreen(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = Color.Transparent,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -125,12 +126,12 @@ fun PendingInvitesScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = invite.groupName.ifEmpty { "Gruppo" },
+                                    text = invite.fromDisplayName.ifEmpty { "Qualcuno" },
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
-                                    text = "Invitato da ${invite.invitedByDisplayName}",
+                                    text = "Vuole aggiungerti come contatto",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                 )
@@ -138,8 +139,7 @@ fun PendingInvitesScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             IconButton(
                                 onClick = {
-                                    val groupId = invite.groupId
-                                    viewModel.respondToInvite(groupId, invite.id, true)
+                                    viewModel.respondToInvite(invite.id, true)
                                     onInviteAccepted()
                                 }
                             ) {
@@ -152,8 +152,7 @@ fun PendingInvitesScreen(
                             }
                             IconButton(
                                 onClick = {
-                                    val groupId = invite.groupId
-                                    viewModel.respondToInvite(groupId, invite.id, false)
+                                    viewModel.respondToInvite(invite.id, false)
                                 }
                             ) {
                                 Icon(

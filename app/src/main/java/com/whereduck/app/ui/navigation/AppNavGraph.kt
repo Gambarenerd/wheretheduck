@@ -21,8 +21,11 @@ import com.whereduck.app.ui.group.CreateGroupScreen
 import com.whereduck.app.ui.group.GroupManagementScreen
 import com.whereduck.app.ui.group.PendingInvitesScreen
 import com.whereduck.app.ui.groupdetail.GroupDetailScreen
-import com.whereduck.app.ui.home.HomeScreen
 import com.whereduck.app.ui.login.LoginScreen
+import com.whereduck.app.ui.main.ContactsTab
+import com.whereduck.app.ui.main.DashboardTab
+import com.whereduck.app.ui.main.HistoryTab
+import com.whereduck.app.ui.main.MainShell
 import com.whereduck.app.ui.permissions.PermissionSetupScreen
 import com.whereduck.app.ui.settings.SettingsScreen
 import com.whereduck.app.ui.starnazzocall.StarnazzoCallScreen
@@ -37,7 +40,7 @@ object Route {
     const val PENDING_INVITES = "invites"
     const val STARNAZZO_CALL = "starnazzo_call/{alertId}/{toName}/{level}"
     const val SETTINGS = "settings"
-    const val PREMIUM = "premium"
+    const val CUSTOMIZE = "customize"
 
     fun groupDetail(groupId: String) = "group_detail/$groupId"
     fun groupManagement(groupId: String) = "group_management/$groupId"
@@ -78,18 +81,31 @@ fun AppNavGraph() {
             )
         }
         composable(Route.HOME) {
-            HomeScreen(
-                onNavigateToGroupDetail = { groupId ->
-                    navController.navigate(Route.groupDetail(groupId))
+            MainShell(
+                onOpenUserMenu = {
+                    navController.navigate(Route.SETTINGS)
                 },
-                onNavigateToCreateGroup = {
+                onOpenCustomize = {
+                    navController.navigate(Route.CUSTOMIZE)
+                },
+                onCreateGroup = {
                     navController.navigate(Route.CREATE_GROUP)
                 },
-                onNavigateToInvites = {
-                    navController.navigate(Route.PENDING_INVITES)
+                dashboardContent = {
+                    DashboardTab()
                 },
-                onNavigateToSettings = {
-                    navController.navigate(Route.SETTINGS)
+                contactsContent = {
+                    ContactsTab(
+                        onNavigateToGroupDetail = { groupId ->
+                            navController.navigate(Route.groupDetail(groupId))
+                        },
+                        onNavigateToInvites = {
+                            navController.navigate(Route.PENDING_INVITES)
+                        }
+                    )
+                },
+                historyContent = {
+                    HistoryTab()
                 }
             )
         }
@@ -126,7 +142,6 @@ fun AppNavGraph() {
                 groupId = groupId,
                 onNavigateBack = { navController.popBackStack() },
                 onGroupDeleted = {
-                    // Pop back to home when group is deleted or user leaves
                     navController.popBackStack(Route.HOME, inclusive = false)
                 }
             )
@@ -159,8 +174,8 @@ fun AppNavGraph() {
                 }
             )
         }
-        composable(Route.PREMIUM) {
-            PlaceholderScreen("Premium")
+        composable(Route.CUSTOMIZE) {
+            PlaceholderScreen("Personalizza\nSuoni & Animali")
         }
     }
 }

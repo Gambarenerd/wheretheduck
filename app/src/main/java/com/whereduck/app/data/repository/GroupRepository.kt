@@ -1,10 +1,6 @@
 package com.whereduck.app.data.repository
 
 import com.whereduck.app.data.model.Group
-import com.whereduck.app.data.model.GroupInvite
-import com.whereduck.app.data.model.Member
-import com.whereduck.app.data.model.User
-import com.whereduck.app.data.remote.CloudFunctionsDataSource
 import com.whereduck.app.data.remote.FirestoreDataSource
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -12,52 +8,34 @@ import javax.inject.Singleton
 
 @Singleton
 class GroupRepository @Inject constructor(
-    private val firestoreDataSource: FirestoreDataSource,
-    private val cloudFunctions: CloudFunctionsDataSource
+    private val firestoreDataSource: FirestoreDataSource
 ) {
-
-    suspend fun createGroup(name: String, creatorUser: User): String {
-        val group = Group(name = name, createdBy = creatorUser.id)
-        return firestoreDataSource.createGroup(group, creatorUser)
-    }
-
-    suspend fun getGroup(groupId: String): Group? {
-        return firestoreDataSource.getGroup(groupId)
-    }
 
     fun observeUserGroups(userId: String): Flow<List<Group>> {
         return firestoreDataSource.observeUserGroups(userId)
     }
 
-    fun observeGroupMembers(groupId: String): Flow<List<Member>> {
-        return firestoreDataSource.observeGroupMembers(groupId)
+    suspend fun getGroup(userId: String, groupId: String): Group? {
+        return firestoreDataSource.getGroup(userId, groupId)
     }
 
-    fun observeGroupInvites(groupId: String): Flow<List<GroupInvite>> {
-        return firestoreDataSource.observeGroupInvites(groupId)
+    suspend fun createGroup(userId: String, name: String): String {
+        return firestoreDataSource.createPersonalGroup(userId, name)
     }
 
-    fun observePendingInvitesForUser(userId: String): Flow<List<GroupInvite>> {
-        return firestoreDataSource.observePendingInvitesForUser(userId)
+    suspend fun deleteGroup(userId: String, groupId: String) {
+        firestoreDataSource.deletePersonalGroup(userId, groupId)
     }
 
-    suspend fun deleteGroup(groupId: String): Map<String, Any> {
-        return cloudFunctions.deleteGroup(groupId)
+    suspend fun renameGroup(userId: String, groupId: String, newName: String) {
+        firestoreDataSource.renameGroup(userId, groupId, newName)
     }
 
-    suspend fun removeMember(groupId: String, memberId: String): Map<String, Any> {
-        return cloudFunctions.removeMember(groupId, memberId)
+    suspend fun addContactToGroup(userId: String, groupId: String, contactId: String) {
+        firestoreDataSource.addContactToGroup(userId, groupId, contactId)
     }
 
-    suspend fun sendInvite(groupId: String, email: String): Map<String, Any> {
-        return cloudFunctions.sendGroupInvite(groupId, email)
-    }
-
-    suspend fun respondToInvite(
-        groupId: String,
-        inviteId: String,
-        accepted: Boolean
-    ): Map<String, Any> {
-        return cloudFunctions.respondGroupInvite(groupId, inviteId, accepted)
+    suspend fun removeContactFromGroup(userId: String, groupId: String, contactId: String) {
+        firestoreDataSource.removeContactFromGroup(userId, groupId, contactId)
     }
 }

@@ -2,16 +2,13 @@ import * as admin from "firebase-admin";
 
 admin.initializeApp();
 
-// Groups
-export { sendGroupInvite } from "./groups/sendGroupInvite";
-export { respondGroupInvite } from "./groups/respondGroupInvite";
-export { deleteGroup } from "./groups/deleteGroup";
-export { removeMember } from "./groups/removeMember";
+// Contacts
+export { sendContactInvite } from "./contacts/sendContactInvite";
+export { respondContactInvite } from "./contacts/respondContactInvite";
+export { removeContact } from "./contacts/removeContact";
 
 // Starnazzo
 export { sendStarnazzo } from "./starnazzo/sendStarnazzo";
 export { sendBroadcastStarnazzo } from "./starnazzo/sendBroadcast";
 export { respondStarnazzo } from "./starnazzo/respondStarnazzo";
-
-// Migration (temporary)
-export { migrateAddUserIdToMembers } from "./migration/addUserIdToMembers";
+export { revengeStarnazzo } from "./starnazzo/revengeStarnazzo";

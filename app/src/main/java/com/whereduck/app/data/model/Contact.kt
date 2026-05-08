@@ -4,11 +4,12 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.ServerTimestamp
 
-data class Group(
+data class Contact(
     @DocumentId
     val id: String = "",
-    val name: String = "",
-    val contactIds: List<String> = emptyList(),
+    val displayName: String = "",
+    val email: String = "",
+    val photoUrl: String = "",
     @ServerTimestamp
-    val createdAt: Timestamp? = null
+    val addedAt: Timestamp? = null
 )

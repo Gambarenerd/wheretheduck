@@ -21,11 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.whereduck.app.data.model.Member
+import com.whereduck.app.data.model.Contact
 
 @Composable
-fun MemberCard(
-    member: Member,
+fun ContactCard(
+    contact: Contact,
     trailingContent: @Composable () -> Unit = {}
 ) {
     Card(
@@ -33,7 +33,7 @@ fun MemberCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
@@ -52,15 +52,15 @@ fun MemberCard(
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = member.displayName,
+                    text = contact.displayName,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium
                 )
-                if (member.isAdmin) {
+                if (contact.email.isNotEmpty()) {
                     Text(
-                        text = "Admin",
+                        text = contact.email,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
             }

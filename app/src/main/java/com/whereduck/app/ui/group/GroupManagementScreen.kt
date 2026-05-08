@@ -1,5 +1,6 @@
 package com.whereduck.app.ui.group
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,34 +9,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material.icons.filled.PersonRemove
-import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -48,11 +44,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,26 +59,13 @@ fun GroupManagementScreen(
     viewModel: GroupManagementViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var showInviteDialog by remember { mutableStateOf(false) }
-    var inviteEmail by remember { mutableStateOf("") }
-    var showDeleteConfirm by remember { mutableStateOf(false) }
-    var showLeaveConfirm by remember { mutableStateOf(false) }
-    var memberToRemove by remember { mutableStateOf<String?>(null) }
+    var showRenameDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showAddContactDialog by remember { mutableStateOf(false) }
+    var showRemoveContactId by remember { mutableStateOf<String?>(null) }
 
-    // Navigate back when group is deleted or user leaves
     LaunchedEffect(Unit) {
         viewModel.groupDeleted.collect { onGroupDeleted() }
-    }
-    LaunchedEffect(Unit) {
-        viewModel.leftGroup.collect { onGroupDeleted() }
-    }
-
-    // Auto-dismiss error
-    LaunchedEffect(uiState.actionError) {
-        if (uiState.actionError != null) {
-            delay(4000)
-            viewModel.clearActionError()
-        }
     }
 
     Scaffold(
@@ -101,46 +84,57 @@ fun GroupManagementScreen(
                     }
                 },
                 actions = {
-                    if (uiState.isAdmin) {
-                        IconButton(onClick = { showInviteDialog = true }) {
-                            Icon(Icons.Default.PersonAdd, "Invita membro")
-                        }
+                    IconButton(onClick = { showRenameDialog = true }) {
+                        Icon(Icons.Default.Edit, "Rinomina")
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = Color.Transparent,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
     ) { paddingValues ->
-        androidx.compose.foundation.layout.Box(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // Members section
+            // Contacts in group
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Contatti nel gruppo",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    IconButton(onClick = { showAddContactDialog = true }) {
+                        Icon(Icons.Default.Add, "Aggiungi contatto")
+                    }
+                }
+            }
+
+            if (uiState.groupContacts.isEmpty()) {
                 item {
                     Text(
-                        text = "Membri",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        text = "Nessun contatto nel gruppo",
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
-
-                items(uiState.members) { member ->
-                    val isCurrentUser = member.id == viewModel.currentUserId
+            } else {
+                items(uiState.groupContacts) { contact ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surface
                         )
@@ -151,309 +145,157 @@ fun GroupManagementScreen(
                                 .padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(CircleShape),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = member.displayName + if (isCurrentUser) " (tu)" else "",
-                                    style = MaterialTheme.typography.bodyLarge,
+                                    text = contact.displayName,
                                     fontWeight = FontWeight.Medium
                                 )
-                                if (member.isAdmin) {
-                                    Text(
-                                        text = "Admin",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
+                                Text(
+                                    text = contact.email,
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
                             }
-                            // Remove button (admin only, not for self)
-                            if (uiState.isAdmin && !isCurrentUser) {
-                                IconButton(onClick = { memberToRemove = member.id }) {
-                                    Icon(
-                                        Icons.Default.PersonRemove,
-                                        contentDescription = "Rimuovi",
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
-                                }
+                            IconButton(onClick = { showRemoveContactId = contact.id }) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = "Rimuovi",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
                             }
                         }
                     }
                 }
+            }
 
-                // Pending invites section
-                if (uiState.pendingInvites.isNotEmpty()) {
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "Inviti pendenti",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
+            // Delete group button
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(
+                    onClick = { showDeleteDialog = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    ),
+                    enabled = !uiState.isDeleting
+                ) {
+                    Icon(Icons.Default.Delete, null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Elimina gruppo")
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+        }
+    }
+
+    // Rename dialog
+    if (showRenameDialog) {
+        var newName by remember { mutableStateOf(uiState.groupName) }
+        AlertDialog(
+            onDismissRequest = { showRenameDialog = false },
+            title = { Text("Rinomina gruppo") },
+            text = {
+                OutlinedTextField(
+                    value = newName,
+                    onValueChange = { newName = it },
+                    label = { Text("Nome gruppo") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (newName.isNotBlank()) {
+                        viewModel.renameGroup(newName.trim())
+                        showRenameDialog = false
                     }
+                }) { Text("Salva") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRenameDialog = false }) { Text("Annulla") }
+            }
+        )
+    }
 
-                    items(uiState.pendingInvites) { invite ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.1f)
-                            )
-                        ) {
+    // Delete dialog
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Elimina gruppo") },
+            text = { Text("Sei sicuro di voler eliminare \"${uiState.groupName}\"? I contatti non verranno cancellati.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deleteGroup()
+                    showDeleteDialog = false
+                }) { Text("Elimina", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) { Text("Annulla") }
+            }
+        )
+    }
+
+    // Remove contact from group dialog
+    showRemoveContactId?.let { contactId ->
+        val contact = uiState.groupContacts.find { it.id == contactId }
+        AlertDialog(
+            onDismissRequest = { showRemoveContactId = null },
+            title = { Text("Rimuovi dal gruppo") },
+            text = { Text("Rimuovere ${contact?.displayName ?: ""} da questo gruppo? Resterà nei tuoi contatti.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.removeContactFromGroup(contactId)
+                    showRemoveContactId = null
+                }) { Text("Rimuovi", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRemoveContactId = null }) { Text("Annulla") }
+            }
+        )
+    }
+
+    // Add contacts dialog
+    if (showAddContactDialog) {
+        val availableContacts = uiState.allContacts.filter { it.id !in uiState.groupContactIds }
+        AlertDialog(
+            onDismissRequest = { showAddContactDialog = false },
+            title = { Text("Aggiungi contatti") },
+            text = {
+                if (availableContacts.isEmpty()) {
+                    Text("Tutti i tuoi contatti sono già nel gruppo")
+                } else {
+                    Column {
+                        availableContacts.forEach { contact ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(12.dp),
+                                    .clickable {
+                                        viewModel.addContactToGroup(contact.id)
+                                    }
+                                    .padding(vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Schedule,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.tertiary
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Column {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(contact.displayName, fontWeight = FontWeight.Medium)
                                     Text(
-                                        text = invite.invitedEmail,
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                    Text(
-                                        text = "In attesa di risposta",
-                                        style = MaterialTheme.typography.bodySmall,
+                                        contact.email,
+                                        fontSize = 13.sp,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                     )
                                 }
-                            }
-                        }
-                    }
-                }
-
-                // Danger zone
-                item {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        text = "Azioni",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-
-                // Leave group (non-admin or admin with other admins)
-                item {
-                    OutlinedButton(
-                        onClick = { showLeaveConfirm = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.ExitToApp, null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Lascia gruppo")
-                    }
-                }
-
-                // Delete group (admin only)
-                if (uiState.isAdmin) {
-                    item {
-                        Button(
-                            onClick = { showDeleteConfirm = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error
-                            ),
-                            enabled = !uiState.isDeleting
-                        ) {
-                            if (uiState.isDeleting) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.onError
+                                Icon(
+                                    Icons.Default.Add,
+                                    contentDescription = "Aggiungi",
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
-                            } else {
-                                Icon(Icons.Default.Delete, null, modifier = Modifier.size(18.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Elimina gruppo")
                             }
                         }
                     }
                 }
-
-                item { Spacer(modifier = Modifier.height(16.dp)) }
+            },
+            confirmButton = {
+                TextButton(onClick = { showAddContactDialog = false }) { Text("Chiudi") }
             }
-
-            // Error snackbar
-            if (uiState.actionError != null) {
-                Snackbar(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(16.dp)
-                ) {
-                    Text(uiState.actionError ?: "")
-                }
-            }
-        }
-
-        // Invite dialog
-        if (showInviteDialog) {
-            AlertDialog(
-                onDismissRequest = {
-                    showInviteDialog = false
-                    inviteEmail = ""
-                },
-                title = { Text("Invita membro") },
-                text = {
-                    Column {
-                        Text("Inserisci l'email dell'utente da invitare")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = inviteEmail,
-                            onValueChange = { inviteEmail = it },
-                            label = { Text("Email") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        if (uiState.inviteError != null) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = uiState.inviteError!!,
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        if (uiState.inviteSuccess != null) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = uiState.inviteSuccess!!,
-                                color = MaterialTheme.colorScheme.secondary,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            viewModel.sendInvite(groupId, inviteEmail.trim())
-                        },
-                        enabled = inviteEmail.isNotBlank() && !uiState.isInviting
-                    ) {
-                        if (uiState.isInviting) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text("Invita")
-                        }
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = {
-                        showInviteDialog = false
-                        inviteEmail = ""
-                        viewModel.clearInviteMessages()
-                    }) {
-                        Text("Chiudi")
-                    }
-                }
-            )
-        }
-
-        // Delete confirmation dialog
-        if (showDeleteConfirm) {
-            AlertDialog(
-                onDismissRequest = { showDeleteConfirm = false },
-                title = { Text("Elimina gruppo") },
-                text = {
-                    Text("Sei sicuro di voler eliminare \"${uiState.groupName}\"? Tutti i membri verranno rimossi. Questa azione non può essere annullata.")
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            showDeleteConfirm = false
-                            viewModel.deleteGroup()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Text("Elimina")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDeleteConfirm = false }) {
-                        Text("Annulla")
-                    }
-                }
-            )
-        }
-
-        // Leave confirmation dialog
-        if (showLeaveConfirm) {
-            AlertDialog(
-                onDismissRequest = { showLeaveConfirm = false },
-                title = { Text("Lascia gruppo") },
-                text = {
-                    Text("Sei sicuro di voler lasciare \"${uiState.groupName}\"?")
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            showLeaveConfirm = false
-                            viewModel.leaveGroup()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Text("Lascia")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showLeaveConfirm = false }) {
-                        Text("Annulla")
-                    }
-                }
-            )
-        }
-
-        // Remove member confirmation dialog
-        if (memberToRemove != null) {
-            val memberName = uiState.members.find { it.id == memberToRemove }?.displayName ?: ""
-            AlertDialog(
-                onDismissRequest = { memberToRemove = null },
-                title = { Text("Rimuovi membro") },
-                text = {
-                    Text("Sei sicuro di voler rimuovere $memberName dal gruppo?")
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            memberToRemove?.let { viewModel.removeMember(it) }
-                            memberToRemove = null
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Text("Rimuovi")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { memberToRemove = null }) {
-                        Text("Annulla")
-                    }
-                }
-            )
-        }
+        )
     }
 }

@@ -1,10 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { sendFcmMessage } from "../util/fcmSender";
-import { checkDailyCount } from "../rateLimit/rateLimiter";
-
-const FREE_DAILY_LIMIT = 10;
-const FREE_BROADCAST_DAILY_LIMIT = 1;
 
 const DEFAULT_ANIMALS: Record<string, string> = {
   light: "cricket",
@@ -35,39 +31,20 @@ export const sendBroadcastStarnazzo = functions.https.onCall(async (data, contex
   }
   const sender = senderDoc.data()!;
 
-  // 2. Verify sender is member
-  const senderMember = await db
+  // 2. Get personal group to find contactIds
+  const groupDoc = await db
+    .collection("users").doc(senderId)
     .collection("groups").doc(groupId)
-    .collection("members").doc(senderId)
     .get();
 
-  if (!senderMember.exists) {
-    throw new functions.https.HttpsError("permission-denied", "Not a member");
+  if (!groupDoc.exists) {
+    throw new functions.https.HttpsError("not-found", "Group not found");
   }
 
-  // 3. Check plan limits (disabled for testing)
-  // const plan = sender.plan || "free";
-  // if (plan === "free") {
-  //   const dailyCount = await checkDailyCount(senderId);
-  //   if (dailyCount >= FREE_DAILY_LIMIT) {
-  //     return {
-  //       broadcastId: "",
-  //       alertIds: [],
-  //       failedMembers: [],
-  //       status: "plan_limited",
-  //     };
-  //   }
-  // }
+  const groupData = groupDoc.data()!;
+  const contactIds: string[] = groupData.contactIds || [];
 
-  // 4. Get all members except sender
-  const membersSnapshot = await db
-    .collection("groups").doc(groupId)
-    .collection("members")
-    .get();
-
-  const members = membersSnapshot.docs.filter((doc) => doc.id !== senderId);
-
-  if (members.length === 0) {
+  if (contactIds.length === 0) {
     return {
       broadcastId: "",
       alertIds: [],
@@ -76,19 +53,28 @@ export const sendBroadcastStarnazzo = functions.https.onCall(async (data, contex
     };
   }
 
+  // 3. Verify all are still contacts
+  const validContactIds: string[] = [];
+  for (const contactId of contactIds) {
+    const contactDoc = await db
+      .collection("users").doc(senderId)
+      .collection("contacts").doc(contactId)
+      .get();
+    if (contactDoc.exists) {
+      validContactIds.push(contactId);
+    }
+  }
+
   const resolvedAnimal = animalType || DEFAULT_ANIMALS[level] || "duck";
   const broadcastId = db.collection("alerts").doc().id;
   const alertIds: string[] = [];
   const failedMembers: string[] = [];
 
-  // 5. Send to each member
-  for (const memberDoc of members) {
-    const memberId = memberDoc.id;
-
-    // Get receiver info
-    const receiverDoc = await db.collection("users").doc(memberId).get();
+  // 4. Send to each contact
+  for (const contactId of validContactIds) {
+    const receiverDoc = await db.collection("users").doc(contactId).get();
     if (!receiverDoc.exists) {
-      failedMembers.push(memberId);
+      failedMembers.push(contactId);
       continue;
     }
     const receiver = receiverDoc.data()!;
@@ -98,15 +84,16 @@ export const sendBroadcastStarnazzo = functions.https.onCall(async (data, contex
     await alertRef.set({
       fromUserId: senderId,
       fromDisplayName: sender.displayName || "",
-      toUserId: memberId,
+      toUserId: contactId,
       toDisplayName: receiver.displayName || "",
-      groupId,
+      groupId: null,
       broadcastId,
       starnazzoLevel: level,
       animalType: resolvedAnimal,
       status: "sending",
       response: null,
       muteDuration: null,
+      isRevenge: false,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       deliveredAt: null,
       respondedAt: null,
@@ -125,7 +112,6 @@ export const sendBroadcastStarnazzo = functions.https.onCall(async (data, contex
           fromDisplayName: senderName,
           level,
           animalType: resolvedAnimal,
-          groupId,
           broadcastId,
         },
         "STARNAZZO A TUTTI!",
@@ -141,7 +127,7 @@ export const sendBroadcastStarnazzo = functions.https.onCall(async (data, contex
       alertIds.push(alertRef.id);
     } else {
       await alertRef.update({ status: "failed" });
-      failedMembers.push(memberId);
+      failedMembers.push(contactId);
     }
   }
 

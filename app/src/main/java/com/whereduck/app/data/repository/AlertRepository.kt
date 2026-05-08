@@ -14,11 +14,10 @@ class AlertRepository @Inject constructor(
 
     suspend fun sendStarnazzo(
         toUserId: String,
-        groupId: String,
         level: String,
         animalType: String? = null
     ): Map<String, Any> {
-        return cloudFunctions.sendStarnazzo(toUserId, groupId, level, animalType)
+        return cloudFunctions.sendStarnazzo(toUserId, level, animalType)
     }
 
     suspend fun sendBroadcast(
@@ -27,6 +26,10 @@ class AlertRepository @Inject constructor(
         animalType: String? = null
     ): Map<String, Any> {
         return cloudFunctions.sendBroadcastStarnazzo(groupId, level, animalType)
+    }
+
+    suspend fun revengeStarnazzo(alertId: String): Map<String, Any> {
+        return cloudFunctions.revengeStarnazzo(alertId)
     }
 
     fun observeAlert(alertId: String): Flow<Map<String, Any?>> {

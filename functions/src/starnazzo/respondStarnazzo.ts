@@ -15,10 +15,10 @@ export const respondStarnazzo = functions.https.onCall(async (data, context) => 
     );
   }
 
-  if (!["arrivo", "muto", "dismissed"].includes(response)) {
+  if (!["ok", "muto", "revenge", "dismissed"].includes(response)) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "response must be arrivo, muto, or dismissed"
+      "response must be ok, muto, revenge, or dismissed"
     );
   }
 
@@ -50,29 +50,49 @@ export const respondStarnazzo = functions.https.onCall(async (data, context) => 
   }
   await alertRef.update(updateData);
 
-  // 3. Notify the sender if response is "arrivo"
-  if (response === "arrivo") {
-    const responderDoc = await db.collection("users").doc(userId).get();
-    const responderName = responderDoc.exists
-      ? responderDoc.data()!.displayName || "Qualcuno"
-      : "Qualcuno";
+  // 3. Notify the sender
+  const responderDoc = await db.collection("users").doc(userId).get();
+  const responderName = responderDoc.exists
+    ? responderDoc.data()!.displayName || "Qualcuno"
+    : "Qualcuno";
 
-    const senderDoc = await db.collection("users").doc(alert.fromUserId).get();
-    if (senderDoc.exists) {
-      const senderToken = senderDoc.data()!.fcmToken;
-      if (senderToken) {
-        await sendFcmMessage(
-          senderToken,
-          {
-            type: "starnazzo_response",
-            alertId,
-            response: "arrivo",
-            fromDisplayName: responderName,
-          },
-          "ARRIVO!",
-          `${responderName} sta arrivando!`
-        );
+  const senderDoc = await db.collection("users").doc(alert.fromUserId).get();
+  if (senderDoc.exists) {
+    const senderToken = senderDoc.data()!.fcmToken;
+    if (senderToken) {
+      let title = "";
+      let body = "";
+
+      switch (response) {
+        case "ok":
+          title = "OK!";
+          body = `${responderName} ha visto il tuo starnazzo!`;
+          break;
+        case "muto":
+          title = "Non mi rompere!";
+          body = `${responderName} ti ha mutato per ${muteDurationMinutes || 1} minuti`;
+          break;
+        case "revenge":
+          title = "REVENGE!";
+          body = `${responderName} ti ha restituito lo starnazzo!`;
+          break;
+        case "dismissed":
+          title = "Chiuso";
+          body = `${responderName} ha chiuso lo starnazzo`;
+          break;
       }
+
+      await sendFcmMessage(
+        senderToken,
+        {
+          type: "starnazzo_response",
+          alertId,
+          response,
+          fromDisplayName: responderName,
+        },
+        title,
+        body
+      );
     }
   }
 

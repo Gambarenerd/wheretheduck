@@ -16,47 +16,51 @@ class CloudFunctionsDataSource @Inject constructor(
         auth.currentUser?.getIdToken(true)?.await()
     }
 
-    suspend fun sendGroupInvite(groupId: String, email: String): Map<String, Any> {
+    // ── Contacts ──
+
+    suspend fun sendContactInvite(email: String): Map<String, Any> {
         ensureFreshToken()
-        val data = hashMapOf(
-            "groupId" to groupId,
-            "email" to email
-        )
-        val result = functions.getHttpsCallable("sendGroupInvite")
+        val data = hashMapOf("email" to email)
+        val result = functions.getHttpsCallable("sendContactInvite")
             .call(data)
             .await()
         @Suppress("UNCHECKED_CAST")
         return result.getData() as Map<String, Any>
     }
 
-    suspend fun respondGroupInvite(
-        groupId: String,
-        inviteId: String,
-        accepted: Boolean
-    ): Map<String, Any> {
+    suspend fun respondContactInvite(inviteId: String, accepted: Boolean): Map<String, Any> {
         ensureFreshToken()
         val data = hashMapOf(
-            "groupId" to groupId,
             "inviteId" to inviteId,
             "accepted" to accepted
         )
-        val result = functions.getHttpsCallable("respondGroupInvite")
+        val result = functions.getHttpsCallable("respondContactInvite")
             .call(data)
             .await()
         @Suppress("UNCHECKED_CAST")
         return result.getData() as Map<String, Any>
     }
 
+    suspend fun removeContact(contactUserId: String): Map<String, Any> {
+        ensureFreshToken()
+        val data = hashMapOf("contactUserId" to contactUserId)
+        val result = functions.getHttpsCallable("removeContact")
+            .call(data)
+            .await()
+        @Suppress("UNCHECKED_CAST")
+        return result.getData() as Map<String, Any>
+    }
+
+    // ── Starnazzo ──
+
     suspend fun sendStarnazzo(
         toUserId: String,
-        groupId: String,
         level: String,
         animalType: String? = null
     ): Map<String, Any> {
         ensureFreshToken()
         val data = hashMapOf<String, Any>(
             "toUserId" to toUserId,
-            "groupId" to groupId,
             "level" to level
         )
         animalType?.let { data["animalType"] = it }
@@ -67,23 +71,18 @@ class CloudFunctionsDataSource @Inject constructor(
         return result.getData() as Map<String, Any>
     }
 
-    suspend fun deleteGroup(groupId: String): Map<String, Any> {
+    suspend fun sendBroadcastStarnazzo(
+        groupId: String,
+        level: String,
+        animalType: String? = null
+    ): Map<String, Any> {
         ensureFreshToken()
-        val data = hashMapOf("groupId" to groupId)
-        val result = functions.getHttpsCallable("deleteGroup")
-            .call(data)
-            .await()
-        @Suppress("UNCHECKED_CAST")
-        return result.getData() as Map<String, Any>
-    }
-
-    suspend fun removeMember(groupId: String, memberId: String): Map<String, Any> {
-        ensureFreshToken()
-        val data = hashMapOf(
+        val data = hashMapOf<String, Any>(
             "groupId" to groupId,
-            "memberId" to memberId
+            "level" to level
         )
-        val result = functions.getHttpsCallable("removeMember")
+        animalType?.let { data["animalType"] = it }
+        val result = functions.getHttpsCallable("sendBroadcastStarnazzo")
             .call(data)
             .await()
         @Suppress("UNCHECKED_CAST")
@@ -108,18 +107,10 @@ class CloudFunctionsDataSource @Inject constructor(
         return result.getData() as Map<String, Any>
     }
 
-    suspend fun sendBroadcastStarnazzo(
-        groupId: String,
-        level: String,
-        animalType: String? = null
-    ): Map<String, Any> {
+    suspend fun revengeStarnazzo(alertId: String): Map<String, Any> {
         ensureFreshToken()
-        val data = hashMapOf<String, Any>(
-            "groupId" to groupId,
-            "level" to level
-        )
-        animalType?.let { data["animalType"] = it }
-        val result = functions.getHttpsCallable("sendBroadcastStarnazzo")
+        val data = hashMapOf("alertId" to alertId)
+        val result = functions.getHttpsCallable("revengeStarnazzo")
             .call(data)
             .await()
         @Suppress("UNCHECKED_CAST")

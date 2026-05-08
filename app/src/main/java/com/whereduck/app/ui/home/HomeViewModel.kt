@@ -3,7 +3,9 @@ package com.whereduck.app.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.whereduck.app.data.model.Contact
 import com.whereduck.app.data.model.Group
+import com.whereduck.app.data.repository.ContactRepository
 import com.whereduck.app.data.repository.GroupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +18,7 @@ import javax.inject.Inject
 data class HomeUiState(
     val isLoading: Boolean = true,
     val groups: List<Group> = emptyList(),
+    val contacts: List<Contact> = emptyList(),
     val pendingInviteCount: Int = 0,
     val error: String? = null
 )
@@ -23,6 +26,7 @@ data class HomeUiState(
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val groupRepository: GroupRepository,
+    private val contactRepository: ContactRepository,
     private val auth: FirebaseAuth
 ) : ViewModel() {
 
@@ -31,6 +35,7 @@ class HomeViewModel @Inject constructor(
 
     init {
         loadGroups()
+        loadContacts()
         loadPendingInvites()
     }
 
@@ -54,10 +59,21 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun loadContacts() {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            contactRepository.observeContacts(userId)
+                .catch { /* ignore */ }
+                .collect { contacts ->
+                    _uiState.value = _uiState.value.copy(contacts = contacts)
+                }
+        }
+    }
+
     private fun loadPendingInvites() {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
-            groupRepository.observePendingInvitesForUser(userId)
+            contactRepository.observePendingInvites(userId)
                 .catch { /* ignore */ }
                 .collect { invites ->
                     _uiState.value = _uiState.value.copy(

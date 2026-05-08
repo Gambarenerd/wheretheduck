@@ -4,9 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.whereduck.app.data.model.Member
+import com.whereduck.app.data.model.Contact
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.data.repository.AlertRepository
+import com.whereduck.app.data.repository.ContactRepository
 import com.whereduck.app.data.repository.GroupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -16,13 +17,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class GroupDetailUiState(
     val isLoading: Boolean = true,
     val groupName: String = "",
-    val members: List<Member> = emptyList(),
+    val contacts: List<Contact> = emptyList(),
     val selectedLevel: StarnazzoLevel = StarnazzoLevel.MEDIUM,
     val sendingToUserId: String? = null,
     val isBroadcasting: Boolean = false,
@@ -40,11 +42,13 @@ data class StarnazzoSentEvent(
 class GroupDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val groupRepository: GroupRepository,
+    private val contactRepository: ContactRepository,
     private val alertRepository: AlertRepository,
     private val auth: FirebaseAuth
 ) : ViewModel() {
 
     val groupId: String = savedStateHandle.get<String>("groupId") ?: ""
+    private val userId: String = auth.currentUser?.uid ?: ""
 
     private val _uiState = MutableStateFlow(GroupDetailUiState())
     val uiState: StateFlow<GroupDetailUiState> = _uiState.asStateFlow()
@@ -53,34 +57,34 @@ class GroupDetailViewModel @Inject constructor(
     val starnazzoSent: SharedFlow<StarnazzoSentEvent> = _starnazzoSent.asSharedFlow()
 
     init {
-        loadGroupInfo()
-        loadMembers()
+        loadGroupWithContacts()
     }
 
-    private fun loadGroupInfo() {
+    private fun loadGroupWithContacts() {
+        if (userId.isEmpty()) return
         viewModelScope.launch {
-            try {
-                val group = groupRepository.getGroup(groupId)
-                _uiState.value = _uiState.value.copy(groupName = group?.name ?: "")
-            } catch (_: Exception) { }
-        }
-    }
-
-    private fun loadMembers() {
-        val currentUserId = auth.currentUser?.uid ?: return
-        viewModelScope.launch {
-            groupRepository.observeGroupMembers(groupId)
+            // Combine group data with contacts to resolve contactIds
+            groupRepository.observeUserGroups(userId)
+                .combine(contactRepository.observeContacts(userId)) { groups, allContacts ->
+                    val group = groups.find { it.id == groupId }
+                    val groupContacts = if (group != null) {
+                        allContacts.filter { it.id in group.contactIds }
+                    } else {
+                        emptyList()
+                    }
+                    Pair(group, groupContacts)
+                }
                 .catch { e ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = e.message
                     )
                 }
-                .collect { members ->
-                    val otherMembers = members.filter { it.id != currentUserId }
+                .collect { (group, contacts) ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        members = otherMembers
+                        groupName = group?.name ?: "",
+                        contacts = contacts
                     )
                 }
         }
@@ -92,8 +96,8 @@ class GroupDetailViewModel @Inject constructor(
 
     fun sendStarnazzo(toUserId: String) {
         val level = _uiState.value.selectedLevel
-        val toMember = _uiState.value.members.find { it.id == toUserId }
-        val toName = toMember?.displayName ?: "Qualcuno"
+        val toContact = _uiState.value.contacts.find { it.id == toUserId }
+        val toName = toContact?.displayName ?: "Qualcuno"
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
@@ -103,7 +107,6 @@ class GroupDetailViewModel @Inject constructor(
             try {
                 val result = alertRepository.sendStarnazzo(
                     toUserId = toUserId,
-                    groupId = groupId,
                     level = level.key,
                     animalType = level.defaultAnimal
                 )
@@ -115,16 +118,6 @@ class GroupDetailViewModel @Inject constructor(
                 when (status) {
                     "sent" -> {
                         _starnazzoSent.emit(StarnazzoSentEvent(alertId, toName, level.key))
-                    }
-                    "rate_limited" -> {
-                        _uiState.value = _uiState.value.copy(
-                            lastSendResult = "Troppi starnazzi! Aspetta un po'."
-                        )
-                    }
-                    "plan_limited" -> {
-                        _uiState.value = _uiState.value.copy(
-                            lastSendResult = "Limite giornaliero raggiunto. Passa a Premium!"
-                        )
                     }
                     else -> {
                         _uiState.value = _uiState.value.copy(
@@ -156,27 +149,16 @@ class GroupDetailViewModel @Inject constructor(
                     animalType = level.defaultAnimal
                 )
                 val status = result["status"] as? String
-                val alertId = result["alertId"] as? String ?: ""
 
                 _uiState.value = _uiState.value.copy(isBroadcasting = false)
 
                 @Suppress("UNCHECKED_CAST")
                 val alertIds = result["alertIds"] as? List<String> ?: emptyList()
-                val firstAlertId = alertIds.firstOrNull() ?: alertId
+                val firstAlertId = alertIds.firstOrNull() ?: ""
 
                 when (status) {
                     "sent", "partial" -> {
                         _starnazzoSent.emit(StarnazzoSentEvent(firstAlertId, "TUTTI", level.key))
-                    }
-                    "rate_limited" -> {
-                        _uiState.value = _uiState.value.copy(
-                            lastSendResult = "Troppi starnazzi! Aspetta un po'."
-                        )
-                    }
-                    "plan_limited" -> {
-                        _uiState.value = _uiState.value.copy(
-                            lastSendResult = "Limite broadcast raggiunto. Passa a Premium!"
-                        )
                     }
                     else -> {
                         _uiState.value = _uiState.value.copy(

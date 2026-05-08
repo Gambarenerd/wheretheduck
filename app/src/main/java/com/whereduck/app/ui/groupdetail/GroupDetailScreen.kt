@@ -37,12 +37,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.whereduck.app.ui.components.MemberCard
+import com.whereduck.app.ui.components.ContactCard
 import com.whereduck.app.ui.components.StarnazzoLevelSelector
 import com.whereduck.app.ui.theme.StarnazzoHeavy
 import com.whereduck.app.ui.theme.StarnazzoMedium
@@ -96,10 +97,10 @@ fun GroupDetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = Color.Transparent,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -113,7 +114,7 @@ fun GroupDetailScreen(
                 uiState.isLoading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-                uiState.members.isEmpty() -> {
+                uiState.contacts.isEmpty() -> {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -128,7 +129,7 @@ fun GroupDetailScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Invita qualcuno per iniziare a starnazzare.",
+                            text = "Aggiungi contatti al gruppo per iniziare a starnazzare.",
                             style = MaterialTheme.typography.bodyLarge,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
@@ -137,7 +138,7 @@ fun GroupDetailScreen(
                         Button(onClick = {
                             onNavigateToGroupManagement(viewModel.groupId)
                         }) {
-                            Text("Invita membri")
+                            Text("Aggiungi contatti")
                         }
                     }
                 }
@@ -192,22 +193,22 @@ fun GroupDetailScreen(
                             }
                         }
 
-                        // Members header
+                        // Contacts header
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Membri",
+                                text = "Contatti",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                         }
 
-                        // Member list with starnazzo button
-                        items(uiState.members) { member ->
-                            MemberCard(member = member) {
-                                val isSending = uiState.sendingToUserId == member.id
+                        // Contact list with starnazzo button
+                        items(uiState.contacts) { contact ->
+                            ContactCard(contact = contact) {
+                                val isSending = uiState.sendingToUserId == contact.id
                                 Button(
-                                    onClick = { viewModel.sendStarnazzo(member.id) },
+                                    onClick = { viewModel.sendStarnazzo(contact.id) },
                                     enabled = !isSending && uiState.sendingToUserId == null && !uiState.isBroadcasting,
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = StarnazzoMedium
