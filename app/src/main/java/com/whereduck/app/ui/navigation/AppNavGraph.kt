@@ -22,6 +22,7 @@ import com.whereduck.app.ui.group.GroupManagementScreen
 import com.whereduck.app.ui.group.PendingInvitesScreen
 import com.whereduck.app.ui.groupdetail.GroupDetailScreen
 import com.whereduck.app.ui.login.LoginScreen
+import com.whereduck.app.ui.contactdetail.ContactDetailScreen
 import com.whereduck.app.ui.main.ContactsTab
 import com.whereduck.app.ui.main.DashboardTab
 import com.whereduck.app.ui.main.HistoryTab
@@ -39,9 +40,11 @@ object Route {
     const val GROUP_MANAGEMENT = "group_management/{groupId}"
     const val PENDING_INVITES = "invites"
     const val STARNAZZO_CALL = "starnazzo_call/{alertId}/{toName}/{level}"
+    const val CONTACT_DETAIL = "contact_detail/{contactId}"
     const val SETTINGS = "settings"
     const val CUSTOMIZE = "customize"
 
+    fun contactDetail(contactId: String) = "contact_detail/$contactId"
     fun groupDetail(groupId: String) = "group_detail/$groupId"
     fun groupManagement(groupId: String) = "group_management/$groupId"
     fun starnazzoCall(alertId: String, toName: String, level: String) =
@@ -92,10 +95,17 @@ fun AppNavGraph() {
                     navController.navigate(Route.CREATE_GROUP)
                 },
                 dashboardContent = {
-                    DashboardTab()
+                    DashboardTab(
+                        onSendStarnazzo = { contactId ->
+                            navController.navigate(Route.contactDetail(contactId))
+                        }
+                    )
                 },
                 contactsContent = {
                     ContactsTab(
+                        onNavigateToContactDetail = { contactId ->
+                            navController.navigate(Route.contactDetail(contactId))
+                        },
                         onNavigateToGroupDetail = { groupId ->
                             navController.navigate(Route.groupDetail(groupId))
                         },
@@ -106,6 +116,20 @@ fun AppNavGraph() {
                 },
                 historyContent = {
                     HistoryTab()
+                }
+            )
+        }
+        composable(
+            route = Route.CONTACT_DETAIL,
+            arguments = listOf(navArgument("contactId") { type = NavType.StringType })
+        ) {
+            ContactDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToStarnazzoCall = { alertId, toName, level ->
+                    navController.navigate(Route.starnazzoCall(alertId, toName, level))
+                },
+                onContactRemoved = {
+                    navController.popBackStack(Route.HOME, inclusive = false)
                 }
             )
         }

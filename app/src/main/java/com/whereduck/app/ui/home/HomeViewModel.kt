@@ -82,4 +82,16 @@ class HomeViewModel @Inject constructor(
                 }
         }
     }
+
+    fun sendContactInvite(email: String) {
+        viewModelScope.launch {
+            try {
+                contactRepository.sendInvite(email)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = e.message ?: "Errore invio invito"
+                )
+            }
+        }
+    }
 }

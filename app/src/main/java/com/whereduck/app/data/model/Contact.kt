@@ -10,6 +10,7 @@ data class Contact(
     val displayName: String = "",
     val email: String = "",
     val photoUrl: String = "",
+    val motto: String = "",
     @ServerTimestamp
     val addedAt: Timestamp? = null
 )

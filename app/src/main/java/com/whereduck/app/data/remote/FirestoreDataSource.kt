@@ -3,6 +3,8 @@ package com.whereduck.app.data.remote
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.Query
+import com.whereduck.app.data.model.Alert
 import com.whereduck.app.data.model.Contact
 import com.whereduck.app.data.model.ContactInvite
 import com.whereduck.app.data.model.Group
@@ -41,6 +43,50 @@ class FirestoreDataSource @Inject constructor(
             .document(userId)
             .update("fcmToken", token)
             .await()
+    }
+
+    suspend fun updateDisplayName(userId: String, displayName: String) {
+        firestore.collection("users")
+            .document(userId)
+            .update("displayName", displayName)
+            .await()
+    }
+
+    suspend fun updatePhotoUrl(userId: String, photoUrl: String) {
+        firestore.collection("users")
+            .document(userId)
+            .update(
+                mapOf(
+                    "photoUrl" to photoUrl,
+                    "photoUpdatedAt" to FieldValue.serverTimestamp()
+                )
+            )
+            .await()
+    }
+
+    suspend fun updateMotto(userId: String, motto: String) {
+        firestore.collection("users")
+            .document(userId)
+            .update("motto", motto)
+            .await()
+    }
+
+    suspend fun updateUserPlan(userId: String, plan: String) {
+        firestore.collection("users")
+            .document(userId)
+            .update("plan", plan)
+            .await()
+    }
+
+    fun observeUser(userId: String): Flow<User?> = callbackFlow {
+        val listener = firestore.collection("users")
+            .document(userId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) return@addSnapshotListener
+                val user = snapshot.toObject(User::class.java)
+                trySend(user)
+            }
+        awaitClose { listener.remove() }
     }
 
     // ── Contacts ──
@@ -153,6 +199,32 @@ class FirestoreDataSource @Inject constructor(
                 if (error != null || snapshot == null || !snapshot.exists()) return@addSnapshotListener
                 val data = snapshot.data ?: return@addSnapshotListener
                 trySend(data)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    fun observeSentAlerts(userId: String): Flow<List<Alert>> = callbackFlow {
+        val listener = firestore.collection("alerts")
+            .whereEqualTo("fromUserId", userId)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .limit(50)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) return@addSnapshotListener
+                val alerts = snapshot.toObjects(Alert::class.java)
+                trySend(alerts)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    fun observeReceivedAlerts(userId: String): Flow<List<Alert>> = callbackFlow {
+        val listener = firestore.collection("alerts")
+            .whereEqualTo("toUserId", userId)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .limit(50)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) return@addSnapshotListener
+                val alerts = snapshot.toObjects(Alert::class.java)
+                trySend(alerts)
             }
         awaitClose { listener.remove() }
     }

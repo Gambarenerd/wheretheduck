@@ -7,6 +7,9 @@ export { sendContactInvite } from "./contacts/sendContactInvite";
 export { respondContactInvite } from "./contacts/respondContactInvite";
 export { removeContact } from "./contacts/removeContact";
 
+// Users
+export { onProfileUpdate } from "./users/onProfileUpdate";
+
 // Starnazzo
 export { sendStarnazzo } from "./starnazzo/sendStarnazzo";
 export { sendBroadcastStarnazzo } from "./starnazzo/sendBroadcast";

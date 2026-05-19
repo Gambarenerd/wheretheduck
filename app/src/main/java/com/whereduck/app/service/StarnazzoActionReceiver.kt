@@ -16,9 +16,9 @@ import javax.inject.Inject
 class StarnazzoActionReceiver : BroadcastReceiver() {
 
     companion object {
-        const val ACTION_ARRIVO = "com.whereduck.ACTION_ARRIVO"
-        const val ACTION_DISMISS = "com.whereduck.ACTION_DISMISS"
+        const val ACTION_OK = "com.whereduck.ACTION_OK"
         const val ACTION_MUTE = "com.whereduck.ACTION_MUTE"
+        const val ACTION_REVENGE = "com.whereduck.ACTION_REVENGE"
         const val EXTRA_ALERT_ID = "extra_alert_id"
         const val EXTRA_FROM_USER_ID = "extra_from_user_id"
         const val EXTRA_NOTIF_ID = "extra_notif_id"
@@ -44,20 +44,21 @@ class StarnazzoActionReceiver : BroadcastReceiver() {
         manager.cancel(notifId)
 
         when (intent.action) {
-            ACTION_ARRIVO -> {
-                respondToAlert(alertId, "arrivo")
+            ACTION_OK -> {
+                respondToAlert(alertId, "ok")
             }
             ACTION_MUTE -> {
-                // Mute for 1 minute
+                // Mute for 5 minutes from notification
                 if (fromUserId.isNotBlank()) {
                     val prefs = context.getSharedPreferences("mute_prefs", Context.MODE_PRIVATE)
-                    val muteUntil = System.currentTimeMillis() + (1 * 60 * 1000L)
+                    val muteUntil = System.currentTimeMillis() + (5 * 60 * 1000L)
                     prefs.edit().putLong("mute_$fromUserId", muteUntil).apply()
                 }
-                respondToAlert(alertId, "muto", 1)
+                respondToAlert(alertId, "muto", 5)
             }
-            ACTION_DISMISS -> {
-                respondToAlert(alertId, "dismissed")
+            ACTION_REVENGE -> {
+                respondToAlert(alertId, "revenge")
+                revengeStarnazzo(alertId)
             }
         }
     }
@@ -69,6 +70,17 @@ class StarnazzoActionReceiver : BroadcastReceiver() {
                 cloudFunctions.respondStarnazzo(alertId, response, muteDuration)
             } catch (e: Exception) {
                 android.util.Log.e("WTD", "Failed to respond: ${e.message}")
+            }
+        }
+    }
+
+    private fun revengeStarnazzo(alertId: String) {
+        if (alertId.isBlank()) return
+        scope.launch {
+            try {
+                cloudFunctions.revengeStarnazzo(alertId)
+            } catch (e: Exception) {
+                android.util.Log.e("WTD", "Failed to revenge: ${e.message}")
             }
         }
     }

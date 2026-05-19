@@ -40,7 +40,17 @@ class WhereTheDuckApp : Application() {
             description = "Notifiche generali (inviti, ecc.)"
         }
 
+        val serviceChannel = NotificationChannel(
+            "starnazzo_service",
+            "Servizio audio",
+            NotificationManager.IMPORTANCE_MIN
+        ).apply {
+            description = "Notifica silenziosa durante la riproduzione audio"
+            setShowBadge(false)
+        }
+
         manager.createNotificationChannel(starnazzoChannel)
         manager.createNotificationChannel(generalChannel)
+        manager.createNotificationChannel(serviceChannel)
     }
 }

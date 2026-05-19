@@ -16,7 +16,7 @@ android {
         applicationId = "com.whereduck.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
+        versionCode = 4
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -94,6 +94,9 @@ dependencies {
 
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:20.7.0")
+
+    // AppCompat (per-app language)
+    implementation("androidx.appcompat:appcompat:1.7.0")
 
     // Coil (image loading)
     implementation("io.coil-kt:coil-compose:2.5.0")

@@ -47,21 +47,94 @@ class StarnazzoSoundService : Service() {
 
         // Stop any existing playback first
         stopPlayback()
+        handler.removeCallbacksAndMessages(null)
 
         val levelKey = intent?.getStringExtra(EXTRA_LEVEL) ?: "medium"
         val level = StarnazzoLevel.fromKey(levelKey)
         val fromName = intent?.getStringExtra(EXTRA_FROM_NAME) ?: "Qualcuno"
 
+        isPlaying = true
         startForeground(NOTIF_ID, buildNotification(fromName, level))
         acquireWakeLock()
         forceMaxVolume()
-        playTone(level)
-        startVibration(level)
 
-        // Auto-stop after 15 seconds
-        handler.postDelayed({ stopAndCleanup() }, 15_000)
+        // Phase 1 (0s): Only screen/notification — nothing else
+        // Phase 2 (3s): Short vibrations, one per second for 3 seconds
+        handler.postDelayed({
+            if (!isPlaying) return@postDelayed
+            vibrateShort()
+        }, 3_000)
+        handler.postDelayed({
+            if (!isPlaying) return@postDelayed
+            vibrateShort()
+        }, 4_000)
+        handler.postDelayed({
+            if (!isPlaying) return@postDelayed
+            vibrateShort()
+        }, 5_000)
+
+        // Phase 3 (6s): 3 long vibrations only
+        handler.postDelayed({
+            if (!isPlaying) return@postDelayed
+            startLongVibrations()
+        }, 6_000)
+
+        // Phase 4 (9s): Long vibrations + sound
+        handler.postDelayed({
+            if (!isPlaying) return@postDelayed
+            startLongVibrationsWithSound(level)
+        }, 9_000)
+
+        // Auto-stop after 30 seconds
+        handler.postDelayed({ stopAndCleanup() }, 30_000)
 
         return START_NOT_STICKY
+    }
+
+    private fun initVibrator(): Vibrator {
+        if (vibrator == null) {
+            vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val manager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+                manager.defaultVibrator
+            } else {
+                @Suppress("DEPRECATION")
+                getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            }
+        }
+        return vibrator!!
+    }
+
+    private fun vibrateShort() {
+        val v = initVibrator()
+        v.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+    }
+
+    private fun startLongVibrations() {
+        // 3 long vibrations only
+        val pattern = longArrayOf(
+            0, 600, 400,   // 1st
+            600, 400,      // 2nd
+            600             // 3rd
+        )
+        val v = initVibrator()
+        v.vibrate(VibrationEffect.createWaveform(pattern, -1))
+    }
+
+    private fun startLongVibrationsWithSound(level: StarnazzoLevel) {
+        // Cancel previous vibration, start new continuous pattern + sound
+        vibrator?.cancel()
+        val pattern = longArrayOf(
+            0, 800, 200,
+            800, 200,
+            800, 200,
+            800, 200,
+            800, 200,
+            800, 200
+        )
+        val v = initVibrator()
+        v.vibrate(VibrationEffect.createWaveform(pattern, 0)) // 0 = repeat
+
+        playTone(level)
     }
 
     private fun buildNotification(fromName: String, level: StarnazzoLevel): Notification {
@@ -73,14 +146,14 @@ class StarnazzoSoundService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        return NotificationCompat.Builder(this, "starnazzo_v2")
+        return NotificationCompat.Builder(this, "starnazzo_service")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle("${level.emoji} STARNAZZO in corso!")
             .setContentText("$fromName ti sta starnazzando!")
-            .setPriority(NotificationCompat.PRIORITY_MAX)
-            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setPriority(NotificationCompat.PRIORITY_MIN)
             .setOngoing(true)
             .addAction(android.R.drawable.ic_delete, "SILENZIA", stopPendingIntent)
+            .setSilent(true)
             .build()
     }
 
@@ -110,7 +183,6 @@ class StarnazzoSoundService : Service() {
     }
 
     private fun playTone(level: StarnazzoLevel) {
-        isPlaying = true
         val frequency = level.toneFrequency
         val durationMs = when (level) {
             StarnazzoLevel.LIGHT -> 200
@@ -154,9 +226,9 @@ class StarnazzoSoundService : Service() {
                 track.write(buffer, 0, buffer.size)
                 audioTrack = track
 
-                // Play tone in a loop pattern
+                // Play tone in a loop for remaining time (~21 seconds)
                 var repeats = 0
-                val maxRepeats = 15000 / (durationMs + pauseMs) // fill 15 seconds
+                val maxRepeats = 21000 / (durationMs + pauseMs)
                 while (isPlaying && repeats < maxRepeats) {
                     track.reloadStaticData()
                     track.play()
@@ -168,20 +240,6 @@ class StarnazzoSoundService : Service() {
             } catch (_: Exception) {
             }
         }.start()
-    }
-
-    private fun startVibration(level: StarnazzoLevel) {
-        vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val manager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-            manager.defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        }
-
-        vibrator?.vibrate(
-            VibrationEffect.createWaveform(level.vibrationPattern, 0) // 0 = repeat
-        )
     }
 
     private fun stopPlayback() {

@@ -64,6 +64,7 @@ export const respondContactInvite = functions.https.onCall(async (data, context)
         displayName: toUser.displayName || "",
         email: toUser.email || "",
         photoUrl: toUser.photoUrl || "",
+        motto: toUser.motto || "",
         addedAt: admin.firestore.FieldValue.serverTimestamp(),
       }
     );
@@ -73,6 +74,7 @@ export const respondContactInvite = functions.https.onCall(async (data, context)
         displayName: fromUser.displayName || "",
         email: fromUser.email || "",
         photoUrl: fromUser.photoUrl || "",
+        motto: fromUser.motto || "",
         addedAt: admin.firestore.FieldValue.serverTimestamp(),
       }
     );

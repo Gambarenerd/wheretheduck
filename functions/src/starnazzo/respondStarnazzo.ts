@@ -50,6 +50,21 @@ export const respondStarnazzo = functions.https.onCall(async (data, context) => 
   }
   await alertRef.update(updateData);
 
+  // 2b. If muted, save mute to Firestore so sendStarnazzo can check it
+  if (response === "muto" && muteDurationMinutes) {
+    const muteUntil = new Date(Date.now() + muteDurationMinutes * 60 * 1000);
+    await db
+      .collection("users")
+      .doc(userId)
+      .collection("muted")
+      .doc(alert.fromUserId)
+      .set({
+        muteUntil: admin.firestore.Timestamp.fromDate(muteUntil),
+        durationMinutes: muteDurationMinutes,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+  }
+
   // 3. Notify the sender
   const responderDoc = await db.collection("users").doc(userId).get();
   const responderName = responderDoc.exists

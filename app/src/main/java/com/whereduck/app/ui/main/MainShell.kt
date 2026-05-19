@@ -49,7 +49,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.whereduck.app.ui.theme.DuckTheme
@@ -66,11 +73,7 @@ val bottomTabs = listOf(
     BottomTab(Icons.Default.History, "Cronologia"),
 )
 
-val sectionTitles = listOf(
-    "Where The Duck\nAre You?",
-    "Duckers",
-    "Cronologia",
-)
+// Section titles are now built as AnnotatedString in sectionTitle() below
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -108,19 +111,49 @@ fun MainShell(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 8.dp)
+                    .padding(start = 20.dp, end = 20.dp, top = 64.dp, bottom = 8.dp)
             ) {
                 // Section title (left)
+                val titleText = when (pagerState.currentPage) {
+                    0 -> buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
+                            append("Where ")
+                        }
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold, fontStyle = FontStyle.Italic)) {
+                            append("The Duck")
+                        }
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
+                            append("\nAre You?!")
+                        }
+                    }
+                    1 -> buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
+                            append("Hey ")
+                        }
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold, fontStyle = FontStyle.Italic)) {
+                            append("Duckers!")
+                        }
+                    }
+                    else -> buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
+                            append("Cronologia")
+                        }
+                    }
+                }
                 Text(
-                    text = sectionTitles[pagerState.currentPage],
+                    text = titleText,
                     fontSize = if (pagerState.currentPage == 0) 22.sp else 28.sp,
-                    fontWeight = FontWeight.ExtraBold,
                     color = DuckTheme.colors.textPrimary,
                     lineHeight = 32.sp,
                     modifier = Modifier.align(Alignment.CenterStart)
                 )
 
-                // User avatar (right)
+                // User avatar (right) - show profile photo if available
+                val context = LocalContext.current
+                val prefs = context.getSharedPreferences("settings_prefs", android.content.Context.MODE_PRIVATE)
+                val picturePath = prefs.getString("profile_picture_path", null)?.substringBefore("?")
+                val hasPhoto = picturePath != null && java.io.File(picturePath).exists()
+
                 Box(
                     modifier = Modifier
                         .size(42.dp)
@@ -130,12 +163,23 @@ fun MainShell(
                         .align(Alignment.TopEnd),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = "Profilo",
-                        tint = DuckTheme.colors.textOnAccent,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    if (hasPhoto) {
+                        AsyncImage(
+                            model = java.io.File(picturePath!!),
+                            contentDescription = "Profilo",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = "Profilo",
+                            tint = DuckTheme.colors.textOnAccent,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
 

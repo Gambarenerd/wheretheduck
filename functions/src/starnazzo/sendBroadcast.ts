@@ -95,6 +95,7 @@ export const sendBroadcastStarnazzo = functions.https.onCall(async (data, contex
       muteDuration: null,
       isRevenge: false,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       deliveredAt: null,
       respondedAt: null,
     });
@@ -110,6 +111,7 @@ export const sendBroadcastStarnazzo = functions.https.onCall(async (data, contex
           alertId: alertRef.id,
           fromUserId: senderId,
           fromDisplayName: senderName,
+          fromPhotoUrl: sender.photoUrl || "",
           level,
           animalType: resolvedAnimal,
           broadcastId,

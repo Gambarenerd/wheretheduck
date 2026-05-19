@@ -96,6 +96,7 @@ export const revengeStarnazzo = functions.https.onCall(async (data, context) => 
     isRevenge: true,
     originalAlertId: alertId,
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     deliveredAt: null,
     respondedAt: null,
   });
@@ -111,6 +112,7 @@ export const revengeStarnazzo = functions.https.onCall(async (data, context) => 
         alertId: revengeRef.id,
         fromUserId: userId,
         fromDisplayName: senderName,
+        fromPhotoUrl: sender.photoUrl || "",
         level,
         animalType: resolvedAnimal,
         isRevenge: "true",

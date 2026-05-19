@@ -11,6 +11,8 @@ import com.google.firebase.messaging.RemoteMessage
 import com.whereduck.app.MainActivity
 import com.whereduck.app.data.remote.FirestoreDataSource
 import com.whereduck.app.ui.incoming.IncomingAlertActivity
+import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.Lifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,8 +48,8 @@ class StarnazzoFcmService : FirebaseMessagingService() {
         when (type) {
             "starnazzo" -> handleStarnazzo(data)
             "starnazzo_response" -> showGenericNotification(data)
-            "group_invite" -> showInviteNotification(data)
-            "invite_accepted", "invite_rejected" -> showGenericNotification(data)
+            "contact_invite" -> showInviteNotification(data)
+            "contact_accepted", "contact_rejected" -> showGenericNotification(data)
         }
     }
 
@@ -70,6 +72,8 @@ class StarnazzoFcmService : FirebaseMessagingService() {
         val levelKey = data["level"] ?: "medium"
         val animal = data["animalType"] ?: "duck"
         val alertId = data["alertId"] ?: ""
+        val fromPhotoUrl = data["fromPhotoUrl"] ?: ""
+        val isRevenge = data["isRevenge"] == "true"
 
         // Check if this user is muted
         if (isUserMuted(fromUserId)) {
@@ -91,8 +95,15 @@ class StarnazzoFcmService : FirebaseMessagingService() {
             putExtra("fromUserId", fromUserId)
             putExtra("level", levelKey)
             putExtra("alertId", alertId)
+            putExtra("fromPhotoUrl", fromPhotoUrl)
+            putExtra("isRevenge", isRevenge)
         }
         startActivity(alertActivityIntent)
+
+        // Skip notification if app is in foreground (full-screen alert is enough)
+        val isInForeground = ProcessLifecycleOwner.get().lifecycle.currentState
+            .isAtLeast(Lifecycle.State.RESUMED)
+        if (isInForeground) return
 
         val fullScreenPendingIntent = PendingIntent.getActivity(
             this, 1, alertActivityIntent,
@@ -122,23 +133,33 @@ class StarnazzoFcmService : FirebaseMessagingService() {
             )
         }
 
-        val arrivoPi = actionPendingIntent(StarnazzoActionReceiver.ACTION_ARRIVO, 10)
+        val okPi = actionPendingIntent(StarnazzoActionReceiver.ACTION_OK, 10)
         val mutePi = actionPendingIntent(StarnazzoActionReceiver.ACTION_MUTE, 11)
-        val dismissPi = actionPendingIntent(StarnazzoActionReceiver.ACTION_DISMISS, 12)
+        val revengePi = actionPendingIntent(StarnazzoActionReceiver.ACTION_REVENGE, 12)
 
-        // 4. Build notification with action buttons + swipe to silence
-        val notification = NotificationCompat.Builder(this, "starnazzo_v2")
+        val title = if (isRevenge) "REVENGE STARNAZZO!" else "STARNAZZO!"
+        val text = if (isRevenge) "$fromName ti ha restituito lo starnazzo!"
+                   else "$fromName ti sta starnazzando!"
+
+        // 4. Build notification with action buttons (OK! / Non mi rompere / Revenge!)
+        val builder = NotificationCompat.Builder(this, "starnazzo_v2")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("STARNAZZO!")
-            .setContentText("$fromName ti sta starnazzando!")
+            .setContentTitle(title)
+            .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setFullScreenIntent(fullScreenPendingIntent, true)
             .setContentIntent(contentPendingIntent)
-            .addAction(0, "ARRIVO!", arrivoPi)
-            .addAction(0, "MUTO 1min", mutePi)
-            .addAction(0, "Chiudi", dismissPi)
-            .setDeleteIntent(dismissPi) // swipe = silenzia
+            .addAction(0, "OK!", okPi)
+            .addAction(0, "Non mi rompere", mutePi)
+
+        // Revenge only if not already a revenge (no chains)
+        if (!isRevenge) {
+            builder.addAction(0, "Revenge!", revengePi)
+        }
+
+        val notification = builder
+            .setDeleteIntent(okPi) // swipe = ok
             .setAutoCancel(true)
             .setSound(null)
             .setVibrate(null)
@@ -149,7 +170,7 @@ class StarnazzoFcmService : FirebaseMessagingService() {
     }
 
     private fun showInviteNotification(data: Map<String, String>) {
-        val groupName = data["groupName"] ?: "un gruppo"
+        val fromName = data["fromDisplayName"] ?: "Qualcuno"
 
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -160,8 +181,8 @@ class StarnazzoFcmService : FirebaseMessagingService() {
 
         val notification = NotificationCompat.Builder(this, "general")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("Nuovo invito!")
-            .setContentText("Sei stato invitato in $groupName")
+            .setContentTitle("Nuovo contatto!")
+            .setContentText("$fromName vuole aggiungerti come contatto")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)

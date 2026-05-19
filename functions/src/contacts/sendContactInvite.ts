@@ -89,12 +89,14 @@ export const sendContactInvite = functions.https.onCall(async (data, context) =>
       displayName: target.displayName || "",
       email: target.email || normalizedEmail,
       photoUrl: target.photoUrl || "",
+      motto: target.motto || "",
       addedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
     batch.set(db.collection("users").doc(targetId).collection("contacts").doc(senderId), {
       displayName: sender.displayName || "",
       email: sender.email || "",
       photoUrl: sender.photoUrl || "",
+      motto: sender.motto || "",
       addedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
@@ -108,6 +110,7 @@ export const sendContactInvite = functions.https.onCall(async (data, context) =>
     fromUserId: senderId,
     fromDisplayName: sender.displayName || "",
     fromEmail: sender.email || "",
+    fromPhotoUrl: sender.photoUrl || "",
     toUserId: targetId,
     toEmail: target.email || normalizedEmail,
     status: "pending",

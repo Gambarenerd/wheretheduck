@@ -51,6 +51,32 @@ export const sendStarnazzo = functions.https.onCall(async (data, context) => {
   }
   const receiver = receiverDoc.data()!;
 
+  // 3b. Check if sender is muted by receiver
+  const muteDoc = await db
+    .collection("users")
+    .doc(toUserId)
+    .collection("muted")
+    .doc(senderId)
+    .get();
+
+  if (muteDoc.exists) {
+    const muteData = muteDoc.data()!;
+    const muteUntil = muteData.muteUntil?.toDate();
+    if (muteUntil && muteUntil > new Date()) {
+      const remainingMs = muteUntil.getTime() - Date.now();
+      const remainingMin = Math.ceil(remainingMs / 60000);
+      return {
+        alertId: null,
+        status: "muted",
+        remainingMinutes: remainingMin,
+        message: `${receiver.displayName || "L'utente"} ti ha bloccato per ancora ${remainingMin} minuti`,
+      };
+    } else {
+      // Mute expired, clean up
+      await muteDoc.ref.delete();
+    }
+  }
+
   // 4. Resolve animal type
   const resolvedAnimal = animalType || DEFAULT_ANIMALS[level] || "duck";
 
@@ -70,6 +96,7 @@ export const sendStarnazzo = functions.https.onCall(async (data, context) => {
     muteDuration: null,
     isRevenge: false,
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     deliveredAt: null,
     respondedAt: null,
   });
@@ -85,6 +112,7 @@ export const sendStarnazzo = functions.https.onCall(async (data, context) => {
         alertId: alertRef.id,
         fromUserId: senderId,
         fromDisplayName: senderName,
+        fromPhotoUrl: sender.photoUrl || "",
         level,
         animalType: resolvedAnimal,
       },

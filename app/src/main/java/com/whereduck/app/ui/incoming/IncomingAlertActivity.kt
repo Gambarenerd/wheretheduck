@@ -39,19 +39,28 @@ class IncomingAlertActivity : ComponentActivity() {
         val level = StarnazzoLevel.fromKey(levelKey)
         val fromUserId = intent.getStringExtra("fromUserId") ?: ""
         val alertId = intent.getStringExtra("alertId") ?: ""
+        val fromPhotoUrl = intent.getStringExtra("fromPhotoUrl") ?: ""
+        val isRevenge = intent.getBooleanExtra("isRevenge", false)
 
         setContent {
             WhereTheDuckTheme {
                 IncomingAlertScreen(
                     fromName = fromName,
+                    fromPhotoUrl = fromPhotoUrl,
                     level = level,
-                    onArrivo = {
-                        respondToStarnazzo(alertId, "arrivo")
+                    isRevenge = isRevenge,
+                    onOk = {
+                        respondToStarnazzo(alertId, "ok")
                         silenceAndFinish()
                     },
                     onMute = { minutes ->
                         muteUser(fromUserId, minutes)
                         respondToStarnazzo(alertId, "muto", minutes)
+                        silenceAndFinish()
+                    },
+                    onRevenge = {
+                        respondToStarnazzo(alertId, "revenge")
+                        revengeStarnazzo(alertId)
                         silenceAndFinish()
                     },
                     onDismiss = {
@@ -70,6 +79,17 @@ class IncomingAlertActivity : ComponentActivity() {
                 cloudFunctions.respondStarnazzo(alertId, response, muteDuration)
             } catch (e: Exception) {
                 android.util.Log.e("WTD", "Failed to respond to starnazzo", e)
+            }
+        }
+    }
+
+    private fun revengeStarnazzo(alertId: String) {
+        if (alertId.isBlank()) return
+        scope.launch {
+            try {
+                cloudFunctions.revengeStarnazzo(alertId)
+            } catch (e: Exception) {
+                android.util.Log.e("WTD", "Failed to revenge starnazzo", e)
             }
         }
     }

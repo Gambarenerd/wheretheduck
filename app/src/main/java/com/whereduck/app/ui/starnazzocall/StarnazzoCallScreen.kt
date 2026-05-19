@@ -175,8 +175,9 @@ fun StarnazzoCallScreen(
             }
             CallPhase.RESPONDED -> {
                 val (responseEmoji, responseText) = when (uiState.response) {
-                    "arrivo" -> "\uD83C\uDFC3" to "STA ARRIVANDO!"
-                    "muto" -> "\uD83D\uDD07" to "Ti ha mutato"
+                    "ok" -> "\uD83D\uDC4D" to "OK! Ha visto!"
+                    "muto" -> "\uD83D\uDD07" to "Non mi rompere!"
+                    "revenge" -> "\uD83D\uDD25" to "REVENGE!"
                     "dismissed" -> "\uD83D\uDC4B" to "Ha chiuso"
                     else -> "" to "Risposta ricevuta"
                 }

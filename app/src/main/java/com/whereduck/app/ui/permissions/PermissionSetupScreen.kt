@@ -87,7 +87,7 @@ fun PermissionSetupScreen(
         // 2. DND Access
         PermissionCard(
             title = "Accesso Non Disturbare",
-            description = "Per bypassare la modalità silenziosa quando ricevi uno starnazzo",
+            description = "Per bypassare la modalità silenziosa. Cerca \"WhereTheDuck\" nella lista e attivalo.",
             isGranted = uiState.dndAccessGranted,
             onRequest = {
                 context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))

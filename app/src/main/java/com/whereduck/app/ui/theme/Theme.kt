@@ -131,8 +131,8 @@ private val AppColors = DuckCustomColors(
     divider = DuckGrey200,
 
     // Section backgrounds
-    sectionDashboard = DuckWhite,
-    sectionContacts = DuckGrey50,
+    sectionDashboard = DuckBrown50,
+    sectionContacts = DuckBrown50,
     sectionHistory = DuckBrown50,
 )
 

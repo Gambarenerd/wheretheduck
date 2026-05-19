@@ -10,6 +10,7 @@ data class ContactInvite(
     val fromUserId: String = "",
     val fromDisplayName: String = "",
     val fromEmail: String = "",
+    val fromPhotoUrl: String = "",
     val toUserId: String = "",
     val toEmail: String = "",
     val status: String = "pending",

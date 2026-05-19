@@ -11,6 +11,7 @@ data class User(
     val email: String = "",
     val photoUrl: String = "",
     val photoUpdatedAt: Timestamp? = null,
+    val motto: String = "",
     val fcmToken: String = "",
     val plan: String = "free",
     val planExpiresAt: Timestamp? = null,
