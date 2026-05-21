@@ -87,3 +87,16 @@ val BottomBarSelected   = DuckYellow500
 
 // Custom action button (suoni/personalizzazione)
 val CustomizeButtonColor = DuckGreen500
+
+// Chart / grafici
+val ChartBarSent     = DuckGreen500
+val ChartBarReceived = DuckBrown400
+val ChartLabelColor  = DuckBrown400
+
+// VIP
+val VipCardBackground = DuckYellow100
+val VipHeartColor     = Color(0xFFE53935)
+
+// Add VIP button (subtle shades of dashboard bg DuckBrown50)
+val VipAddCircle     = Color(0xFFD7D3CF)  // ~10% darker than DuckBrown50
+val VipAddIcon       = Color(0xFFBFBBB7)  // ~20% darker than DuckBrown50

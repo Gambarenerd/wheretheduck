@@ -88,9 +88,6 @@ fun AppNavGraph() {
                 onOpenUserMenu = {
                     navController.navigate(Route.SETTINGS)
                 },
-                onOpenCustomize = {
-                    navController.navigate(Route.CUSTOMIZE)
-                },
                 onCreateGroup = {
                     navController.navigate(Route.CREATE_GROUP)
                 },
@@ -101,7 +98,7 @@ fun AppNavGraph() {
                         }
                     )
                 },
-                contactsContent = {
+                contactsContent = { inviteTrigger ->
                     ContactsTab(
                         onNavigateToContactDetail = { contactId ->
                             navController.navigate(Route.contactDetail(contactId))
@@ -111,11 +108,15 @@ fun AppNavGraph() {
                         },
                         onNavigateToInvites = {
                             navController.navigate(Route.PENDING_INVITES)
-                        }
+                        },
+                        inviteTrigger = inviteTrigger
                     )
                 },
                 historyContent = {
                     HistoryTab()
+                },
+                customizeContent = {
+                    PlaceholderScreen("Personalizza\nSuoni & Animali")
                 }
             )
         }
@@ -197,9 +198,6 @@ fun AppNavGraph() {
                     }
                 }
             )
-        }
-        composable(Route.CUSTOMIZE) {
-            PlaceholderScreen("Personalizza\nSuoni & Animali")
         }
     }
 }

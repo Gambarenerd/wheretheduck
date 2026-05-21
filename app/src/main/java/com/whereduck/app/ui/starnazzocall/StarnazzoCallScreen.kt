@@ -31,12 +31,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.whereduck.app.ui.theme.DuckTheme
 import com.whereduck.app.ui.theme.StarnazzoHeavy
 import com.whereduck.app.ui.theme.StarnazzoLight
 import com.whereduck.app.ui.theme.StarnazzoMedium
@@ -55,6 +58,16 @@ fun StarnazzoCallScreen(
         StarnazzoLevel.MEDIUM -> StarnazzoMedium
         StarnazzoLevel.HEAVY -> StarnazzoHeavy
     }
+
+    // Gradient: lighter center → darker edges
+    val bgGradient = Brush.radialGradient(
+        colors = listOf(
+            bgColor.copy(alpha = 0.85f),
+            bgColor,
+            bgColor.copy(red = bgColor.red * 0.7f, green = bgColor.green * 0.7f, blue = bgColor.blue * 0.7f)
+        ),
+        radius = 900f
+    )
 
     // Auto-dismiss after response shown for 4 seconds
     LaunchedEffect(uiState.phase) {
@@ -111,7 +124,7 @@ fun StarnazzoCallScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(bgColor.copy(alpha = 0.95f))
+            .background(bgGradient)
             .padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -227,10 +240,13 @@ fun StarnazzoCallScreen(
         if (uiState.phase != CallPhase.RESPONDED) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 IconButton(
-                    onClick = onDismiss,
+                    onClick = {
+                        viewModel.cancelStarnazzo()
+                        onDismiss()
+                    },
                     modifier = Modifier.size(64.dp),
                     colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = Color(0xFFE53935),
+                        containerColor = DuckTheme.colors.negative,
                         contentColor = Color.White
                     )
                 ) {

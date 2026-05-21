@@ -57,6 +57,16 @@ class StarnazzoCallViewModel @Inject constructor(
         }
     }
 
+    fun cancelStarnazzo() {
+        val alertId = _uiState.value.alertId
+        if (alertId.isEmpty()) return
+        viewModelScope.launch {
+            try {
+                alertRepository.cancelStarnazzo(alertId)
+            } catch (_: Exception) { }
+        }
+    }
+
     private fun observeAlertStatus(alertId: String) {
         viewModelScope.launch {
             alertRepository.observeAlert(alertId)

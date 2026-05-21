@@ -1,5 +1,7 @@
 package com.whereduck.app.ui.home
 
+import android.app.Application
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
@@ -7,6 +9,7 @@ import com.whereduck.app.data.model.Contact
 import com.whereduck.app.data.model.Group
 import com.whereduck.app.data.repository.ContactRepository
 import com.whereduck.app.data.repository.GroupRepository
+import android.content.SharedPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,12 +22,14 @@ data class HomeUiState(
     val isLoading: Boolean = true,
     val groups: List<Group> = emptyList(),
     val contacts: List<Contact> = emptyList(),
+    val vipContactIds: List<String> = emptyList(),
     val pendingInviteCount: Int = 0,
     val error: String? = null
 )
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    private val app: Application,
     private val groupRepository: GroupRepository,
     private val contactRepository: ContactRepository,
     private val auth: FirebaseAuth
@@ -33,10 +38,25 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    private val vipPrefs by lazy {
+        app.getSharedPreferences("vip_prefs", Context.MODE_PRIVATE)
+    }
+
+    private val vipListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+        loadVipContacts()
+    }
+
     init {
         loadGroups()
         loadContacts()
         loadPendingInvites()
+        loadVipContacts()
+        vipPrefs.registerOnSharedPreferenceChangeListener(vipListener)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        vipPrefs.unregisterOnSharedPreferenceChangeListener(vipListener)
     }
 
     private fun loadGroups() {
@@ -93,5 +113,31 @@ class HomeViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private fun loadVipContacts() {
+        val userId = auth.currentUser?.uid ?: return
+        val ids = vipPrefs.getString("vip_$userId", null)
+            ?.split(",")
+            ?.filter { it.isNotBlank() }
+            ?: emptyList()
+        _uiState.value = _uiState.value.copy(vipContactIds = ids)
+    }
+
+    private fun saveVipContacts(ids: List<String>) {
+        val userId = auth.currentUser?.uid ?: return
+        vipPrefs.edit().putString("vip_$userId", ids.joinToString(",")).apply()
+        _uiState.value = _uiState.value.copy(vipContactIds = ids)
+    }
+
+    fun addVip(contactId: String) {
+        val current = _uiState.value.vipContactIds
+        if (contactId in current || current.size >= 4) return
+        saveVipContacts(current + contactId)
+    }
+
+    fun removeVip(contactId: String) {
+        val current = _uiState.value.vipContactIds
+        saveVipContacts(current - contactId)
     }
 }

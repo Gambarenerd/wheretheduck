@@ -160,7 +160,7 @@ private fun AlertHistoryCard(alert: Alert, isSentByMe: Boolean) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
             containerColor = DuckTheme.colors.cardBackground
         ),

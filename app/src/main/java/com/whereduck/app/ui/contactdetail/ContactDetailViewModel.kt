@@ -1,5 +1,7 @@
 package com.whereduck.app.ui.contactdetail
 
+import android.app.Application
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,7 +26,8 @@ data class ContactDetailUiState(
     val contact: Contact? = null,
     val selectedLevel: StarnazzoLevel = StarnazzoLevel.MEDIUM,
     val isSending: Boolean = false,
-    val lastSendResult: String? = null
+    val lastSendResult: String? = null,
+    val isVip: Boolean = false
 )
 
 data class StarnazzoSentEvent(
@@ -35,6 +38,7 @@ data class StarnazzoSentEvent(
 
 @HiltViewModel
 class ContactDetailViewModel @Inject constructor(
+    private val app: Application,
     savedStateHandle: SavedStateHandle,
     private val contactRepository: ContactRepository,
     private val alertRepository: AlertRepository,
@@ -44,6 +48,10 @@ class ContactDetailViewModel @Inject constructor(
     val contactId: String = savedStateHandle.get<String>("contactId") ?: ""
     private val userId: String = auth.currentUser?.uid ?: ""
 
+    private val vipPrefs by lazy {
+        app.getSharedPreferences("vip_prefs", Context.MODE_PRIVATE)
+    }
+
     private val _uiState = MutableStateFlow(ContactDetailUiState())
     val uiState: StateFlow<ContactDetailUiState> = _uiState.asStateFlow()
 
@@ -52,6 +60,35 @@ class ContactDetailViewModel @Inject constructor(
 
     init {
         loadContact()
+        loadVipStatus()
+    }
+
+    private fun loadVipStatus() {
+        if (userId.isEmpty()) return
+        val ids = vipPrefs.getString("vip_$userId", null)
+            ?.split(",")
+            ?.filter { it.isNotBlank() }
+            ?: emptyList()
+        _uiState.value = _uiState.value.copy(isVip = contactId in ids)
+    }
+
+    fun toggleVip() {
+        if (userId.isEmpty()) return
+        val ids = vipPrefs.getString("vip_$userId", null)
+            ?.split(",")
+            ?.filter { it.isNotBlank() }
+            ?.toMutableList()
+            ?: mutableListOf()
+
+        val isCurrentlyVip = contactId in ids
+        if (isCurrentlyVip) {
+            ids.remove(contactId)
+        } else {
+            if (ids.size >= 4) return
+            ids.add(contactId)
+        }
+        vipPrefs.edit().putString("vip_$userId", ids.joinToString(",")).apply()
+        _uiState.value = _uiState.value.copy(isVip = !isCurrentlyVip)
     }
 
     private fun loadContact() {

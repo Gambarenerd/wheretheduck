@@ -2,14 +2,17 @@ package com.whereduck.app.ui.main
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -32,17 +35,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -71,6 +79,7 @@ val bottomTabs = listOf(
     BottomTab(Icons.Default.Dashboard, "Dashboard"),
     BottomTab(Icons.Default.People, "Duckers"),
     BottomTab(Icons.Default.History, "Cronologia"),
+    BottomTab(Icons.Default.MusicNote, "Personalizza"),
 )
 
 // Section titles are now built as AnnotatedString in sectionTitle() below
@@ -79,20 +88,22 @@ val bottomTabs = listOf(
 @Composable
 fun MainShell(
     onOpenUserMenu: () -> Unit,
-    onOpenCustomize: () -> Unit,
     onCreateGroup: () -> Unit,
     dashboardContent: @Composable () -> Unit,
-    contactsContent: @Composable () -> Unit,
+    contactsContent: @Composable (inviteTrigger: Int) -> Unit,
     historyContent: @Composable () -> Unit,
+    customizeContent: @Composable () -> Unit,
 ) {
-    val pagerState = rememberPagerState(pageCount = { 3 })
+    val pagerState = rememberPagerState(pageCount = { 4 })
     val scope = rememberCoroutineScope()
+    var inviteTrigger by remember { mutableStateOf(0) }
 
     // Animate background color between sections
     val sectionColors = listOf(
         DuckTheme.colors.sectionDashboard,
         DuckTheme.colors.sectionContacts,
         DuckTheme.colors.sectionHistory,
+        DuckTheme.colors.sectionDashboard, // Customize uses same bg
     )
     val bgColor by animateColorAsState(
         targetValue = sectionColors[pagerState.currentPage],
@@ -100,10 +111,16 @@ fun MainShell(
         label = "bg_color"
     )
 
+    val bgGradient = Brush.verticalGradient(
+        colors = listOf(bgColor, DuckTheme.colors.appBackground),
+        startY = 0f,
+        endY = Float.POSITIVE_INFINITY
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(bgColor)
+            .background(bgGradient)
     ) {
         // ── Page content ──
         Column(modifier = Modifier.fillMaxSize()) {
@@ -134,9 +151,14 @@ fun MainShell(
                             append("Duckers!")
                         }
                     }
-                    else -> buildAnnotatedString {
+                    2 -> buildAnnotatedString {
                         withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
                             append("Cronologia")
+                        }
+                    }
+                    else -> buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
+                            append("Personalizza")
                         }
                     }
                 }
@@ -144,7 +166,7 @@ fun MainShell(
                     text = titleText,
                     fontSize = if (pagerState.currentPage == 0) 22.sp else 28.sp,
                     color = DuckTheme.colors.textPrimary,
-                    lineHeight = 32.sp,
+                    lineHeight = 24.sp,
                     modifier = Modifier.align(Alignment.CenterStart)
                 )
 
@@ -193,8 +215,9 @@ fun MainShell(
                 Box(modifier = Modifier.fillMaxSize()) {
                     when (page) {
                         0 -> dashboardContent()
-                        1 -> contactsContent()
+                        1 -> contactsContent(inviteTrigger)
                         2 -> historyContent()
+                        3 -> customizeContent()
                     }
                 }
             }
@@ -203,34 +226,10 @@ fun MainShell(
             Spacer(modifier = Modifier.height(80.dp))
         }
 
-        // ── Create group FAB (only on Duckers tab) ──
-        AnimatedVisibility(
-            visible = pagerState.currentPage == 1,
-            enter = scaleIn(),
-            exit = scaleOut(),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 96.dp)
-        ) {
-            FloatingActionButton(
-                onClick = onCreateGroup,
-                modifier = Modifier.size(62.dp),
-                shape = CircleShape,
-                containerColor = DuckTheme.colors.accent,
-                contentColor = DuckTheme.colors.textOnAccent,
-                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 0.dp, pressedElevation = 0.dp, hoveredElevation = 0.dp, focusedElevation = 0.dp)
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = "Crea gruppo",
-                    modifier = Modifier.size(26.dp)
-                )
-            }
-        }
-
-        // ── Bottom bar (centered, wraps content like CiboHero) ──
+        // ── Bottom bar ──
         val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
         val bottomPadding = maxOf(24.dp, navBarBottom)
+        var fabExpanded by remember { mutableStateOf(false) }
 
         Surface(
             modifier = Modifier
@@ -279,7 +278,7 @@ fun MainShell(
                         Icon(
                             imageVector = tab.icon,
                             contentDescription = tab.label,
-                            tint = if (selected) Color.Black
+                            tint = if (selected) DuckTheme.colors.sectionTitle
                             else DuckTheme.colors.bottomBarIcon,
                             modifier = Modifier.size(22.dp)
                         )
@@ -288,24 +287,98 @@ fun MainShell(
             }
         }
 
-        // ── Customize button (bottom-right, separate) ──
-        FloatingActionButton(
-            onClick = onOpenCustomize,
+        // ── Expandable FAB + (bottom-right, same height as bottom bar) ──
+        // Sub-menu floats above the FAB
+        AnimatedVisibility(
+            visible = fabExpanded,
+            enter = expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
+            exit = shrinkVertically(shrinkTowards = Alignment.Bottom) + fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 20.dp, bottom = bottomPadding + 72.dp)
+        ) {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                // Add person
+                Surface(
+                    onClick = {
+                        fabExpanded = false
+                        inviteTrigger++
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    color = DuckTheme.colors.bottomBarBackground,
+                    shadowElevation = 4.dp
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Persona",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = DuckTheme.colors.textOnAccent
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Icon(
+                            Icons.Default.PersonAdd,
+                            contentDescription = "Aggiungi persona",
+                            modifier = Modifier.size(22.dp),
+                            tint = DuckTheme.colors.textOnAccent
+                        )
+                    }
+                }
+
+                // Add group
+                Surface(
+                    onClick = {
+                        fabExpanded = false
+                        onCreateGroup()
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    color = DuckTheme.colors.bottomBarBackground,
+                    shadowElevation = 4.dp
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Gruppo",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = DuckTheme.colors.textOnAccent
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Icon(
+                            Icons.Default.GroupAdd,
+                            contentDescription = "Crea gruppo",
+                            modifier = Modifier.size(22.dp),
+                            tint = DuckTheme.colors.textOnAccent
+                        )
+                    }
+                }
+            }
+        }
+
+        // Main FAB (+ / ×) — bottom-right
+        Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 20.dp, bottom = bottomPadding)
-                .size(62.dp),
-            shape = CircleShape,
-            containerColor = DuckTheme.colors.customizeButton,
-            contentColor = Color.White,
-            elevation = FloatingActionButtonDefaults.elevation(
-                defaultElevation = 0.dp, pressedElevation = 0.dp, hoveredElevation = 0.dp, focusedElevation = 0.dp
-            )
+                .size(62.dp)
+                .clip(CircleShape)
+                .background(DuckTheme.colors.buttonPrimary)
+                .clickable { fabExpanded = !fabExpanded },
+            contentAlignment = Alignment.Center
         ) {
             Icon(
-                Icons.Default.MusicNote,
-                contentDescription = "Personalizza",
-                modifier = Modifier.size(26.dp)
+                if (fabExpanded) Icons.Default.Close else Icons.Default.Add,
+                contentDescription = if (fabExpanded) "Chiudi" else "Aggiungi",
+                modifier = Modifier.size(26.dp),
+                tint = DuckTheme.colors.textOnButtonPrimary
             )
         }
     }

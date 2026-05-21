@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -75,10 +76,19 @@ fun IncomingAlertScreen(
         StarnazzoLevel.HEAVY -> StarnazzoHeavy
     }
 
+    val bgGradient = Brush.radialGradient(
+        colors = listOf(
+            bgColor.copy(alpha = 0.85f),
+            bgColor,
+            bgColor.copy(red = bgColor.red * 0.7f, green = bgColor.green * 0.7f, blue = bgColor.blue * 0.7f)
+        ),
+        radius = 900f
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(bgColor.copy(alpha = 0.9f))
+            .background(bgGradient)
             .padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally

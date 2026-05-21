@@ -149,8 +149,45 @@ fun GroupDetailScreen(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        // Contacts header
+                        item {
+                            Text(
+                                text = "Contatti",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        // Contact list with starnazzo button
+                        items(uiState.contacts) { contact ->
+                            ContactCard(contact = contact) {
+                                val isSending = uiState.sendingToUserId == contact.id
+                                Button(
+                                    onClick = { viewModel.sendStarnazzo(contact.id) },
+                                    enabled = !isSending && uiState.sendingToUserId == null && !uiState.isBroadcasting,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = StarnazzoMedium
+                                    )
+                                ) {
+                                    if (isSending) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(16.dp),
+                                            strokeWidth = 2.dp
+                                        )
+                                    } else {
+                                        Icon(
+                                            Icons.AutoMirrored.Filled.Send,
+                                            contentDescription = "Starnazza",
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
                         // Level selector
                         item {
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Scegli il livello di starnazzo",
                                 style = MaterialTheme.typography.titleMedium,
@@ -186,46 +223,9 @@ fun GroupDetailScreen(
                                     Icon(Icons.Default.Campaign, null)
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "STARNAZZA TUTTI!",
+                                        text = "QUACK TUTTI!",
                                         fontWeight = FontWeight.Bold
                                     )
-                                }
-                            }
-                        }
-
-                        // Contacts header
-                        item {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Contatti",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-
-                        // Contact list with starnazzo button
-                        items(uiState.contacts) { contact ->
-                            ContactCard(contact = contact) {
-                                val isSending = uiState.sendingToUserId == contact.id
-                                Button(
-                                    onClick = { viewModel.sendStarnazzo(contact.id) },
-                                    enabled = !isSending && uiState.sendingToUserId == null && !uiState.isBroadcasting,
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = StarnazzoMedium
-                                    )
-                                ) {
-                                    if (isSending) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(16.dp),
-                                            strokeWidth = 2.dp
-                                        )
-                                    } else {
-                                        Icon(
-                                            Icons.AutoMirrored.Filled.Send,
-                                            contentDescription = "Starnazza",
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
                                 }
                             }
                         }

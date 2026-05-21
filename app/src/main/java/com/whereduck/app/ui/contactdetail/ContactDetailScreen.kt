@@ -18,6 +18,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material3.AlertDialog
@@ -104,7 +106,7 @@ fun ContactDetailScreen(
                         Icon(
                             Icons.Default.PersonRemove,
                             "Rimuovi contatto",
-                            tint = Color(0xFFE53935)
+                            tint = DuckTheme.colors.negative
                         )
                     }
                 },
@@ -180,18 +182,25 @@ fun ContactDetailScreen(
                                 }
                             }
                         }
+
+                        // VIP heart below photo
+                        Spacer(modifier = Modifier.height(8.dp))
+                        IconButton(
+                            onClick = { viewModel.toggleVip() },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                if (uiState.isVip) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = "Vittima preferita",
+                                tint = if (uiState.isVip) DuckTheme.colors.vipHeart
+                                       else DuckTheme.colors.textSecondary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Contact info
-                        Text(
-                            text = contact.displayName.ifBlank { contact.email },
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = DuckTheme.colors.textPrimary,
-                            textAlign = TextAlign.Center
-                        )
-                        if (contact.displayName.isNotBlank() && contact.email.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(2.dp))
+                        // Email
+                        if (contact.email.isNotBlank()) {
                             Text(
                                 text = contact.email,
                                 fontSize = 13.sp,
@@ -314,7 +323,7 @@ fun ContactDetailScreen(
                     viewModel.removeContact()
                     onContactRemoved()
                 }) {
-                    Text("Rimuovi", color = Color(0xFFE53935))
+                    Text("Rimuovi", color = DuckTheme.colors.negative)
                 }
             },
             dismissButton = {

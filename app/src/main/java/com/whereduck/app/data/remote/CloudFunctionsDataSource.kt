@@ -107,6 +107,16 @@ class CloudFunctionsDataSource @Inject constructor(
         return result.getData() as Map<String, Any>
     }
 
+    suspend fun cancelStarnazzo(alertId: String): Map<String, Any> {
+        ensureFreshToken()
+        val data = hashMapOf("alertId" to alertId)
+        val result = functions.getHttpsCallable("cancelStarnazzo")
+            .call(data)
+            .await()
+        @Suppress("UNCHECKED_CAST")
+        return result.getData() as Map<String, Any>
+    }
+
     suspend fun revengeStarnazzo(alertId: String): Map<String, Any> {
         ensureFreshToken()
         val data = hashMapOf("alertId" to alertId)

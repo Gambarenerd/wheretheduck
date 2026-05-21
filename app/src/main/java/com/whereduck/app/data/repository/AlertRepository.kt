@@ -29,6 +29,10 @@ class AlertRepository @Inject constructor(
         return cloudFunctions.sendBroadcastStarnazzo(groupId, level, animalType)
     }
 
+    suspend fun cancelStarnazzo(alertId: String): Map<String, Any> {
+        return cloudFunctions.cancelStarnazzo(alertId)
+    }
+
     suspend fun revengeStarnazzo(alertId: String): Map<String, Any> {
         return cloudFunctions.revengeStarnazzo(alertId)
     }

@@ -23,6 +23,10 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class StarnazzoFcmService : FirebaseMessagingService() {
 
+    companion object {
+        const val ACTION_CANCEL_STARNAZZO = "com.whereduck.CANCEL_STARNAZZO"
+    }
+
     @Inject lateinit var firestoreDataSource: FirestoreDataSource
     @Inject lateinit var auth: FirebaseAuth
 
@@ -47,6 +51,7 @@ class StarnazzoFcmService : FirebaseMessagingService() {
 
         when (type) {
             "starnazzo" -> handleStarnazzo(data)
+            "starnazzo_cancel" -> handleStarnazzoCancel()
             "starnazzo_response" -> showGenericNotification(data)
             "contact_invite" -> showInviteNotification(data)
             "contact_accepted", "contact_rejected" -> showGenericNotification(data)
@@ -64,6 +69,22 @@ class StarnazzoFcmService : FirebaseMessagingService() {
             return false
         }
         return true
+    }
+
+    private fun handleStarnazzoCancel() {
+        // Stop sound service
+        val stopIntent = Intent(this, StarnazzoSoundService::class.java).apply {
+            action = StarnazzoSoundService.ACTION_STOP
+        }
+        startService(stopIntent)
+
+        // Tell IncomingAlertActivity to close
+        val closeIntent = Intent(ACTION_CANCEL_STARNAZZO)
+        sendBroadcast(closeIntent)
+
+        // Dismiss any starnazzo notifications
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.cancelAll()
     }
 
     private fun handleStarnazzo(data: Map<String, String>) {

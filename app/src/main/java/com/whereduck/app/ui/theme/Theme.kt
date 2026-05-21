@@ -60,6 +60,38 @@ data class DuckCustomColors(
     val sectionDashboard: Color,
     val sectionContacts: Color,
     val sectionHistory: Color,
+
+    // Titoli sezione
+    val sectionTitle: Color,
+
+    // Chart / grafici
+    val chartBarSent: Color,
+    val chartBarReceived: Color,
+    val chartLabel: Color,
+
+    // Semantica UI
+    val buttonPrimary: Color,
+    val highlight: Color,
+
+    // VIP
+    val vipCardBackground: Color,
+    val vipHeart: Color,
+    val vipAddCircle: Color,
+    val vipAddIcon: Color,
+
+    // Bottoni — testo/icone
+    val textOnButtonPrimary: Color,
+
+    // Stati disabilitati
+    val disabledBackground: Color,
+    val disabledContent: Color,
+
+    // Overlay
+    val scrim: Color,
+
+    // Input fields
+    val inputBackground: Color,
+    val inputBorder: Color,
 )
 
 val LocalDuckColors = staticCompositionLocalOf {
@@ -88,6 +120,22 @@ val LocalDuckColors = staticCompositionLocalOf {
         sectionDashboard = Color.Unspecified,
         sectionContacts = Color.Unspecified,
         sectionHistory = Color.Unspecified,
+        sectionTitle = Color.Unspecified,
+        chartBarSent = Color.Unspecified,
+        chartBarReceived = Color.Unspecified,
+        chartLabel = Color.Unspecified,
+        buttonPrimary = Color.Unspecified,
+        highlight = Color.Unspecified,
+        vipCardBackground = Color.Unspecified,
+        vipHeart = Color.Unspecified,
+        vipAddCircle = Color.Unspecified,
+        vipAddIcon = Color.Unspecified,
+        textOnButtonPrimary = Color.Unspecified,
+        disabledBackground = Color.Unspecified,
+        disabledContent = Color.Unspecified,
+        scrim = Color.Unspecified,
+        inputBackground = Color.Unspecified,
+        inputBorder = Color.Unspecified,
     )
 }
 
@@ -134,6 +182,38 @@ private val AppColors = DuckCustomColors(
     sectionDashboard = DuckBrown50,
     sectionContacts = DuckBrown50,
     sectionHistory = DuckBrown50,
+
+    // Titoli sezione
+    sectionTitle = DuckBrown700,
+
+    // Chart / grafici
+    chartBarSent = ChartBarSent,
+    chartBarReceived = ChartBarReceived,
+    chartLabel = ChartLabelColor,
+
+    // Semantica UI
+    buttonPrimary = DuckGreen500,
+    highlight = DuckYellow500,
+
+    // VIP
+    vipCardBackground = VipCardBackground,
+    vipHeart = VipHeartColor,
+    vipAddCircle = VipAddCircle,
+    vipAddIcon = VipAddIcon,
+
+    // Bottoni — testo/icone
+    textOnButtonPrimary = DuckWhitePure,
+
+    // Stati disabilitati
+    disabledBackground = DuckGrey200,
+    disabledContent = DuckGrey400,
+
+    // Overlay
+    scrim = Color(0x66523A2E),  // DuckBrown900-ish al 40%
+
+    // Input fields
+    inputBackground = DuckWhitePure,
+    inputBorder = DuckBrown200,
 )
 
 // Material3 scheme (necessario per componenti Material)
@@ -156,7 +236,7 @@ private val AppMaterialScheme = lightColorScheme(
     onSurfaceVariant = DuckGrey700,
     error = DuckError,
     onError = DuckWhitePure,
-    outline = DuckGrey300,
+    outline = DuckBrown200,
     outlineVariant = DuckGrey200,
 )
 

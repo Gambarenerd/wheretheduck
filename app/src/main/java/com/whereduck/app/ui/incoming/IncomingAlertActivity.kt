@@ -1,13 +1,17 @@
 package com.whereduck.app.ui.incoming
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.data.remote.CloudFunctionsDataSource
+import com.whereduck.app.service.StarnazzoFcmService
 import com.whereduck.app.service.StarnazzoSoundService
 import com.whereduck.app.ui.theme.WhereTheDuckTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -24,6 +28,12 @@ class IncomingAlertActivity : ComponentActivity() {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
+    private val cancelReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            silenceAndFinish()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -33,6 +43,14 @@ class IncomingAlertActivity : ComponentActivity() {
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
             WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON
         )
+
+        // Listen for cancel from sender
+        val filter = IntentFilter(StarnazzoFcmService.ACTION_CANCEL_STARNAZZO)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(cancelReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(cancelReceiver, filter)
+        }
 
         val fromName = intent.getStringExtra("fromName") ?: "Qualcuno"
         val levelKey = intent.getStringExtra("level") ?: "medium"
@@ -107,6 +125,13 @@ class IncomingAlertActivity : ComponentActivity() {
         }
         startService(stopIntent)
         finish()
+    }
+
+    override fun onDestroy() {
+        try {
+            unregisterReceiver(cancelReceiver)
+        } catch (_: Exception) { }
+        super.onDestroy()
     }
 
     @Deprecated("Use OnBackPressedDispatcher")
