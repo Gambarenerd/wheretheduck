@@ -56,6 +56,9 @@ val DuckGrey700 = Color(0xFF616161)
 val DuckGrey800 = Color(0xFF424242)
 val DuckGrey900 = Color(0xFF212121)
 
+// ── ARANCIONE (Grafici, subiti) ──
+val DuckOrange500 = Color(0xFFFF9800)  // Base
+
 // ── BIANCO (Superfici) ──
 val DuckWhite    = Color(0xFFFFFDF7)  // Caldo, leggermente crema
 val DuckWhitePure = Color(0xFFFFFFFF)
@@ -90,7 +93,7 @@ val CustomizeButtonColor = DuckGreen500
 
 // Chart / grafici
 val ChartBarSent     = DuckGreen500
-val ChartBarReceived = DuckBrown400
+val ChartBarReceived = DuckOrange500
 val ChartLabelColor  = DuckBrown400
 
 // VIP
