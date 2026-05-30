@@ -92,6 +92,9 @@ data class DuckCustomColors(
     // Input fields
     val inputBackground: Color,
     val inputBorder: Color,
+
+    // Pill (motto, tag)
+    val pillBackground: Color,
 )
 
 val LocalDuckColors = staticCompositionLocalOf {
@@ -136,6 +139,7 @@ val LocalDuckColors = staticCompositionLocalOf {
         scrim = Color.Unspecified,
         inputBackground = Color.Unspecified,
         inputBorder = Color.Unspecified,
+        pillBackground = Color.Unspecified,
     )
 }
 
@@ -214,6 +218,9 @@ private val AppColors = DuckCustomColors(
     // Input fields
     inputBackground = DuckWhitePure,
     inputBorder = DuckBrown200,
+
+    // Pill
+    pillBackground = DuckBrown50,
 )
 
 // Material3 scheme (necessario per componenti Material)

@@ -366,7 +366,7 @@ private fun ContactListCard(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(16.dp))
-                                    .background(DuckTheme.colors.cardBackgroundVariant)
+                                    .background(DuckTheme.colors.pillBackground)
                                     .padding(horizontal = 10.dp, vertical = 4.dp)
                             ) {
                                 Text(

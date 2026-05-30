@@ -214,7 +214,7 @@ fun SettingsScreen(
             val motto = uiState.user?.motto ?: ""
             Surface(
                 shape = RoundedCornerShape(20.dp),
-                color = DuckTheme.colors.cardBackgroundVariant,
+                color = DuckTheme.colors.pillBackground,
                 modifier = Modifier.clickable { showMottoDialog = true }
             ) {
                 Row(

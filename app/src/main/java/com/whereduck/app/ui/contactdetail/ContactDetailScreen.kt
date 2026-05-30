@@ -228,7 +228,7 @@ fun ContactDetailScreen(
                             Spacer(modifier = Modifier.height(12.dp))
                             Surface(
                                 shape = RoundedCornerShape(20.dp),
-                                color = DuckTheme.colors.cardBackgroundVariant
+                                color = DuckTheme.colors.pillBackground
                             ) {
                                 Text(
                                     text = contact.motto,
