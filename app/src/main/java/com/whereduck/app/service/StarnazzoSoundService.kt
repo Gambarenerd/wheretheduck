@@ -8,6 +8,7 @@ import android.content.Intent
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.AudioTrack
+import android.media.MediaPlayer
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -31,6 +32,7 @@ class StarnazzoSoundService : Service() {
     }
 
     private var audioTrack: AudioTrack? = null
+    private var mediaPlayer: MediaPlayer? = null
     private var vibrator: Vibrator? = null
     private var wakeLock: PowerManager.WakeLock? = null
     private var originalVolume: Int = -1
@@ -183,6 +185,34 @@ class StarnazzoSoundService : Service() {
     }
 
     private fun playTone(level: StarnazzoLevel) {
+        if (level.soundRes != null) {
+            playMp3(level.soundRes)
+        } else {
+            playGeneratedTone(level)
+        }
+    }
+
+    private fun playMp3(resId: Int) {
+        try {
+            val player = MediaPlayer().apply {
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_ALARM)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build()
+                )
+                val afd = resources.openRawResourceFd(resId) ?: return
+                setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                afd.close()
+                isLooping = true
+                prepare()
+            }
+            mediaPlayer = player
+            player.start()
+        } catch (_: Exception) { }
+    }
+
+    private fun playGeneratedTone(level: StarnazzoLevel) {
         val frequency = level.toneFrequency
         val durationMs = when (level) {
             StarnazzoLevel.LIGHT -> 200
@@ -226,7 +256,6 @@ class StarnazzoSoundService : Service() {
                 track.write(buffer, 0, buffer.size)
                 audioTrack = track
 
-                // Play tone in a loop for remaining time (~21 seconds)
                 var repeats = 0
                 val maxRepeats = 21000 / (durationMs + pauseMs)
                 while (isPlaying && repeats < maxRepeats) {
@@ -244,6 +273,11 @@ class StarnazzoSoundService : Service() {
 
     private fun stopPlayback() {
         isPlaying = false
+        try {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+        } catch (_: Exception) { }
+        mediaPlayer = null
         try {
             audioTrack?.stop()
             audioTrack?.release()

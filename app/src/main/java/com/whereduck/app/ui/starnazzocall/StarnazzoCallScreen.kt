@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -59,15 +58,6 @@ fun StarnazzoCallScreen(
         StarnazzoLevel.HEAVY -> StarnazzoHeavy
     }
 
-    // Gradient: lighter center → darker edges
-    val bgGradient = Brush.radialGradient(
-        colors = listOf(
-            bgColor.copy(alpha = 0.85f),
-            bgColor,
-            bgColor.copy(red = bgColor.red * 0.7f, green = bgColor.green * 0.7f, blue = bgColor.blue * 0.7f)
-        ),
-        radius = 900f
-    )
 
     // Auto-dismiss after response shown for 4 seconds
     LaunchedEffect(uiState.phase) {
@@ -124,7 +114,7 @@ fun StarnazzoCallScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(bgGradient)
+            .background(bgColor)
             .padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally

@@ -12,7 +12,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -112,16 +111,10 @@ fun MainShell(
         label = "bg_color"
     )
 
-    val bgGradient = Brush.verticalGradient(
-        colors = listOf(bgColor, DuckTheme.colors.appBackground),
-        startY = 0f,
-        endY = Float.POSITIVE_INFINITY
-    )
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(bgGradient)
+            .background(bgColor)
     ) {
         // ── Page content ──
         Column(modifier = Modifier.fillMaxSize()) {
