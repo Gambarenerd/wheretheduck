@@ -1,5 +1,9 @@
 package com.whereduck.app.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -95,6 +99,12 @@ fun AppNavGraph() {
                     DashboardTab(
                         onSendStarnazzo = { contactId ->
                             navController.navigate(Route.contactDetail(contactId))
+                        },
+                        onNavigateToContact = { contactId ->
+                            navController.navigate(Route.contactDetail(contactId))
+                        },
+                        onNavigateToStarnazzoCall = { alertId, toName, level ->
+                            navController.navigate(Route.starnazzoCall(alertId, toName, level))
                         }
                     )
                 },
@@ -122,7 +132,11 @@ fun AppNavGraph() {
         }
         composable(
             route = Route.CONTACT_DETAIL,
-            arguments = listOf(navArgument("contactId") { type = NavType.StringType })
+            arguments = listOf(navArgument("contactId") { type = NavType.StringType }),
+            enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+            exitTransition = { fadeOut(tween(150)) },
+            popEnterTransition = { fadeIn(tween(150)) },
+            popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
         ) {
             ContactDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -134,7 +148,13 @@ fun AppNavGraph() {
                 }
             )
         }
-        composable(Route.CREATE_GROUP) {
+        composable(
+            Route.CREATE_GROUP,
+            enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+            exitTransition = { fadeOut(tween(150)) },
+            popEnterTransition = { fadeIn(tween(150)) },
+            popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+        ) {
             CreateGroupScreen(
                 onGroupCreated = { groupId ->
                     navController.navigate(Route.groupDetail(groupId)) {
@@ -146,7 +166,11 @@ fun AppNavGraph() {
         }
         composable(
             route = Route.GROUP_DETAIL,
-            arguments = listOf(navArgument("groupId") { type = NavType.StringType })
+            arguments = listOf(navArgument("groupId") { type = NavType.StringType }),
+            enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+            exitTransition = { fadeOut(tween(150)) },
+            popEnterTransition = { fadeIn(tween(150)) },
+            popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
         ) {
             GroupDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -155,12 +179,19 @@ fun AppNavGraph() {
                 },
                 onNavigateToStarnazzoCall = { alertId, toName, level ->
                     navController.navigate(Route.starnazzoCall(alertId, toName, level))
+                },
+                onNavigateToContactDetail = { contactId ->
+                    navController.navigate(Route.contactDetail(contactId))
                 }
             )
         }
         composable(
             route = Route.GROUP_MANAGEMENT,
-            arguments = listOf(navArgument("groupId") { type = NavType.StringType })
+            arguments = listOf(navArgument("groupId") { type = NavType.StringType }),
+            enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+            exitTransition = { fadeOut(tween(150)) },
+            popEnterTransition = { fadeIn(tween(150)) },
+            popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
         ) { backStackEntry ->
             val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
             GroupManagementScreen(
@@ -171,7 +202,13 @@ fun AppNavGraph() {
                 }
             )
         }
-        composable(Route.PENDING_INVITES) {
+        composable(
+            Route.PENDING_INVITES,
+            enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+            exitTransition = { fadeOut(tween(150)) },
+            popEnterTransition = { fadeIn(tween(150)) },
+            popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+        ) {
             PendingInvitesScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onInviteAccepted = { navController.popBackStack() }
@@ -189,7 +226,13 @@ fun AppNavGraph() {
                 onDismiss = { navController.popBackStack() }
             )
         }
-        composable(Route.SETTINGS) {
+        composable(
+            Route.SETTINGS,
+            enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+            exitTransition = { fadeOut(tween(150)) },
+            popEnterTransition = { fadeIn(tween(150)) },
+            popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+        ) {
             SettingsScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onLogout = {

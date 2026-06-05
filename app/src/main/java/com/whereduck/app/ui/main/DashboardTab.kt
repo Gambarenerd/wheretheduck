@@ -18,16 +18,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +49,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.whereduck.app.data.model.Contact
 import com.whereduck.app.data.model.StarnazzoLevel
+import com.whereduck.app.ui.theme.StarnazzoHeavy
+import com.whereduck.app.ui.theme.StarnazzoLight
+import com.whereduck.app.ui.theme.StarnazzoMedium
 import com.whereduck.app.ui.history.HistoryViewModel
 import com.whereduck.app.ui.home.HomeViewModel
 import com.whereduck.app.ui.theme.DuckTheme
@@ -53,15 +59,31 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+private data class EnemyStat(
+    val userId: String,
+    val name: String,
+    val photoUrl: String,
+    val count: Int
+)
+
 @Composable
 fun DashboardTab(
     onSendStarnazzo: ((String) -> Unit)? = null,
+    onNavigateToContact: ((String) -> Unit)? = null,
+    onNavigateToStarnazzoCall: ((alertId: String, toName: String, level: String) -> Unit)? = null,
     historyViewModel: HistoryViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
     val historyState by historyViewModel.uiState.collectAsState()
     val homeState by homeViewModel.uiState.collectAsState()
     var showVipPicker by remember { mutableStateOf(false) }
+
+    // Navigate to call screen when quick starnazzo is sent
+    LaunchedEffect(Unit) {
+        homeViewModel.quickStarnazzoSent.collect { event ->
+            onNavigateToStarnazzoCall?.invoke(event.alertId, event.toName, event.level)
+        }
+    }
 
     val weekAgo = remember { System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000L }
 
@@ -91,22 +113,50 @@ fun DashboardTab(
             .mapValues { it.value.size }
     }
 
-    val topContact = remember(historyState.sentAlerts) {
-        historyState.sentAlerts
-            .groupBy { it.toUserId }
-            .maxByOrNull { it.value.size }
-            ?.let { (_, alerts) ->
-                val name = alerts.first().toDisplayName.ifBlank { "???" }
-                name to alerts.size
-            }
-    }
-
     val topLevel = remember(historyState.sentAlerts) {
         historyState.sentAlerts
             .groupBy { it.starnazzoLevel }
             .maxByOrNull { it.value.size }
             ?.let { (level, alerts) ->
                 StarnazzoLevel.fromKey(level) to alerts.size
+            }
+    }
+
+    // "Guerra aperta" — most interactions (sent + received) this week
+    val weekWarContact = remember(historyState.sentAlerts, historyState.receivedAlerts, homeState.contacts) {
+        val sentCounts = historyState.sentAlerts
+            .filter { (it.createdAt?.toDate()?.time ?: 0L) > weekAgo }
+            .groupBy { it.toUserId }
+            .mapValues { it.value.size }
+        val receivedCounts = historyState.receivedAlerts
+            .filter { (it.createdAt?.toDate()?.time ?: 0L) > weekAgo }
+            .groupBy { it.fromUserId }
+            .mapValues { it.value.size }
+        val allIds = sentCounts.keys + receivedCounts.keys
+        allIds.maxByOrNull { (sentCounts[it] ?: 0) + (receivedCounts[it] ?: 0) }
+            ?.let { userId ->
+                val total = (sentCounts[userId] ?: 0) + (receivedCounts[userId] ?: 0)
+                val contact = homeState.contacts.find { it.id == userId }
+                if (contact != null && total > 0) EnemyStat(userId, contact.displayName.ifBlank { contact.email }, contact.photoUrl, total)
+                else null
+            }
+    }
+
+    // "Miglior nemico di sempre" — most interactions all time
+    val allTimeEnemy = remember(historyState.sentAlerts, historyState.receivedAlerts, homeState.contacts) {
+        val sentCounts = historyState.sentAlerts
+            .groupBy { it.toUserId }
+            .mapValues { it.value.size }
+        val receivedCounts = historyState.receivedAlerts
+            .groupBy { it.fromUserId }
+            .mapValues { it.value.size }
+        val allIds = sentCounts.keys + receivedCounts.keys
+        allIds.maxByOrNull { (sentCounts[it] ?: 0) + (receivedCounts[it] ?: 0) }
+            ?.let { userId ->
+                val total = (sentCounts[userId] ?: 0) + (receivedCounts[userId] ?: 0)
+                val contact = homeState.contacts.find { it.id == userId }
+                if (contact != null && total > 0) EnemyStat(userId, contact.displayName.ifBlank { contact.email }, contact.photoUrl, total)
+                else null
             }
     }
 
@@ -227,11 +277,17 @@ fun DashboardTab(
             }
         }
 
-        // Stats details card
-        if (topLevel != null || topContact != null) {
-            item {
+        // Arma preferita + Starnazzi totali (square, side by side)
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Arma preferita
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(130.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = DuckTheme.colors.cardBackground
@@ -240,40 +296,115 @@ fun DashboardTab(
                 ) {
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 14.dp)
+                            .fillMaxSize()
+                            .padding(top = 14.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        Text(
+                            text = "Arma preferita",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = DuckTheme.colors.sectionTitle
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
                         if (topLevel != null) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                val levelColor = when (topLevel.first) {
+                                    StarnazzoLevel.LIGHT -> StarnazzoLight
+                                    StarnazzoLevel.MEDIUM -> StarnazzoMedium
+                                    StarnazzoLevel.HEAVY -> StarnazzoHeavy
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .size(72.dp)
+                                        .clip(CircleShape)
+                                        .background(levelColor),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = topLevel.first.emoji,
+                                        fontSize = 40.sp
+                                    )
+                                }
+                            } else {
                                 Text(
-                                    text = topLevel.first.emoji,
-                                    fontSize = 22.sp
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Arma preferita: ${topLevel.first.displayName}",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = DuckTheme.colors.textPrimary
+                                    text = "—",
+                                    fontSize = 40.sp,
+                                    color = DuckTheme.colors.textSecondary
                                 )
                             }
-                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
 
-                        if (topContact != null) {
-                            if (topLevel != null) Spacer(modifier = Modifier.height(10.dp))
-                            Text(
-                                text = "Vittima piu' tormentata: ${topContact.first} (${topContact.second}x)",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = DuckTheme.colors.textPrimary
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(10.dp))
+                // Starnazzi totali
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(130.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = DuckTheme.colors.cardBackground
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 14.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         Text(
-                            text = "Totale: ${historyState.sentCount} inflitti · ${historyState.receivedCount} subiti",
-                            fontSize = 12.sp,
-                            color = DuckTheme.colors.textSecondary
+                            text = "Starnazzi totali",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = DuckTheme.colors.sectionTitle
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(
+                            text = "${historyState.sentCount}",
+                            fontSize = 52.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = DuckTheme.colors.accentDark
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+        }
+
+        // People stats section
+        if (weekWarContact != null || allTimeEnemy != null) {
+            item {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Chi l'ha fatta grossa",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = DuckTheme.colors.sectionTitle
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (weekWarContact != null) {
+                        EnemyCard(
+                            label = "Guerra aperta",
+                            name = weekWarContact.name,
+                            photoUrl = weekWarContact.photoUrl,
+                            subtitle = "Starnazzato ${weekWarContact.count} volte questa settimana",
+                            isSending = homeState.sendingQuickStarnazzoTo == weekWarContact.userId,
+                            onClick = { onNavigateToContact?.invoke(weekWarContact.userId) },
+                            onMegaphoneClick = { homeViewModel.sendQuickStarnazzo(weekWarContact.userId) }
+                        )
+                    }
+                    if (allTimeEnemy != null) {
+                        EnemyCard(
+                            label = "Miglior nemico di sempre",
+                            name = allTimeEnemy.name,
+                            photoUrl = allTimeEnemy.photoUrl,
+                            subtitle = "Starnazzato ${allTimeEnemy.count} volte in totale",
+                            isSending = homeState.sendingQuickStarnazzoTo == allTimeEnemy.userId,
+                            onClick = { onNavigateToContact?.invoke(allTimeEnemy.userId) },
+                            onMegaphoneClick = { homeViewModel.sendQuickStarnazzo(allTimeEnemy.userId) }
                         )
                     }
                 }
@@ -296,6 +427,109 @@ fun DashboardTab(
             },
             onDismiss = { showVipPicker = false }
         )
+    }
+}
+
+@Composable
+private fun EnemyCard(
+    label: String,
+    name: String,
+    photoUrl: String,
+    subtitle: String,
+    isSending: Boolean = false,
+    onClick: () -> Unit,
+    onMegaphoneClick: () -> Unit = {}
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = DuckTheme.colors.cardBackground
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+        ) {
+            Text(
+                text = label,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = DuckTheme.colors.sectionTitle
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (photoUrl.isNotBlank()) {
+                    AsyncImage(
+                        model = photoUrl,
+                        contentDescription = name,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(DuckTheme.colors.accentLight),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                            tint = DuckTheme.colors.accent
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = name,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = DuckTheme.colors.textPrimary
+                    )
+                    Text(
+                        text = subtitle,
+                        fontSize = 12.sp,
+                        color = DuckTheme.colors.textSecondary
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(DuckTheme.colors.highlight)
+                        .clickable(enabled = !isSending) { onMegaphoneClick() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSending) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = DuckTheme.colors.sectionTitle
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.Campaign,
+                            contentDescription = "Starnazza",
+                            modifier = Modifier.size(20.dp),
+                            tint = DuckTheme.colors.sectionTitle
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.whereduck.app.ui.theme.DuckTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +45,7 @@ fun CreateGroupScreen(
     var error by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
+        containerColor = DuckTheme.colors.sectionDashboard,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {

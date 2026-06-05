@@ -101,6 +101,7 @@ fun ContactDetailScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
+        containerColor = DuckTheme.colors.sectionDashboard,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -116,6 +117,14 @@ fun ContactDetailScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { viewModel.toggleVip() }) {
+                        Icon(
+                            if (uiState.isVip) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Vittima preferita",
+                            tint = if (uiState.isVip) DuckTheme.colors.vipHeart
+                                   else DuckTheme.colors.textSecondary
+                        )
+                    }
                     IconButton(onClick = { showRemoveDialog = true }) {
                         Icon(
                             Icons.Default.PersonRemove,
@@ -197,21 +206,7 @@ fun ContactDetailScreen(
                             }
                         }
 
-                        // VIP heart below photo
-                        Spacer(modifier = Modifier.height(8.dp))
-                        IconButton(
-                            onClick = { viewModel.toggleVip() },
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Icon(
-                                if (uiState.isVip) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                contentDescription = "Vittima preferita",
-                                tint = if (uiState.isVip) DuckTheme.colors.vipHeart
-                                       else DuckTheme.colors.textSecondary,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
                         // Email
                         if (contact.email.isNotBlank()) {

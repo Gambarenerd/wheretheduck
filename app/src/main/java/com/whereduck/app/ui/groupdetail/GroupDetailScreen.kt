@@ -3,6 +3,8 @@ package com.whereduck.app.ui.groupdetail
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
@@ -37,13 +38,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.whereduck.app.ui.components.ContactCard
+import com.whereduck.app.ui.theme.DuckTheme
 import com.whereduck.app.ui.components.StarnazzoLevelSelector
 import com.whereduck.app.ui.theme.StarnazzoHeavy
 import com.whereduck.app.ui.theme.StarnazzoMedium
@@ -55,6 +59,7 @@ fun GroupDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToGroupManagement: (String) -> Unit,
     onNavigateToStarnazzoCall: (alertId: String, toName: String, level: String) -> Unit,
+    onNavigateToContactDetail: (String) -> Unit = {},
     viewModel: GroupDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -75,6 +80,7 @@ fun GroupDetailScreen(
     }
 
     Scaffold(
+        containerColor = DuckTheme.colors.sectionDashboard,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -160,25 +166,33 @@ fun GroupDetailScreen(
 
                         // Contact list with starnazzo button
                         items(uiState.contacts) { contact ->
-                            ContactCard(contact = contact) {
+                            ContactCard(
+                                contact = contact,
+                                onClick = { onNavigateToContactDetail(contact.id) }
+                            ) {
                                 val isSending = uiState.sendingToUserId == contact.id
-                                Button(
-                                    onClick = { viewModel.sendStarnazzo(contact.id) },
-                                    enabled = !isSending && uiState.sendingToUserId == null && !uiState.isBroadcasting,
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = StarnazzoMedium
-                                    )
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(DuckTheme.colors.highlight)
+                                        .clickable(
+                                            enabled = !isSending && uiState.sendingToUserId == null && !uiState.isBroadcasting
+                                        ) { viewModel.sendStarnazzo(contact.id) },
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     if (isSending) {
                                         CircularProgressIndicator(
                                             modifier = Modifier.size(16.dp),
-                                            strokeWidth = 2.dp
+                                            strokeWidth = 2.dp,
+                                            color = DuckTheme.colors.sectionTitle
                                         )
                                     } else {
                                         Icon(
-                                            Icons.AutoMirrored.Filled.Send,
+                                            Icons.Default.Campaign,
                                             contentDescription = "Starnazza",
-                                            modifier = Modifier.size(18.dp)
+                                            modifier = Modifier.size(20.dp),
+                                            tint = DuckTheme.colors.sectionTitle
                                         )
                                     }
                                 }

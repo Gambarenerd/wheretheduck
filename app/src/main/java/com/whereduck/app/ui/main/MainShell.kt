@@ -125,12 +125,13 @@ fun MainShell(
                     .padding(start = 20.dp, end = 20.dp, top = 64.dp, bottom = 8.dp)
             ) {
                 // Section title (left)
+                val highlightColor = DuckTheme.colors.accentDark
                 val titleText = when (pagerState.currentPage) {
                     0 -> buildAnnotatedString {
                         withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
                             append("Where ")
                         }
-                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold, fontStyle = FontStyle.Italic)) {
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold, fontStyle = FontStyle.Italic, color = highlightColor)) {
                             append("The Duck")
                         }
                         withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
@@ -141,7 +142,7 @@ fun MainShell(
                         withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
                             append("Hey ")
                         }
-                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold, fontStyle = FontStyle.Italic)) {
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold, fontStyle = FontStyle.Italic, color = highlightColor)) {
                             append("Duckers!")
                         }
                     }
@@ -199,25 +200,28 @@ fun MainShell(
                 }
             }
 
-            // Pager
-            HorizontalPager(
-                state = pagerState,
+            // Pager with fading edges
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-            ) { page ->
-                Box(modifier = Modifier.fillMaxSize()) {
-                    when (page) {
-                        0 -> dashboardContent()
-                        1 -> contactsContent(inviteTrigger)
-                        2 -> historyContent()
-                        3 -> customizeContent()
+            ) {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize()
+                ) { page ->
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        when (page) {
+                            0 -> dashboardContent()
+                            1 -> contactsContent(inviteTrigger)
+                            2 -> historyContent()
+                            3 -> customizeContent()
+                        }
                     }
                 }
             }
 
-            // Spacer for bottom bar
-            Spacer(modifier = Modifier.height(80.dp))
+            // No spacer — content scrolls behind bottom bar
         }
 
         // ── Bottom bar ──

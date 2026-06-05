@@ -88,6 +88,7 @@ fun SettingsScreen(
     }
 
     Scaffold(
+        containerColor = DuckTheme.colors.sectionDashboard,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {

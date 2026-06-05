@@ -1,6 +1,7 @@
 package com.whereduck.app.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,10 +34,13 @@ import com.whereduck.app.ui.theme.DuckTheme
 @Composable
 fun ContactCard(
     contact: Contact,
+    onClick: (() -> Unit)? = null,
     trailingContent: @Composable () -> Unit = {}
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
             containerColor = DuckTheme.colors.cardBackground
