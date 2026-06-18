@@ -2,6 +2,8 @@ package com.whereduck.app.ui.main
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -21,6 +23,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -55,6 +58,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -91,7 +95,7 @@ fun MainShell(
     onCreateGroup: () -> Unit,
     dashboardContent: @Composable () -> Unit,
     contactsContent: @Composable (inviteTrigger: Int) -> Unit,
-    historyContent: @Composable () -> Unit,
+    historyContent: @Composable () -> Unit = {},
     customizeContent: @Composable () -> Unit,
 ) {
     val pagerState = rememberPagerState(pageCount = { 4 })
@@ -252,7 +256,7 @@ fun MainShell(
                     LaunchedEffect(selected) {
                         if (selected) {
                             bounceAnim.animateTo(
-                                targetValue = 1.3f,
+                                targetValue = 1.12f,
                                 animationSpec = spring(
                                     dampingRatio = Spring.DampingRatioMediumBouncy,
                                     stiffness = Spring.StiffnessMedium
@@ -296,97 +300,109 @@ fun MainShell(
             }
         }
 
-        // ── Expandable FAB + (bottom-right, same height as bottom bar) ──
-        // Sub-menu floats above the FAB
-        AnimatedVisibility(
-            visible = fabExpanded,
-            enter = expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
-            exit = shrinkVertically(shrinkTowards = Alignment.Bottom) + fadeOut(),
+        // ── FAB area: main button + sub-buttons that pop out ──
+        val fabSize = 62.dp
+        val subFabSize = 48.dp
+
+        // Animate sub-buttons popping out from the main FAB
+        val offsetGroup by animateDpAsState(
+            targetValue = if (fabExpanded) -(fabSize + 14.dp) else 0.dp,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            ),
+            label = "offset_group"
+        )
+        val offsetPerson by animateDpAsState(
+            targetValue = if (fabExpanded) -(fabSize + subFabSize + 24.dp) else 0.dp,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            ),
+            label = "offset_person"
+        )
+        val subFabScale by animateFloatAsState(
+            targetValue = if (fabExpanded) 1f else 0f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            ),
+            label = "sub_fab_scale"
+        )
+
+        // Sub-FAB: Add person
+        Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = bottomPadding + 72.dp)
+                .padding(end = 20.dp + (fabSize - subFabSize) / 2, bottom = bottomPadding + (fabSize - subFabSize) / 2)
+                .offset(y = offsetPerson)
+                .scale(subFabScale)
+                .size(subFabSize)
+                .clip(CircleShape)
+                .background(DuckTheme.colors.bottomBarBackground)
+                .clickable(enabled = fabExpanded) {
+                    fabExpanded = false
+                    inviteTrigger++
+                },
+            contentAlignment = Alignment.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                // Add person
-                Surface(
-                    onClick = {
-                        fabExpanded = false
-                        inviteTrigger++
-                    },
-                    shape = RoundedCornerShape(16.dp),
-                    color = DuckTheme.colors.bottomBarBackground,
-                    shadowElevation = 4.dp
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Persona",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = DuckTheme.colors.textOnAccent
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Icon(
-                            Icons.Default.PersonAdd,
-                            contentDescription = "Aggiungi persona",
-                            modifier = Modifier.size(22.dp),
-                            tint = DuckTheme.colors.textOnAccent
-                        )
-                    }
-                }
-
-                // Add group
-                Surface(
-                    onClick = {
-                        fabExpanded = false
-                        onCreateGroup()
-                    },
-                    shape = RoundedCornerShape(16.dp),
-                    color = DuckTheme.colors.bottomBarBackground,
-                    shadowElevation = 4.dp
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Gruppo",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = DuckTheme.colors.textOnAccent
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Icon(
-                            Icons.Default.GroupAdd,
-                            contentDescription = "Crea gruppo",
-                            modifier = Modifier.size(22.dp),
-                            tint = DuckTheme.colors.textOnAccent
-                        )
-                    }
-                }
-            }
+            Icon(
+                Icons.Default.PersonAdd,
+                contentDescription = "Aggiungi persona",
+                modifier = Modifier.size(22.dp),
+                tint = DuckTheme.colors.textOnAccent
+            )
         }
 
-        // Main FAB (+ / ×) — bottom-right
+        // Sub-FAB: Add group
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 20.dp + (fabSize - subFabSize) / 2, bottom = bottomPadding + (fabSize - subFabSize) / 2)
+                .offset(y = offsetGroup)
+                .scale(subFabScale)
+                .size(subFabSize)
+                .clip(CircleShape)
+                .background(DuckTheme.colors.bottomBarBackground)
+                .clickable(enabled = fabExpanded) {
+                    fabExpanded = false
+                    onCreateGroup()
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                Icons.Default.GroupAdd,
+                contentDescription = "Crea gruppo",
+                modifier = Modifier.size(22.dp),
+                tint = DuckTheme.colors.textOnAccent
+            )
+        }
+
+        // Main FAB (+ / ×) with rotation animation
+        val fabRotation by animateFloatAsState(
+            targetValue = if (fabExpanded) 135f else 0f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            ),
+            label = "fab_rotation"
+        )
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 20.dp, bottom = bottomPadding)
-                .size(62.dp)
+                .size(fabSize)
                 .clip(CircleShape)
                 .background(DuckTheme.colors.buttonPrimary)
                 .clickable { fabExpanded = !fabExpanded },
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                if (fabExpanded) Icons.Default.Close else Icons.Default.Add,
+                Icons.Default.Add,
                 contentDescription = if (fabExpanded) "Chiudi" else "Aggiungi",
-                modifier = Modifier.size(26.dp),
+                modifier = Modifier
+                    .size(26.dp)
+                    .graphicsLayer { rotationZ = fabRotation },
                 tint = DuckTheme.colors.textOnButtonPrimary
             )
         }

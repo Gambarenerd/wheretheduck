@@ -25,12 +25,10 @@ import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -70,20 +68,12 @@ private data class EnemyStat(
 fun DashboardTab(
     onSendStarnazzo: ((String) -> Unit)? = null,
     onNavigateToContact: ((String) -> Unit)? = null,
-    onNavigateToStarnazzoCall: ((alertId: String, toName: String, level: String) -> Unit)? = null,
     historyViewModel: HistoryViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
     val historyState by historyViewModel.uiState.collectAsState()
     val homeState by homeViewModel.uiState.collectAsState()
     var showVipPicker by remember { mutableStateOf(false) }
-
-    // Navigate to call screen when quick starnazzo is sent
-    LaunchedEffect(Unit) {
-        homeViewModel.quickStarnazzoSent.collect { event ->
-            onNavigateToStarnazzoCall?.invoke(event.alertId, event.toName, event.level)
-        }
-    }
 
     val weekAgo = remember { System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000L }
 
@@ -391,9 +381,7 @@ fun DashboardTab(
                             name = weekWarContact.name,
                             photoUrl = weekWarContact.photoUrl,
                             subtitle = "Starnazzato ${weekWarContact.count} volte questa settimana",
-                            isSending = homeState.sendingQuickStarnazzoTo == weekWarContact.userId,
-                            onClick = { onNavigateToContact?.invoke(weekWarContact.userId) },
-                            onMegaphoneClick = { homeViewModel.sendQuickStarnazzo(weekWarContact.userId) }
+                            onClick = { onNavigateToContact?.invoke(weekWarContact.userId) }
                         )
                     }
                     if (allTimeEnemy != null) {
@@ -402,9 +390,7 @@ fun DashboardTab(
                             name = allTimeEnemy.name,
                             photoUrl = allTimeEnemy.photoUrl,
                             subtitle = "Starnazzato ${allTimeEnemy.count} volte in totale",
-                            isSending = homeState.sendingQuickStarnazzoTo == allTimeEnemy.userId,
-                            onClick = { onNavigateToContact?.invoke(allTimeEnemy.userId) },
-                            onMegaphoneClick = { homeViewModel.sendQuickStarnazzo(allTimeEnemy.userId) }
+                            onClick = { onNavigateToContact?.invoke(allTimeEnemy.userId) }
                         )
                     }
                 }
@@ -436,9 +422,7 @@ private fun EnemyCard(
     name: String,
     photoUrl: String,
     subtitle: String,
-    isSending: Boolean = false,
-    onClick: () -> Unit,
-    onMegaphoneClick: () -> Unit = {}
+    onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -509,24 +493,15 @@ private fun EnemyCard(
                     modifier = Modifier
                         .size(36.dp)
                         .clip(CircleShape)
-                        .background(DuckTheme.colors.highlight)
-                        .clickable(enabled = !isSending) { onMegaphoneClick() },
+                        .background(DuckTheme.colors.highlight),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (isSending) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                            color = DuckTheme.colors.sectionTitle
-                        )
-                    } else {
-                        Icon(
-                            Icons.Default.Campaign,
-                            contentDescription = "Starnazza",
-                            modifier = Modifier.size(20.dp),
-                            tint = DuckTheme.colors.sectionTitle
-                        )
-                    }
+                    Icon(
+                        Icons.Default.Campaign,
+                        contentDescription = "Starnazza",
+                        modifier = Modifier.size(20.dp),
+                        tint = DuckTheme.colors.sectionTitle
+                    )
                 }
             }
         }

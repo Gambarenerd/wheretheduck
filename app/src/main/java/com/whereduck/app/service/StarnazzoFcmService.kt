@@ -79,7 +79,9 @@ class StarnazzoFcmService : FirebaseMessagingService() {
         startService(stopIntent)
 
         // Tell IncomingAlertActivity to close
-        val closeIntent = Intent(ACTION_CANCEL_STARNAZZO)
+        val closeIntent = Intent(ACTION_CANCEL_STARNAZZO).apply {
+            setPackage(packageName)
+        }
         sendBroadcast(closeIntent)
 
         // Dismiss any starnazzo notifications

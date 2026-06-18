@@ -7,17 +7,12 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.whereduck.app.data.model.Contact
 import com.whereduck.app.data.model.Group
-import com.whereduck.app.data.model.StarnazzoLevel
-import com.whereduck.app.data.repository.AlertRepository
 import com.whereduck.app.data.repository.ContactRepository
 import com.whereduck.app.data.repository.GroupRepository
 import android.content.SharedPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
@@ -29,14 +24,7 @@ data class HomeUiState(
     val contacts: List<Contact> = emptyList(),
     val vipContactIds: List<String> = emptyList(),
     val pendingInviteCount: Int = 0,
-    val sendingQuickStarnazzoTo: String? = null,
     val error: String? = null
-)
-
-data class QuickStarnazzoEvent(
-    val alertId: String,
-    val toName: String,
-    val level: String
 )
 
 @HiltViewModel
@@ -44,15 +32,11 @@ class HomeViewModel @Inject constructor(
     private val app: Application,
     private val groupRepository: GroupRepository,
     private val contactRepository: ContactRepository,
-    private val alertRepository: AlertRepository,
     private val auth: FirebaseAuth
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
-
-    private val _quickStarnazzoSent = MutableSharedFlow<QuickStarnazzoEvent>()
-    val quickStarnazzoSent: SharedFlow<QuickStarnazzoEvent> = _quickStarnazzoSent.asSharedFlow()
 
     private val vipPrefs by lazy {
         app.getSharedPreferences("vip_prefs", Context.MODE_PRIVATE)
@@ -157,31 +141,4 @@ class HomeViewModel @Inject constructor(
         saveVipContacts(current - contactId)
     }
 
-    fun sendQuickStarnazzo(contactId: String) {
-        if (_uiState.value.sendingQuickStarnazzoTo != null) return
-        val level = StarnazzoLevel.MEDIUM
-        val contact = _uiState.value.contacts.find { it.id == contactId }
-        val toName = contact?.displayName?.ifBlank { contact.email } ?: "Qualcuno"
-
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(sendingQuickStarnazzoTo = contactId)
-            try {
-                val result = alertRepository.sendStarnazzo(
-                    toUserId = contactId,
-                    level = level.key,
-                    animalType = level.defaultAnimal
-                )
-                val status = result["status"] as? String
-                val alertId = result["alertId"] as? String ?: ""
-
-                _uiState.value = _uiState.value.copy(sendingQuickStarnazzoTo = null)
-
-                if (status == "sent") {
-                    _quickStarnazzoSent.emit(QuickStarnazzoEvent(alertId, toName, level.key))
-                }
-            } catch (_: Exception) {
-                _uiState.value = _uiState.value.copy(sendingQuickStarnazzoTo = null)
-            }
-        }
-    }
 }

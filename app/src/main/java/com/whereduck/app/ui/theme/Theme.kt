@@ -220,7 +220,7 @@ private val AppColors = DuckCustomColors(
     inputBorder = DuckBrown200,
 
     // Pill
-    pillBackground = DuckBrown50,
+    pillBackground = Color(0x33FFA000),
 )
 
 // Material3 scheme (necessario per componenti Material)

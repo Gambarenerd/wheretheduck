@@ -11,15 +11,19 @@ import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.data.repository.AlertRepository
 import com.whereduck.app.data.repository.ContactRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+enum class CallPhase {
+    RINGING,
+    RESPONDED,
+    FAILED
+}
 
 data class ContactDetailUiState(
     val isLoading: Boolean = true,
@@ -27,13 +31,10 @@ data class ContactDetailUiState(
     val selectedLevel: StarnazzoLevel = StarnazzoLevel.MEDIUM,
     val isSending: Boolean = false,
     val lastSendResult: String? = null,
-    val isVip: Boolean = false
-)
-
-data class StarnazzoSentEvent(
-    val alertId: String,
-    val toName: String,
-    val level: String
+    val isVip: Boolean = false,
+    val callPhase: CallPhase? = null,
+    val callResponse: String? = null,
+    val currentAlertId: String? = null
 )
 
 @HiltViewModel
@@ -47,6 +48,7 @@ class ContactDetailViewModel @Inject constructor(
 
     val contactId: String = savedStateHandle.get<String>("contactId") ?: ""
     private val userId: String = auth.currentUser?.uid ?: ""
+    private var alertObserverJob: Job? = null
 
     private val vipPrefs by lazy {
         app.getSharedPreferences("vip_prefs", Context.MODE_PRIVATE)
@@ -54,9 +56,6 @@ class ContactDetailViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ContactDetailUiState())
     val uiState: StateFlow<ContactDetailUiState> = _uiState.asStateFlow()
-
-    private val _starnazzoSent = MutableSharedFlow<StarnazzoSentEvent>()
-    val starnazzoSent: SharedFlow<StarnazzoSentEvent> = _starnazzoSent.asSharedFlow()
 
     init {
         loadContact()
@@ -115,7 +114,6 @@ class ContactDetailViewModel @Inject constructor(
     fun sendStarnazzo() {
         val contact = _uiState.value.contact ?: return
         val level = _uiState.value.selectedLevel
-        val toName = contact.displayName.ifBlank { contact.email }
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isSending = true, lastSendResult = null)
@@ -128,21 +126,26 @@ class ContactDetailViewModel @Inject constructor(
                 val status = result["status"] as? String
                 val alertId = result["alertId"] as? String ?: ""
 
-                _uiState.value = _uiState.value.copy(isSending = false)
-
                 when (status) {
                     "sent" -> {
-                        _starnazzoSent.emit(StarnazzoSentEvent(alertId, toName, level.key))
+                        _uiState.value = _uiState.value.copy(
+                            isSending = false,
+                            callPhase = CallPhase.RINGING,
+                            currentAlertId = alertId
+                        )
+                        observeAlert(alertId)
                     }
                     "muted" -> {
                         val message = result["message"] as? String
                             ?: "L'utente ti ha bloccato"
                         _uiState.value = _uiState.value.copy(
-                            lastSendResult = "$message 😢"
+                            isSending = false,
+                            lastSendResult = "$message"
                         )
                     }
                     else -> {
                         _uiState.value = _uiState.value.copy(
+                            isSending = false,
                             lastSendResult = "Errore nell'invio"
                         )
                     }
@@ -152,6 +155,62 @@ class ContactDetailViewModel @Inject constructor(
                     isSending = false,
                     lastSendResult = "Errore: ${e.message}"
                 )
+            }
+        }
+    }
+
+    private fun observeAlert(alertId: String) {
+        alertObserverJob?.cancel()
+        alertObserverJob = viewModelScope.launch {
+            alertRepository.observeAlert(alertId)
+                .catch {
+                    _uiState.value = _uiState.value.copy(callPhase = CallPhase.FAILED)
+                }
+                .collect { data ->
+                    val status = data["status"] as? String ?: ""
+                    val response = data["response"] as? String
+
+                    when {
+                        response != null -> {
+                            _uiState.value = _uiState.value.copy(
+                                callPhase = CallPhase.RESPONDED,
+                                callResponse = response
+                            )
+                        }
+                        status == "failed" -> {
+                            _uiState.value = _uiState.value.copy(
+                                callPhase = CallPhase.FAILED
+                            )
+                        }
+                    }
+                }
+        }
+    }
+
+    fun dismissCall() {
+        alertObserverJob?.cancel()
+        _uiState.value = _uiState.value.copy(
+            callPhase = null,
+            callResponse = null
+        )
+    }
+
+    fun cancelStarnazzo() {
+        alertObserverJob?.cancel()
+        val alertId = _uiState.value.currentAlertId
+        _uiState.value = _uiState.value.copy(
+            isSending = false,
+            callPhase = null,
+            callResponse = null,
+            currentAlertId = null
+        )
+        if (alertId != null) {
+            viewModelScope.launch {
+                try {
+                    alertRepository.cancelStarnazzo(alertId)
+                } catch (_: Exception) {
+                    // Best effort — alert may have already been responded to
+                }
             }
         }
     }

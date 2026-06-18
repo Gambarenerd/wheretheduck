@@ -372,7 +372,7 @@ private fun ContactListCard(
                                 Text(
                                     text = contact.motto,
                                     fontSize = 13.sp,
-                                    color = DuckTheme.colors.textSecondary,
+                                    color = DuckTheme.colors.textPrimary,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )

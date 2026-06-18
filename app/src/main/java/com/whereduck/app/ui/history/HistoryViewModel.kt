@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.whereduck.app.data.model.Alert
 import com.whereduck.app.data.repository.AlertRepository
+import com.whereduck.app.data.repository.ContactRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,12 +20,14 @@ data class HistoryUiState(
     val sentAlerts: List<Alert> = emptyList(),
     val receivedAlerts: List<Alert> = emptyList(),
     val sentCount: Int = 0,
-    val receivedCount: Int = 0
+    val receivedCount: Int = 0,
+    val contactPhotos: Map<String, String> = emptyMap()
 )
 
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
     private val alertRepository: AlertRepository,
+    private val contactRepository: ContactRepository,
     private val auth: FirebaseAuth
 ) : ViewModel() {
 
@@ -40,14 +43,17 @@ class HistoryViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 alertRepository.observeSentAlerts(userId),
-                alertRepository.observeReceivedAlerts(userId)
-            ) { sent, received ->
+                alertRepository.observeReceivedAlerts(userId),
+                contactRepository.observeContacts(userId)
+            ) { sent, received, contacts ->
+                val photoMap = contacts.associate { it.id to it.photoUrl }
                 HistoryUiState(
                     isLoading = false,
                     sentAlerts = sent,
                     receivedAlerts = received,
                     sentCount = sent.size,
-                    receivedCount = received.size
+                    receivedCount = received.size,
+                    contactPhotos = photoMap
                 )
             }
                 .catch { _uiState.value = _uiState.value.copy(isLoading = false) }

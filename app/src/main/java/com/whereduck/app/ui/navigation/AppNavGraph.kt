@@ -102,9 +102,6 @@ fun AppNavGraph() {
                         },
                         onNavigateToContact = { contactId ->
                             navController.navigate(Route.contactDetail(contactId))
-                        },
-                        onNavigateToStarnazzoCall = { alertId, toName, level ->
-                            navController.navigate(Route.starnazzoCall(alertId, toName, level))
                         }
                     )
                 },
@@ -123,7 +120,11 @@ fun AppNavGraph() {
                     )
                 },
                 historyContent = {
-                    HistoryTab()
+                    HistoryTab(
+                        onNavigateToContactDetail = { contactId ->
+                            navController.navigate(Route.contactDetail(contactId))
+                        }
+                    )
                 },
                 customizeContent = {
                     PlaceholderScreen("Personalizza\nSuoni & Animali")
@@ -140,9 +141,6 @@ fun AppNavGraph() {
         ) {
             ContactDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToStarnazzoCall = { alertId, toName, level ->
-                    navController.navigate(Route.starnazzoCall(alertId, toName, level))
-                },
                 onContactRemoved = {
                     navController.popBackStack(Route.HOME, inclusive = false)
                 }

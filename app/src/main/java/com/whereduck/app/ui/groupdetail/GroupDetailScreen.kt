@@ -164,37 +164,26 @@ fun GroupDetailScreen(
                             )
                         }
 
-                        // Contact list with starnazzo button
+                        // Contact list
                         items(uiState.contacts) { contact ->
                             ContactCard(
                                 contact = contact,
                                 onClick = { onNavigateToContactDetail(contact.id) }
                             ) {
-                                val isSending = uiState.sendingToUserId == contact.id
                                 Box(
                                     modifier = Modifier
                                         .size(36.dp)
                                         .clip(CircleShape)
                                         .background(DuckTheme.colors.highlight)
-                                        .clickable(
-                                            enabled = !isSending && uiState.sendingToUserId == null && !uiState.isBroadcasting
-                                        ) { viewModel.sendStarnazzo(contact.id) },
+                                        .clickable { onNavigateToContactDetail(contact.id) },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    if (isSending) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(16.dp),
-                                            strokeWidth = 2.dp,
-                                            color = DuckTheme.colors.sectionTitle
-                                        )
-                                    } else {
-                                        Icon(
-                                            Icons.Default.Campaign,
-                                            contentDescription = "Starnazza",
-                                            modifier = Modifier.size(20.dp),
-                                            tint = DuckTheme.colors.sectionTitle
-                                        )
-                                    }
+                                    Icon(
+                                        Icons.Default.Campaign,
+                                        contentDescription = "Starnazza",
+                                        modifier = Modifier.size(20.dp),
+                                        tint = DuckTheme.colors.sectionTitle
+                                    )
                                 }
                             }
                         }
