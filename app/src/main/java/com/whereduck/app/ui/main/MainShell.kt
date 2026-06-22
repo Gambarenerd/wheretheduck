@@ -152,12 +152,18 @@ fun MainShell(
                     }
                     2 -> buildAnnotatedString {
                         withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
-                            append("Cronologia")
+                            append("Starnazzi ")
+                        }
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold, fontStyle = FontStyle.Italic, color = highlightColor)) {
+                            append("Passati")
                         }
                     }
                     else -> buildAnnotatedString {
                         withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
-                            append("Personalizza")
+                            append("Facciamo un po'\ndi ")
+                        }
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold, fontStyle = FontStyle.Italic, color = highlightColor)) {
+                            append("Casino!")
                         }
                     }
                 }

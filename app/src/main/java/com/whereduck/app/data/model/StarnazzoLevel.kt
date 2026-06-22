@@ -18,7 +18,7 @@ enum class StarnazzoLevel(
     MEDIUM("medium", "Medio", "\uD83E\uDD86", "Anatra", "duck",
         longArrayOf(0, 400, 200, 400, 200, 400), 1000,
         soundRes = R.raw.magiaz_duck_405695),
-    HEAVY("heavy", "Pesante", "\uD83E\uDEB3", "Oca Arrabbiata", "goose",
+    HEAVY("heavy", "Pesante", "\uD83D\uDC10", "Capra Pazza", "goat",
         longArrayOf(0, 800, 200, 800, 200, 800), 500,
         soundRes = R.raw.goat);
 

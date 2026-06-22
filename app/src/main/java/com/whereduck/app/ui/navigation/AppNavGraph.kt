@@ -29,6 +29,7 @@ import com.whereduck.app.ui.login.LoginScreen
 import com.whereduck.app.ui.contactdetail.ContactDetailScreen
 import com.whereduck.app.ui.main.ContactsTab
 import com.whereduck.app.ui.main.DashboardTab
+import com.whereduck.app.ui.main.CustomizeTab
 import com.whereduck.app.ui.main.HistoryTab
 import com.whereduck.app.ui.main.MainShell
 import com.whereduck.app.ui.permissions.PermissionSetupScreen
@@ -127,7 +128,7 @@ fun AppNavGraph() {
                     )
                 },
                 customizeContent = {
-                    PlaceholderScreen("Personalizza\nSuoni & Animali")
+                    CustomizeTab()
                 }
             )
         }
