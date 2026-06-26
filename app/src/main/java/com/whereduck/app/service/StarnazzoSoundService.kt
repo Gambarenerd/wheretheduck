@@ -18,6 +18,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.core.app.NotificationCompat
+import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
 import kotlin.math.sin
 
@@ -25,6 +26,7 @@ class StarnazzoSoundService : Service() {
 
     companion object {
         const val EXTRA_LEVEL = "extra_level"
+        const val EXTRA_ANIMAL_TYPE = "extra_animal_type"
         const val EXTRA_FROM_NAME = "extra_from_name"
         const val ACTION_STOP = "com.whereduck.STOP_STARNAZZO"
         private const val NOTIF_ID = 9999
@@ -53,10 +55,12 @@ class StarnazzoSoundService : Service() {
 
         val levelKey = intent?.getStringExtra(EXTRA_LEVEL) ?: "medium"
         val level = StarnazzoLevel.fromKey(levelKey)
+        val animalType = intent?.getStringExtra(EXTRA_ANIMAL_TYPE) ?: level.defaultAnimal
         val fromName = intent?.getStringExtra(EXTRA_FROM_NAME) ?: "Qualcuno"
 
+        val animalEmoji = AnimalRegistry.getEmoji(animalType, level)
         isPlaying = true
-        startForeground(NOTIF_ID, buildNotification(fromName, level))
+        startForeground(NOTIF_ID, buildNotification(fromName, animalEmoji))
         acquireWakeLock()
         forceMaxVolume()
 
@@ -84,7 +88,7 @@ class StarnazzoSoundService : Service() {
         // Phase 4 (9s): Long vibrations + sound
         handler.postDelayed({
             if (!isPlaying) return@postDelayed
-            startLongVibrationsWithSound(level)
+            startLongVibrationsWithSound(level, animalType)
         }, 9_000)
 
         // Auto-stop after 30 seconds
@@ -122,7 +126,7 @@ class StarnazzoSoundService : Service() {
         v.vibrate(VibrationEffect.createWaveform(pattern, -1))
     }
 
-    private fun startLongVibrationsWithSound(level: StarnazzoLevel) {
+    private fun startLongVibrationsWithSound(level: StarnazzoLevel, animalType: String) {
         // Cancel previous vibration, start new continuous pattern + sound
         vibrator?.cancel()
         val pattern = longArrayOf(
@@ -136,10 +140,10 @@ class StarnazzoSoundService : Service() {
         val v = initVibrator()
         v.vibrate(VibrationEffect.createWaveform(pattern, 0)) // 0 = repeat
 
-        playTone(level)
+        playTone(level, animalType)
     }
 
-    private fun buildNotification(fromName: String, level: StarnazzoLevel): Notification {
+    private fun buildNotification(fromName: String, animalEmoji: String): Notification {
         val stopIntent = Intent(this, StarnazzoSoundService::class.java).apply {
             action = ACTION_STOP
         }
@@ -150,8 +154,8 @@ class StarnazzoSoundService : Service() {
 
         return NotificationCompat.Builder(this, "starnazzo_service")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("${level.emoji} STARNAZZO in corso!")
-            .setContentText("$fromName ti sta starnazzando!")
+            .setContentTitle("$animalEmoji DUCK in corso!")
+            .setContentText("$fromName ti sta duckando!")
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setOngoing(true)
             .addAction(android.R.drawable.ic_delete, "SILENZIA", stopPendingIntent)
@@ -184,9 +188,10 @@ class StarnazzoSoundService : Service() {
         }
     }
 
-    private fun playTone(level: StarnazzoLevel) {
-        if (level.soundRes != null) {
-            playMp3(level.soundRes)
+    private fun playTone(level: StarnazzoLevel, animalType: String) {
+        val soundRes = AnimalRegistry.getSoundRes(animalType, level)
+        if (soundRes != null) {
+            playMp3(soundRes)
         } else {
             playGeneratedTone(level)
         }

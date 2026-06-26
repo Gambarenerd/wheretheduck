@@ -72,6 +72,11 @@ val StarnazzoLight  = Color(0xFF66BB6A)  // Verde — Grillo
 val StarnazzoMedium = Color(0xFFFFCA28)  // Giallo — Anatra
 val StarnazzoHeavy  = Color(0xFFEF5350)  // Rosso — Oca
 
+// Starnazzo card (versione più chiara per distacco dallo sfondo)
+val StarnazzoLightCard  = Color(0xFF8ED091)
+val StarnazzoMediumCard = Color(0xFFFFD95A)
+val StarnazzoHeavyCard  = Color(0xFFF47B7B)
+
 // Errore / distruttivo
 val DuckError    = Color(0xFFD32F2F)
 val DuckErrorLight = Color(0xFFEF5350)
@@ -103,3 +108,7 @@ val VipHeartColor     = Color(0xFFE53935)
 // Add VIP button (subtle shades of dashboard bg DuckBrown50)
 val VipAddCircle     = Color(0xFFD7D3CF)  // ~10% darker than DuckBrown50
 val VipAddIcon       = Color(0xFFBFBBB7)  // ~20% darker than DuckBrown50
+
+// Pill / motto chip
+val PillCoral        = Color(0xFFFFB8A8)  // Corallo saturo — scheda utente
+val PillCoralLight   = Color(0xFFFFE0D6)  // Corallo tenue — liste, settings

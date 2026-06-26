@@ -6,7 +6,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.whereduck.app.data.model.Alert
 import com.whereduck.app.data.model.Contact
+import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.data.repository.AlertRepository
 import com.whereduck.app.data.repository.ContactRepository
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -29,12 +32,18 @@ data class ContactDetailUiState(
     val isLoading: Boolean = true,
     val contact: Contact? = null,
     val selectedLevel: StarnazzoLevel = StarnazzoLevel.MEDIUM,
+    val selectedAnimalKey: String? = null,
     val isSending: Boolean = false,
     val lastSendResult: String? = null,
     val isVip: Boolean = false,
     val callPhase: CallPhase? = null,
     val callResponse: String? = null,
-    val currentAlertId: String? = null
+    val currentAlertId: String? = null,
+    val sentCount: Int = 0,
+    val receivedCount: Int = 0,
+    val recentAlerts: List<Alert> = emptyList(),
+    val isMuted: Boolean = false,
+    val muteExpiresAt: Long = 0L
 )
 
 @HiltViewModel
@@ -53,6 +62,9 @@ class ContactDetailViewModel @Inject constructor(
     private val vipPrefs by lazy {
         app.getSharedPreferences("vip_prefs", Context.MODE_PRIVATE)
     }
+    private val mutePrefs by lazy {
+        app.getSharedPreferences("mute_prefs", Context.MODE_PRIVATE)
+    }
 
     private val _uiState = MutableStateFlow(ContactDetailUiState())
     val uiState: StateFlow<ContactDetailUiState> = _uiState.asStateFlow()
@@ -60,6 +72,8 @@ class ContactDetailViewModel @Inject constructor(
     init {
         loadContact()
         loadVipStatus()
+        loadMuteStatus()
+        loadContactAlerts()
     }
 
     private fun loadVipStatus() {
@@ -107,8 +121,61 @@ class ContactDetailViewModel @Inject constructor(
         }
     }
 
+    private fun loadMuteStatus() {
+        val muteUntil = mutePrefs.getLong("mute_$contactId", 0L)
+        val now = System.currentTimeMillis()
+        if (muteUntil > now) {
+            _uiState.value = _uiState.value.copy(isMuted = true, muteExpiresAt = muteUntil)
+        } else if (muteUntil > 0) {
+            mutePrefs.edit().remove("mute_$contactId").apply()
+        }
+    }
+
+    fun toggleMute(minutes: Int?) {
+        if (minutes != null) {
+            val until = System.currentTimeMillis() + minutes * 60_000L
+            mutePrefs.edit().putLong("mute_$contactId", until).apply()
+            _uiState.value = _uiState.value.copy(isMuted = true, muteExpiresAt = until)
+        } else {
+            mutePrefs.edit().remove("mute_$contactId").apply()
+            _uiState.value = _uiState.value.copy(isMuted = false, muteExpiresAt = 0L)
+        }
+    }
+
+    private fun loadContactAlerts() {
+        if (userId.isEmpty()) return
+        viewModelScope.launch {
+            combine(
+                alertRepository.observeSentAlerts(userId),
+                alertRepository.observeReceivedAlerts(userId)
+            ) { sent, received ->
+                val sentToContact = sent.filter { it.toUserId == contactId }
+                val receivedFromContact = received.filter { it.fromUserId == contactId }
+                val all = (sentToContact + receivedFromContact)
+                    .sortedByDescending { it.createdAt?.toDate()?.time ?: 0L }
+                    .take(10)
+                Triple(sentToContact.size, receivedFromContact.size, all)
+            }
+                .catch { /* ignore */ }
+                .collect { (sentCount, receivedCount, recent) ->
+                    _uiState.value = _uiState.value.copy(
+                        sentCount = sentCount,
+                        receivedCount = receivedCount,
+                        recentAlerts = recent
+                    )
+                }
+        }
+    }
+
     fun selectLevel(level: StarnazzoLevel) {
         _uiState.value = _uiState.value.copy(selectedLevel = level)
+    }
+
+    fun selectAnimal(level: StarnazzoLevel, animalKey: String) {
+        _uiState.value = _uiState.value.copy(
+            selectedLevel = level,
+            selectedAnimalKey = animalKey
+        )
     }
 
     fun sendStarnazzo() {
@@ -118,10 +185,12 @@ class ContactDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isSending = true, lastSendResult = null)
             try {
+                val selectedAnimal = _uiState.value.selectedAnimalKey
+                    ?: AnimalRegistry.getSelectedAnimal(app, level)
                 val result = alertRepository.sendStarnazzo(
                     toUserId = contactId,
                     level = level.key,
-                    animalType = level.defaultAnimal
+                    animalType = selectedAnimal
                 )
                 val status = result["status"] as? String
                 val alertId = result["alertId"] as? String ?: ""

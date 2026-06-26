@@ -44,7 +44,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import androidx.compose.ui.platform.LocalContext
+import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
+import com.whereduck.app.ui.components.AnimalEmoji
 import com.whereduck.app.ui.theme.DuckTheme
 import com.whereduck.app.ui.theme.StarnazzoHeavy
 import com.whereduck.app.ui.theme.StarnazzoLight
@@ -57,6 +60,9 @@ fun StarnazzoCallScreen(
     viewModel: StarnazzoCallViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val animalKey = AnimalRegistry.getSelectedAnimal(context, uiState.level)
+    val animalEmoji = AnimalRegistry.getEmoji(animalKey, uiState.level)
 
     val bgColor = when (uiState.level) {
         StarnazzoLevel.LIGHT -> StarnazzoLight
@@ -207,7 +213,7 @@ fun StarnazzoCallScreen(
             }
             CallPhase.RINGING -> {
                 Text(
-                    text = "Starnazzando...",
+                    text = "Ducking...",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White.copy(alpha = dotsAlpha),
@@ -274,12 +280,12 @@ fun StarnazzoCallScreen(
                         .align(Alignment.Center)
                 )
             }
-            Text(
-                text = uiState.level.emoji,
+            AnimalEmoji(
+                animalKey = animalKey,
+                emoji = animalEmoji,
+                size = 180.dp,
                 fontSize = 180.sp,
-                textAlign = TextAlign.Center,
                 modifier = Modifier
-                    .fillMaxWidth()
                     .offset(y = 60.dp)
                     .scale(if (uiState.phase == CallPhase.RESPONDED) 1f else emojiScale)
             )

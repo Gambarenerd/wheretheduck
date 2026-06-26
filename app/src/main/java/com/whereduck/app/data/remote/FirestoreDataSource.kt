@@ -45,6 +45,13 @@ class FirestoreDataSource @Inject constructor(
             .await()
     }
 
+    suspend fun updateUserFields(userId: String, fields: Map<String, Any>) {
+        firestore.collection("users")
+            .document(userId)
+            .update(fields)
+            .await()
+    }
+
     suspend fun updateDisplayName(userId: String, displayName: String) {
         firestore.collection("users")
             .document(userId)
@@ -207,7 +214,6 @@ class FirestoreDataSource @Inject constructor(
         val listener = firestore.collection("alerts")
             .whereEqualTo("fromUserId", userId)
             .orderBy("createdAt", Query.Direction.DESCENDING)
-            .limit(50)
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) return@addSnapshotListener
                 val alerts = snapshot.toObjects(Alert::class.java)
@@ -220,7 +226,6 @@ class FirestoreDataSource @Inject constructor(
         val listener = firestore.collection("alerts")
             .whereEqualTo("toUserId", userId)
             .orderBy("createdAt", Query.Direction.DESCENDING)
-            .limit(50)
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) return@addSnapshotListener
                 val alerts = snapshot.toObjects(Alert::class.java)

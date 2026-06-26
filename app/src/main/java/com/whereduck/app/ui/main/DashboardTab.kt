@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -46,6 +48,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.whereduck.app.data.model.Contact
+import androidx.compose.ui.platform.LocalContext
+import com.whereduck.app.data.model.AnimalRegistry
+import com.whereduck.app.ui.components.AnimalEmoji
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.ui.theme.StarnazzoHeavy
 import com.whereduck.app.ui.theme.StarnazzoLight
@@ -274,55 +279,56 @@ fun DashboardTab(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Arma preferita
+                val weaponBgColor = if (topLevel != null) {
+                    when (topLevel.first) {
+                        StarnazzoLevel.LIGHT -> StarnazzoLight
+                        StarnazzoLevel.MEDIUM -> StarnazzoMedium
+                        StarnazzoLevel.HEAVY -> StarnazzoHeavy
+                    }
+                } else DuckTheme.colors.cardBackground
+
                 Card(
                     modifier = Modifier
                         .weight(1f)
                         .height(130.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = DuckTheme.colors.cardBackground
+                        containerColor = weaponBgColor
                     ),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = 14.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Box(
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         Text(
                             text = "Arma preferita",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = DuckTheme.colors.sectionTitle
+                            color = Color.White,
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = 14.dp)
                         )
-                        Spacer(modifier = Modifier.weight(1f))
                         if (topLevel != null) {
-                                val levelColor = when (topLevel.first) {
-                                    StarnazzoLevel.LIGHT -> StarnazzoLight
-                                    StarnazzoLevel.MEDIUM -> StarnazzoMedium
-                                    StarnazzoLevel.HEAVY -> StarnazzoHeavy
-                                }
-                                Box(
-                                    modifier = Modifier
-                                        .size(72.dp)
-                                        .clip(CircleShape)
-                                        .background(levelColor),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = topLevel.first.emoji,
-                                        fontSize = 40.sp
-                                    )
-                                }
-                            } else {
-                                Text(
-                                    text = "—",
-                                    fontSize = 40.sp,
-                                    color = DuckTheme.colors.textSecondary
-                                )
-                            }
-                        Spacer(modifier = Modifier.weight(1f))
+                            val dashCtx = LocalContext.current
+                            val dashAnimalKey = AnimalRegistry.getSelectedAnimal(dashCtx, topLevel.first)
+                            AnimalEmoji(
+                                animalKey = dashAnimalKey,
+                                emoji = AnimalRegistry.getEmoji(dashAnimalKey, topLevel.first),
+                                size = 60.dp,
+                                fontSize = 50.sp,
+                                modifier = Modifier
+                                    .fillMaxHeight(0.6f)
+                                    .align(Alignment.BottomCenter)
+                            )
+                        } else {
+                            Text(
+                                text = "—",
+                                fontSize = 40.sp,
+                                color = Color.White.copy(alpha = 0.7f),
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                        }
                     }
                 }
 
@@ -344,7 +350,7 @@ fun DashboardTab(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Starnazzi totali",
+                            text = "Duck totali",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = DuckTheme.colors.sectionTitle
@@ -380,7 +386,7 @@ fun DashboardTab(
                             label = "Guerra aperta",
                             name = weekWarContact.name,
                             photoUrl = weekWarContact.photoUrl,
-                            subtitle = "Starnazzato ${weekWarContact.count} volte questa settimana",
+                            subtitle = "Duckato ${weekWarContact.count} volte questa settimana",
                             onClick = { onNavigateToContact?.invoke(weekWarContact.userId) }
                         )
                     }
@@ -389,7 +395,7 @@ fun DashboardTab(
                             label = "Miglior nemico di sempre",
                             name = allTimeEnemy.name,
                             photoUrl = allTimeEnemy.photoUrl,
-                            subtitle = "Starnazzato ${allTimeEnemy.count} volte in totale",
+                            subtitle = "Duckato ${allTimeEnemy.count} volte in totale",
                             onClick = { onNavigateToContact?.invoke(allTimeEnemy.userId) }
                         )
                     }
@@ -498,7 +504,7 @@ private fun EnemyCard(
                 ) {
                     Icon(
                         Icons.Default.Campaign,
-                        contentDescription = "Starnazza",
+                        contentDescription = "Duck",
                         modifier = Modifier.size(20.dp),
                         tint = DuckTheme.colors.sectionTitle
                     )

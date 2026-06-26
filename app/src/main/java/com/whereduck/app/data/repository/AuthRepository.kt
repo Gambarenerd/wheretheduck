@@ -28,14 +28,31 @@ class AuthRepository @Inject constructor(
         val result = auth.signInWithCredential(credential).await()
         val firebaseUser = result.user ?: throw Exception("Login failed")
 
-        val user = User(
-            id = firebaseUser.uid,
-            displayName = firebaseUser.displayName ?: "",
-            email = firebaseUser.email ?: "",
-            photoUrl = firebaseUser.photoUrl?.toString() ?: "",
-            plan = "free"
-        )
-        firestoreDataSource.createOrUpdateUser(user)
+        // Check if user already exists in Firestore
+        val existingUser = firestoreDataSource.getUser(firebaseUser.uid)
+
+        if (existingUser != null) {
+            // User exists — only update email (may change) and displayName if blank,
+            // but never overwrite photoUrl (user may have set a custom one)
+            val updates = mutableMapOf<String, Any>(
+                "email" to (firebaseUser.email ?: "")
+            )
+            if (existingUser.displayName.isBlank()) {
+                updates["displayName"] = firebaseUser.displayName ?: ""
+            }
+            firestoreDataSource.updateUserFields(firebaseUser.uid, updates)
+        } else {
+            // New user — create with Google profile data
+            val user = User(
+                id = firebaseUser.uid,
+                displayName = firebaseUser.displayName ?: "",
+                email = firebaseUser.email ?: "",
+                photoUrl = firebaseUser.photoUrl?.toString() ?: "",
+                plan = "free"
+            )
+            firestoreDataSource.createOrUpdateUser(user)
+        }
+
         fcmTokenManager.registerToken(firebaseUser.uid)
 
         return firebaseUser

@@ -43,7 +43,7 @@ fun OfflineOverlay() {
             )
 
             Text(
-                text = "Riconnettiti per starnazzare.",
+                text = "Riconnettiti per duckare.",
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),

@@ -135,7 +135,7 @@ fun GroupDetailScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Aggiungi contatti al gruppo per iniziare a starnazzare.",
+                            text = "Aggiungi contatti al gruppo per iniziare a duckare.",
                             style = MaterialTheme.typography.bodyLarge,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
@@ -180,7 +180,7 @@ fun GroupDetailScreen(
                                 ) {
                                     Icon(
                                         Icons.Default.Campaign,
-                                        contentDescription = "Starnazza",
+                                        contentDescription = "Duck",
                                         modifier = Modifier.size(20.dp),
                                         tint = DuckTheme.colors.sectionTitle
                                     )
@@ -192,7 +192,7 @@ fun GroupDetailScreen(
                         item {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Scegli il livello di starnazzo",
+                                text = "Scegli il livello di Duck",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )

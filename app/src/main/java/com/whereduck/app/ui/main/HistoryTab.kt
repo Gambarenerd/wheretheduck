@@ -48,7 +48,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.whereduck.app.data.model.Alert
+import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
+import com.whereduck.app.ui.components.AnimalEmoji
 import com.whereduck.app.ui.history.HistoryViewModel
 import com.whereduck.app.ui.theme.DuckTheme
 import com.whereduck.app.ui.theme.StarnazzoHeavy
@@ -64,6 +66,7 @@ private data class GroupedAlert(
     val personId: String,
     val personPhotoUrl: String,
     val level: StarnazzoLevel,
+    val animalType: String,
     val isSentByMe: Boolean,
     val isRevenge: Boolean,
     val count: Int,
@@ -110,14 +113,14 @@ fun HistoryTab(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Nessuno starnazzo ancora",
+                    text = "Nessun Duck ancora",
                     fontSize = 18.sp,
                     color = DuckTheme.colors.textPrimary,
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "La cronologia dei tuoi starnazzi apparira' qui",
+                    text = "La cronologia dei tuoi Duck apparira' qui",
                     fontSize = 14.sp,
                     color = DuckTheme.colors.textSecondary,
                     textAlign = TextAlign.Center
@@ -195,7 +198,8 @@ fun HistoryTab(
                         )
                     }
 
-                    items(section.groups, key = { "${it.personId}_${it.level}_${it.isSentByMe}_${it.isRevenge}_${section.label}" }) { group ->
+                    items(section.groups.size, key = { idx -> "${section.groups[idx].personId}_${section.groups[idx].level}_${section.groups[idx].animalType}_${section.groups[idx].isSentByMe}_${section.groups[idx].isRevenge}_${section.label}_$idx" }) { idx ->
+                        val group = section.groups[idx]
                         GroupedAlertCard(
                             group = group,
                             onClick = { onNavigateToContactDetail(group.personId) }
@@ -233,12 +237,12 @@ private fun buildDaySections(
             else -> displayFmt.format(dayFmt.parse(dayKey)!!).replaceFirstChar { it.uppercase() }
         }
 
-        // Group alerts within the day by (person, level, direction, revenge)
+        // Group alerts within the day by (person, level, animal, direction, revenge)
         val grouped = dayAlerts.groupBy { alert ->
             val isSent = alert.id in sentIds
             val personId = if (isSent) alert.toUserId else alert.fromUserId
             val level = alert.starnazzoLevel
-            "$personId|$level|$isSent|${alert.isRevenge}"
+            "$personId|$level|${alert.animalType}|$isSent|${alert.isRevenge}"
         }.map { (_, groupAlerts) ->
             val first = groupAlerts.first()
             val isSent = first.id in sentIds
@@ -253,6 +257,7 @@ private fun buildDaySections(
                 personId = personId,
                 personPhotoUrl = photoUrl,
                 level = StarnazzoLevel.fromKey(first.starnazzoLevel),
+                animalType = first.animalType,
                 isSentByMe = isSent,
                 isRevenge = first.isRevenge,
                 count = groupAlerts.size,
@@ -330,8 +335,10 @@ private fun GroupedAlertCard(group: GroupedAlert, onClick: () -> Unit) {
                         .align(Alignment.BottomEnd),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = group.level.emoji,
+                    AnimalEmoji(
+                        animalKey = group.animalType,
+                        emoji = AnimalRegistry.getEmoji(group.animalType, group.level),
+                        size = 16.dp,
                         fontSize = 12.sp
                     )
                 }
@@ -416,8 +423,8 @@ private fun GroupedAlertCard(group: GroupedAlert, onClick: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (group.isSentByMe) "Hai starnazzato ${group.personName}"
-                               else "${group.personName} ti ha starnazzato",
+                        text = if (group.isSentByMe) "Hai duckato ${group.personName}"
+                               else "${group.personName} ti ha duckato",
                         fontSize = 12.sp,
                         color = DuckTheme.colors.textSecondary,
                         modifier = Modifier.weight(1f)

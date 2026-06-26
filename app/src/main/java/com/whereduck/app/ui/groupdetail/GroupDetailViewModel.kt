@@ -1,9 +1,11 @@
 package com.whereduck.app.ui.groupdetail
 
+import android.app.Application
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.Contact
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.data.repository.AlertRepository
@@ -40,6 +42,7 @@ data class StarnazzoSentEvent(
 
 @HiltViewModel
 class GroupDetailViewModel @Inject constructor(
+    private val app: Application,
     savedStateHandle: SavedStateHandle,
     private val groupRepository: GroupRepository,
     private val contactRepository: ContactRepository,
@@ -98,6 +101,7 @@ class GroupDetailViewModel @Inject constructor(
         val level = _uiState.value.selectedLevel
         val toContact = _uiState.value.contacts.find { it.id == toUserId }
         val toName = toContact?.displayName ?: "Qualcuno"
+        val selectedAnimal = AnimalRegistry.getSelectedAnimal(app, level)
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
@@ -108,7 +112,7 @@ class GroupDetailViewModel @Inject constructor(
                 val result = alertRepository.sendStarnazzo(
                     toUserId = toUserId,
                     level = level.key,
-                    animalType = level.defaultAnimal
+                    animalType = selectedAnimal
                 )
                 val status = result["status"] as? String
                 val alertId = result["alertId"] as? String ?: ""
@@ -136,6 +140,7 @@ class GroupDetailViewModel @Inject constructor(
 
     fun sendBroadcast() {
         val level = _uiState.value.selectedLevel
+        val selectedAnimal = AnimalRegistry.getSelectedAnimal(app, level)
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
@@ -146,7 +151,7 @@ class GroupDetailViewModel @Inject constructor(
                 val result = alertRepository.sendBroadcast(
                     groupId = groupId,
                     level = level.key,
-                    animalType = level.defaultAnimal
+                    animalType = selectedAnimal
                 )
                 val status = result["status"] as? String
 

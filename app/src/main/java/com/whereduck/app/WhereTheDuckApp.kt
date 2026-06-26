@@ -23,10 +23,10 @@ class WhereTheDuckApp : Application() {
 
         val starnazzoChannel = NotificationChannel(
             "starnazzo_v2",
-            "Starnazzi",
+            "Duck",
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "Notifiche starnazzo"
+            description = "Notifiche Duck"
             setBypassDnd(true)
             enableVibration(false)
             setSound(null, null)

@@ -46,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.Canvas
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -88,9 +89,19 @@ fun ContactsTab(
             }
     }
 
+    // Sent/received counts per contact
+    val sentCountMap = remember(historyState.sentAlerts) {
+        historyState.sentAlerts.groupBy { it.toUserId }.mapValues { it.value.size }
+    }
+    val receivedCountMap = remember(historyState.receivedAlerts) {
+        historyState.receivedAlerts.groupBy { it.fromUserId }.mapValues { it.value.size }
+    }
+
     // Open invite dialog when FAB triggers it
+    var lastHandledTrigger by remember { mutableStateOf(0) }
     LaunchedEffect(inviteTrigger) {
-        if (inviteTrigger > 0) {
+        if (inviteTrigger > lastHandledTrigger) {
+            lastHandledTrigger = inviteTrigger
             showInviteDialog = true
         }
     }
@@ -280,6 +291,8 @@ fun ContactsTab(
                             contact = contact,
                             isVip = isVip,
                             lastStarnazzo = if (isVip) lastStarnazzoMap[contact.id] else null,
+                            sentCount = sentCountMap[contact.id] ?: 0,
+                            receivedCount = receivedCountMap[contact.id] ?: 0,
                             onClick = { onNavigateToContactDetail(contact.id) }
                         )
                     }
@@ -306,6 +319,8 @@ private fun ContactListCard(
     contact: Contact,
     isVip: Boolean = false,
     lastStarnazzo: String? = null,
+    sentCount: Int = 0,
+    receivedCount: Int = 0,
     onClick: () -> Unit
 ) {
     val avatarSize = if (isVip) 66.dp else 44.dp
@@ -366,7 +381,7 @@ private fun ContactListCard(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(16.dp))
-                                    .background(DuckTheme.colors.pillBackground)
+                                    .background(DuckTheme.colors.pillBackgroundLight)
                                     .padding(horizontal = 10.dp, vertical = 4.dp)
                             ) {
                                 Text(
@@ -384,13 +399,6 @@ private fun ContactListCard(
                                 color = DuckTheme.colors.textSecondary
                             )
                         }
-                    }
-                    if (!lastStarnazzo.isNullOrBlank()) {
-                        Text(
-                            text = lastStarnazzo,
-                            fontSize = 11.sp,
-                            color = DuckTheme.colors.textSecondary
-                        )
                     }
                 }
             }

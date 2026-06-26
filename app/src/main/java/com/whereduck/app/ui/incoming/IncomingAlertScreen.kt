@@ -11,10 +11,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,7 +28,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,15 +48,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.whereduck.app.data.model.StarnazzoLevel
+import com.whereduck.app.ui.components.AnimalEmoji
+import com.whereduck.app.ui.theme.DuckOrange500
 import com.whereduck.app.ui.theme.StarnazzoHeavy
+import com.whereduck.app.ui.theme.StarnazzoHeavyCard
 import com.whereduck.app.ui.theme.StarnazzoLight
+import com.whereduck.app.ui.theme.StarnazzoLightCard
 import com.whereduck.app.ui.theme.StarnazzoMedium
+import com.whereduck.app.ui.theme.StarnazzoMediumCard
 
 @Composable
 fun IncomingAlertScreen(
     fromName: String,
     fromPhotoUrl: String = "",
     level: StarnazzoLevel,
+    animalKey: String = level.defaultAnimal,
+    animalEmoji: String = level.emoji,
     isRevenge: Boolean,
     onOk: () -> Unit,
     onMute: (Int) -> Unit,
@@ -92,34 +101,43 @@ fun IncomingAlertScreen(
         label = "ripple_alpha"
     )
 
-    val bgColor = when (level) {
+    val lvlColor = when (level) {
         StarnazzoLevel.LIGHT -> StarnazzoLight
         StarnazzoLevel.MEDIUM -> StarnazzoMedium
         StarnazzoLevel.HEAVY -> StarnazzoHeavy
     }
 
+    val lvlCardColor = when (level) {
+        StarnazzoLevel.LIGHT -> StarnazzoLightCard
+        StarnazzoLevel.MEDIUM -> StarnazzoMediumCard
+        StarnazzoLevel.HEAVY -> StarnazzoHeavyCard
+    }
+
+    val navBarBottom = WindowInsets.navigationBars
+        .asPaddingValues().calculateBottomPadding()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(bgColor)
-            .padding(20.dp),
+            .background(lvlColor)
+            .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
-        // Sender photo
+        // ── Sender photo ──
         if (fromPhotoUrl.isNotBlank()) {
             AsyncImage(
                 model = fromPhotoUrl,
                 contentDescription = fromName,
                 modifier = Modifier
-                    .size(132.dp)
+                    .size(180.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop
             )
         } else {
             Surface(
-                modifier = Modifier.size(132.dp),
+                modifier = Modifier.size(180.dp),
                 shape = CircleShape,
                 color = Color.White.copy(alpha = 0.2f)
             ) {
@@ -137,62 +155,66 @@ fun IncomingAlertScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // Title
+        // ── Title ──
         Text(
             text = if (isRevenge) "You got Revenged!" else "You got Ducked!",
-            fontSize = 32.sp,
+            fontSize = 24.sp,
             fontWeight = FontWeight.ExtraBold,
             color = Color.White,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        // Sender name
+        // ── Sender name ──
         Text(
             text = if (isRevenge) "$fromName si e' vendicato!"
-                   else "$fromName ti sta starnazzando!",
-            fontSize = 16.sp,
+                   else "$fromName ti sta duckando!",
+            fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             color = Color.White.copy(alpha = 0.8f),
             textAlign = TextAlign.Center
         )
 
-        // Push animal + buttons to bottom
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Animal with ripple
+        // ── Animal card ──
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp),
+                .weight(1f)
+                .background(lvlCardColor, RoundedCornerShape(36.dp)),
             contentAlignment = Alignment.BottomCenter
         ) {
+            // Ripple
             Box(
                 modifier = Modifier
-                    .size(120.dp)
+                    .size(100.dp)
                     .scale(rippleScale)
                     .alpha(rippleAlpha)
                     .background(Color.White, CircleShape)
                     .align(Alignment.Center)
             )
-            Text(
-                text = level.emoji,
-                fontSize = 180.sp,
-                textAlign = TextAlign.Center,
+
+            AnimalEmoji(
+                animalKey = animalKey,
+                emoji = animalEmoji,
+                size = 120.dp,
+                fontSize = 120.sp,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .offset(y = 60.dp)
+                    .fillMaxHeight(0.75f)
+                    .align(Alignment.BottomCenter)
                     .scale(emojiScale)
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Action buttons
+        // ── Action buttons ──
         if (!showMuteOptions) {
+            // OK button — white
             Button(
                 onClick = onOk,
                 modifier = Modifier
@@ -201,7 +223,7 @@ fun IncomingAlertScreen(
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White,
-                    contentColor = bgColor
+                    contentColor = lvlColor
                 )
             ) {
                 Text(
@@ -213,33 +235,36 @@ fun IncomingAlertScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Non mi rompere + Revenge — orange
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedButton(
+                Button(
                     onClick = { showMuteOptions = true },
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = DuckOrange500,
                         contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(24.dp)
+                    )
                 ) {
                     Text("Non mi rompere", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
 
                 if (!isRevenge) {
-                    OutlinedButton(
+                    Button(
                         onClick = onRevenge,
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFE53935),
                             contentColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(24.dp)
+                        )
                     ) {
                         Text("Revenge!", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     }
@@ -269,7 +294,7 @@ fun IncomingAlertScreen(
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White.copy(alpha = 0.9f),
-                        contentColor = bgColor
+                        contentColor = lvlColor
                     )
                 ) {
                     Text(label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -279,16 +304,21 @@ fun IncomingAlertScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            OutlinedButton(
+            Button(
                 onClick = { showMuteOptions = false },
-                modifier = Modifier.fillMaxWidth().height(44.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp),
                 shape = RoundedCornerShape(22.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = DuckOrange500,
+                    contentColor = Color.White
+                )
             ) {
-                Text("Annulla")
+                Text("Annulla", fontWeight = FontWeight.Bold)
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(maxOf(24.dp, navBarBottom + 16.dp)))
     }
 }

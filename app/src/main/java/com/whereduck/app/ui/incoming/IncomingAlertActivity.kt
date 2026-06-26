@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.data.remote.CloudFunctionsDataSource
 import com.whereduck.app.service.StarnazzoFcmService
@@ -55,6 +56,8 @@ class IncomingAlertActivity : ComponentActivity() {
         val fromName = intent.getStringExtra("fromName") ?: "Qualcuno"
         val levelKey = intent.getStringExtra("level") ?: "medium"
         val level = StarnazzoLevel.fromKey(levelKey)
+        val animalType = intent.getStringExtra("animalType") ?: level.defaultAnimal
+        val animalEmoji = AnimalRegistry.getEmoji(animalType, level)
         val fromUserId = intent.getStringExtra("fromUserId") ?: ""
         val alertId = intent.getStringExtra("alertId") ?: ""
         val fromPhotoUrl = intent.getStringExtra("fromPhotoUrl") ?: ""
@@ -66,6 +69,8 @@ class IncomingAlertActivity : ComponentActivity() {
                     fromName = fromName,
                     fromPhotoUrl = fromPhotoUrl,
                     level = level,
+                    animalKey = animalType,
+                    animalEmoji = animalEmoji,
                     isRevenge = isRevenge,
                     onOk = {
                         respondToStarnazzo(alertId, "ok")

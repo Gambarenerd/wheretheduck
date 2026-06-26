@@ -57,7 +57,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
+import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
+import com.whereduck.app.ui.components.AnimalEmoji
 import com.whereduck.app.ui.theme.DuckTheme
 import com.whereduck.app.ui.theme.StarnazzoHeavy
 import com.whereduck.app.ui.theme.StarnazzoLight
@@ -93,8 +95,8 @@ val animalsPerLevel: Map<StarnazzoLevel, List<AnimalOption>> = mapOf(
             key = "robot",
             emoji = "\uD83E\uDD16",
             name = "Robot",
-            description = "Bip bop, il futuro dello starnazzo e' arrivato",
-            quote = "\"BEEP BOOP. Starnazzo protocollare iniziato.\"",
+            description = "Bzzzzzz, un fastidiosissimo rumore dal sapore vintage",
+            quote = "\"BZZZZZZZZ! Sono migliore di una papera in tutto\"",
             noisiness = 0.28f,
             reactionTime = "~9s",
             soundRes = com.whereduck.app.R.raw.robot
@@ -105,7 +107,7 @@ val animalsPerLevel: Map<StarnazzoLevel, List<AnimalOption>> = mapOf(
             key = "duck",
             emoji = StarnazzoLevel.MEDIUM.emoji,
             name = "Anatra",
-            description = "Il classico starnazzo, nessuno ne esce indenne",
+            description = "Il classico Duck, perfetto per ogni occasione",
             quote = "\"QUACK! Non puoi ignorarmi.\"",
             noisiness = 0.55f,
             reactionTime = "~5s",
@@ -136,11 +138,11 @@ fun CustomizeTab() {
     var expandedLevel by remember { mutableStateOf<StarnazzoLevel?>(null) }
 
     val selectedAnimals = remember {
-        mutableStateMapOf(
-            StarnazzoLevel.LIGHT to "cricket",
-            StarnazzoLevel.MEDIUM to "duck",
-            StarnazzoLevel.HEAVY to "goat"
-        )
+        mutableStateMapOf<StarnazzoLevel, String>().also { map ->
+            StarnazzoLevel.entries.forEach { level ->
+                map[level] = AnimalRegistry.getSelectedAnimal(context, level)
+            }
+        }
     }
 
     DisposableEffect(Unit) {
@@ -190,6 +192,7 @@ fun CustomizeTab() {
                     },
                     onSelectAnimal = { animal ->
                         selectedAnimals[level] = animal.key
+                        AnimalRegistry.setSelectedAnimal(context, level, animal.key)
                     }
                 )
             } else {
@@ -438,8 +441,10 @@ private fun AnimalCardContent(
                 .background(levelColor.copy(alpha = 0.15f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = animal.emoji,
+            AnimalEmoji(
+                animalKey = animal.key,
+                emoji = animal.emoji,
+                size = 80.dp,
                 fontSize = 72.sp
             )
         }

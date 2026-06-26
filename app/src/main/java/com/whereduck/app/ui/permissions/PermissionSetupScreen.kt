@@ -76,7 +76,7 @@ fun PermissionSetupScreen(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             PermissionCard(
                 title = "Notifiche",
-                description = "Per ricevere gli starnazzi",
+                description = "Per ricevere i Duck",
                 isGranted = uiState.notificationsGranted,
                 onRequest = {
                     notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -97,7 +97,7 @@ fun PermissionSetupScreen(
         // 3. Battery Optimization
         PermissionCard(
             title = "Esclusione Ottimizzazione Batteria",
-            description = "Per ricevere gli starnazzi anche in background",
+            description = "Per ricevere i Duck anche in background",
             isGranted = uiState.batteryOptimizationDisabled,
             onRequest = {
                 val intent = Intent(
@@ -112,7 +112,7 @@ fun PermissionSetupScreen(
         if (Build.VERSION.SDK_INT >= 34) {
             PermissionCard(
                 title = "Notifiche a Schermo Intero",
-                description = "Per mostrare lo starnazzo sopra la schermata di blocco",
+                description = "Per mostrare il Duck sopra la schermata di blocco",
                 isGranted = uiState.fullScreenIntentGranted,
                 onRequest = {
                     val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT)
@@ -165,7 +165,7 @@ fun PermissionSetupScreen(
             )
         ) {
             Text(
-                text = "Non forzare la chiusura dell'app dalle impostazioni di sistema, altrimenti non potrai ricevere starnazzi!",
+                text = "Non forzare la chiusura dell'app dalle impostazioni di sistema, altrimenti non potrai ricevere Duck!",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(16.dp)

@@ -82,8 +82,8 @@ data class BottomTab(
 val bottomTabs = listOf(
     BottomTab(Icons.Default.Dashboard, "Dashboard"),
     BottomTab(Icons.Default.People, "Duckers"),
-    BottomTab(Icons.Default.History, "Cronologia"),
     BottomTab(Icons.Default.MusicNote, "Personalizza"),
+    BottomTab(Icons.Default.History, "Cronologia"),
 )
 
 // Section titles are now built as AnnotatedString in sectionTitle() below
@@ -106,8 +106,8 @@ fun MainShell(
     val sectionColors = listOf(
         DuckTheme.colors.sectionDashboard,
         DuckTheme.colors.sectionContacts,
-        DuckTheme.colors.sectionHistory,
         DuckTheme.colors.sectionDashboard, // Customize uses same bg
+        DuckTheme.colors.sectionHistory,
     )
     val bgColor by animateColorAsState(
         targetValue = sectionColors[pagerState.currentPage],
@@ -152,18 +152,18 @@ fun MainShell(
                     }
                     2 -> buildAnnotatedString {
                         withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
-                            append("Starnazzi ")
-                        }
-                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold, fontStyle = FontStyle.Italic, color = highlightColor)) {
-                            append("Passati")
-                        }
-                    }
-                    else -> buildAnnotatedString {
-                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
                             append("Facciamo un po'\ndi ")
                         }
                         withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold, fontStyle = FontStyle.Italic, color = highlightColor)) {
                             append("Casino!")
+                        }
+                    }
+                    else -> buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
+                            append("Duck ")
+                        }
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold, fontStyle = FontStyle.Italic, color = highlightColor)) {
+                            append("Passati")
                         }
                     }
                 }
@@ -224,8 +224,8 @@ fun MainShell(
                         when (page) {
                             0 -> dashboardContent()
                             1 -> contactsContent(inviteTrigger)
-                            2 -> historyContent()
-                            3 -> customizeContent()
+                            2 -> customizeContent()
+                            3 -> historyContent()
                         }
                     }
                 }

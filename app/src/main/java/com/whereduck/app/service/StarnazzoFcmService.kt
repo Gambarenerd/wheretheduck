@@ -107,6 +107,7 @@ class StarnazzoFcmService : FirebaseMessagingService() {
         // 1. Start sound service
         val soundIntent = Intent(this, StarnazzoSoundService::class.java).apply {
             putExtra(StarnazzoSoundService.EXTRA_LEVEL, levelKey)
+            putExtra(StarnazzoSoundService.EXTRA_ANIMAL_TYPE, animal)
             putExtra(StarnazzoSoundService.EXTRA_FROM_NAME, fromName)
         }
         startForegroundService(soundIntent)
@@ -117,6 +118,7 @@ class StarnazzoFcmService : FirebaseMessagingService() {
             putExtra("fromName", fromName)
             putExtra("fromUserId", fromUserId)
             putExtra("level", levelKey)
+            putExtra("animalType", animal)
             putExtra("alertId", alertId)
             putExtra("fromPhotoUrl", fromPhotoUrl)
             putExtra("isRevenge", isRevenge)
@@ -160,9 +162,9 @@ class StarnazzoFcmService : FirebaseMessagingService() {
         val mutePi = actionPendingIntent(StarnazzoActionReceiver.ACTION_MUTE, 11)
         val revengePi = actionPendingIntent(StarnazzoActionReceiver.ACTION_REVENGE, 12)
 
-        val title = if (isRevenge) "REVENGE STARNAZZO!" else "STARNAZZO!"
-        val text = if (isRevenge) "$fromName ti ha restituito lo starnazzo!"
-                   else "$fromName ti sta starnazzando!"
+        val title = if (isRevenge) "REVENGE DUCK!" else "DUCK!"
+        val text = if (isRevenge) "$fromName ti ha restituito il Duck!"
+                   else "$fromName ti sta duckando!"
 
         // 4. Build notification with action buttons (OK! / Non mi rompere / Revenge!)
         val builder = NotificationCompat.Builder(this, "starnazzo_v2")

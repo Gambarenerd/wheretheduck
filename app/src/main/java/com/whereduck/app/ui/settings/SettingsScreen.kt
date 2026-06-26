@@ -215,7 +215,7 @@ fun SettingsScreen(
             val motto = uiState.user?.motto ?: ""
             Surface(
                 shape = RoundedCornerShape(20.dp),
-                color = DuckTheme.colors.pillBackground,
+                color = DuckTheme.colors.pillBackgroundLight,
                 modifier = Modifier.clickable { showMottoDialog = true }
             ) {
                 Row(
@@ -373,7 +373,7 @@ fun SettingsScreen(
                         value = mottoInput,
                         onValueChange = { if (it.length <= 50) mottoInput = it },
                         label = { Text("Motto") },
-                        placeholder = { Text("Es: Starnazzatore Seriale") },
+                        placeholder = { Text("Es: Ducker Seriale") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
