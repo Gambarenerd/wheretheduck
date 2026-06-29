@@ -63,6 +63,13 @@ class IncomingAlertActivity : ComponentActivity() {
         val fromPhotoUrl = intent.getStringExtra("fromPhotoUrl") ?: ""
         val isRevenge = intent.getBooleanExtra("isRevenge", false)
 
+        // Flash level: auto-dismiss after 3 seconds (no response sent)
+        if (level == StarnazzoLevel.LIGHT) {
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                silenceAndFinish()
+            }, 3_000)
+        }
+
         setContent {
             WhereTheDuckTheme {
                 IncomingAlertScreen(

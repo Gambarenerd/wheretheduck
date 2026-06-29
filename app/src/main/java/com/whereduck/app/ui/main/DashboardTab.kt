@@ -27,6 +27,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -52,6 +54,8 @@ import androidx.compose.ui.platform.LocalContext
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.ui.components.AnimalEmoji
 import com.whereduck.app.data.model.StarnazzoLevel
+import com.whereduck.app.ui.theme.DuckGrey300
+import com.whereduck.app.ui.theme.DuckOrange500
 import com.whereduck.app.ui.theme.StarnazzoHeavy
 import com.whereduck.app.ui.theme.StarnazzoLight
 import com.whereduck.app.ui.theme.StarnazzoMedium
@@ -237,6 +241,54 @@ fun DashboardTab(
             }
         }
 
+        // Zen Mode
+        item {
+            Text(
+                text = "Modalita Zen",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = DuckTheme.colors.sectionTitle
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (homeState.zenMode) DuckOrange500
+                                     else DuckTheme.colors.cardBackground
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Niente Duck, solo relax",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (homeState.zenMode) Color.White
+                                else DuckTheme.colors.sectionTitle,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Switch(
+                        checked = homeState.zenMode,
+                        onCheckedChange = { homeViewModel.toggleZenMode() },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = Color.White.copy(alpha = 0.3f),
+                            checkedBorderColor = Color.Transparent,
+                            uncheckedThumbColor = Color.White,
+                            uncheckedTrackColor = DuckGrey300,
+                            uncheckedBorderColor = Color.Transparent
+                        )
+                    )
+                }
+            }
+        }
+
         // Stats card with chart
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -344,25 +396,31 @@ fun DashboardTab(
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = 14.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         Text(
                             text = "Duck totali",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = DuckTheme.colors.sectionTitle
+                            color = DuckTheme.colors.sectionTitle,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(top = 14.dp)
                         )
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text(
-                            text = "${historyState.sentCount}",
-                            fontSize = 52.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = DuckTheme.colors.accentDark
-                        )
-                        Spacer(modifier = Modifier.weight(1f))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "${historyState.sentCount}",
+                                fontSize = 52.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = DuckTheme.colors.accentDark,
+                                lineHeight = 52.sp
+                            )
+                        }
                     }
                 }
             }

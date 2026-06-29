@@ -50,7 +50,7 @@ fun ContactCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 6.dp, vertical = 6.dp),
+                .padding(horizontal = 10.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (contact.photoUrl.isNotBlank()) {
@@ -58,14 +58,14 @@ fun ContactCard(
                     model = contact.photoUrl,
                     contentDescription = contact.displayName,
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(52.dp)
                         .clip(CircleShape),
                     contentScale = ContentScale.Crop
                 )
             } else {
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(52.dp)
                         .clip(CircleShape)
                         .background(DuckTheme.colors.accentLight),
                     contentAlignment = Alignment.Center
@@ -73,7 +73,7 @@ fun ContactCard(
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = null,
-                        modifier = Modifier.size(26.dp),
+                        modifier = Modifier.size(28.dp),
                         tint = DuckTheme.colors.accent
                     )
                 }

@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.whereduck.app.MainActivity
+import com.whereduck.app.data.remote.CloudFunctionsDataSource
 import com.whereduck.app.data.remote.FirestoreDataSource
 import com.whereduck.app.ui.incoming.IncomingAlertActivity
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -18,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -28,6 +30,7 @@ class StarnazzoFcmService : FirebaseMessagingService() {
     }
 
     @Inject lateinit var firestoreDataSource: FirestoreDataSource
+    @Inject lateinit var cloudFunctions: CloudFunctionsDataSource
     @Inject lateinit var auth: FirebaseAuth
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -98,6 +101,21 @@ class StarnazzoFcmService : FirebaseMessagingService() {
         val fromPhotoUrl = data["fromPhotoUrl"] ?: ""
         val isRevenge = data["isRevenge"] == "true"
 
+        // Check Zen mode — auto-respond to sender via Cloud Function
+        if (com.whereduck.app.ui.home.HomeViewModel.isZenMode(this)) {
+            android.util.Log.d("WTD", "Starnazzo from $fromName ignored (Zen mode)")
+            if (alertId.isNotBlank()) {
+                serviceScope.launch {
+                    try {
+                        cloudFunctions.respondStarnazzo(alertId, "zen")
+                    } catch (e: Exception) {
+                        android.util.Log.e("WTD", "Failed to send zen response", e)
+                    }
+                }
+            }
+            return
+        }
+
         // Check if this user is muted
         if (isUserMuted(fromUserId)) {
             android.util.Log.d("WTD", "Starnazzo from $fromName ignored (muted)")
@@ -136,9 +154,7 @@ class StarnazzoFcmService : FirebaseMessagingService() {
         )
 
         val contentPendingIntent = PendingIntent.getActivity(
-            this, 0, Intent(this, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            },
+            this, 0, alertActivityIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 

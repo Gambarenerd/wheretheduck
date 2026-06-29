@@ -163,7 +163,7 @@ private val AppColors = DuckCustomColors(
     accentDark = DuckYellow700,
 
     // Azioni
-    positive = DuckGreen500,
+    positive = StarnazzoLight,
     negative = DuckError,
     warning = DuckYellow700,
 
@@ -173,7 +173,7 @@ private val AppColors = DuckCustomColors(
     bottomBarSelected = BottomBarSelected,
 
     // Personalizzazione button
-    customizeButton = CustomizeButtonColor,
+    customizeButton = StarnazzoLight,
 
     // Starnazzo
     starnazzoLight = StarnazzoLight,
@@ -193,16 +193,16 @@ private val AppColors = DuckCustomColors(
     sectionTitle = DuckBrown700,
 
     // Chart / grafici
-    chartBarSent = ChartBarSent,
-    chartBarReceived = ChartBarReceived,
-    chartLabel = ChartLabelColor,
+    chartBarSent = StarnazzoLight,
+    chartBarReceived = DuckOrange500,
+    chartLabel = DuckBrown400,
 
     // Semantica UI
-    buttonPrimary = DuckGreen500,
+    buttonPrimary = StarnazzoLight,
     highlight = DuckYellow500,
 
     // VIP
-    vipCardBackground = VipCardBackground,
+    vipCardBackground = DuckYellow100,
     vipHeart = VipHeartColor,
     vipAddCircle = VipAddCircle,
     vipAddIcon = VipAddIcon,

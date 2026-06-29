@@ -127,7 +127,7 @@ fun SettingsScreen(
                 val cacheKey = uiState.profilePicturePath // includes ?t=timestamp for cache busting
 
                 Surface(
-                    modifier = Modifier.size(110.dp),
+                    modifier = Modifier.size(180.dp),
                     shape = CircleShape,
                     color = DuckTheme.colors.accent
                 ) {
@@ -166,7 +166,7 @@ fun SettingsScreen(
                     modifier = Modifier
                         .size(36.dp)
                         .align(Alignment.BottomEnd)
-                        .offset(x = 4.dp, y = 4.dp)
+                        .offset(x = (-10).dp, y = (-10).dp)
                         .clip(CircleShape)
                         .background(DuckTheme.colors.cardBackground)
                         .clickable { photoPickerLauncher.launch("image/*") },

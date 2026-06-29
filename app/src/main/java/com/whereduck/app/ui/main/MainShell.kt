@@ -183,7 +183,7 @@ fun MainShell(
 
                 Box(
                     modifier = Modifier
-                        .size(42.dp)
+                        .size(52.dp)
                         .clip(CircleShape)
                         .background(DuckTheme.colors.accent)
                         .clickable { onOpenUserMenu() }
@@ -204,7 +204,7 @@ fun MainShell(
                             Icons.Default.Person,
                             contentDescription = "Profilo",
                             tint = DuckTheme.colors.textOnAccent,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(28.dp)
                         )
                     }
                 }

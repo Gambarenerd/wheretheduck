@@ -12,8 +12,8 @@ enum class StarnazzoLevel(
     val toneFrequency: Int,
     val soundRes: Int? = null
 ) {
-    LIGHT("light", "Leggero", "\uD83E\uDD97", "Grillo", "cricket",
-        longArrayOf(0, 200, 100, 200, 100, 200), 2000,
+    LIGHT("light", "Flash", "\uD83E\uDD97", "Grillo", "cricket",
+        longArrayOf(0, 300, 100, 300), 2000,
         soundRes = R.raw.cricket),
     MEDIUM("medium", "Medio", "\uD83E\uDD86", "Anatra", "duck",
         longArrayOf(0, 400, 200, 400, 200, 400), 1000,

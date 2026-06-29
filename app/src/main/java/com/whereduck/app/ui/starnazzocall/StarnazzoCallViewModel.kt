@@ -31,7 +31,8 @@ data class StarnazzoCallUiState(
     val alertId: String = "",
     val contactPhotoUrl: String = "",
     val contactEmail: String = "",
-    val contactMotto: String = ""
+    val contactMotto: String = "",
+    val shouldAutoDismiss: Boolean = false
 )
 
 @HiltViewModel
@@ -62,6 +63,15 @@ class StarnazzoCallViewModel @Inject constructor(
 
         if (alertId.isNotEmpty()) {
             observeAlertStatus(alertId)
+        }
+
+        // Flash level: auto-dismiss after 3 seconds
+        if (_uiState.value.level == StarnazzoLevel.LIGHT) {
+            viewModelScope.launch {
+                kotlinx.coroutines.delay(3000)
+                cancelStarnazzo()
+                _uiState.value = _uiState.value.copy(shouldAutoDismiss = true)
+            }
         }
     }
 

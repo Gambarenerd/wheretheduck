@@ -8,6 +8,7 @@ data class Group(
     @DocumentId
     val id: String = "",
     val name: String = "",
+    val photoUrl: String = "",
     val contactIds: List<String> = emptyList(),
     @ServerTimestamp
     val createdAt: Timestamp? = null

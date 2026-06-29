@@ -479,14 +479,52 @@ private fun GroupCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 6.dp, vertical = 6.dp),
+                .padding(horizontal = 10.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Overlapping member avatars or fallback group icon
+            // Group photo on the left
+            if (group.photoUrl.isNotBlank()) {
+                AsyncImage(
+                    model = group.photoUrl,
+                    contentDescription = group.name,
+                    modifier = Modifier
+                        .size(52.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .clip(CircleShape)
+                        .background(DuckTheme.colors.accentLight),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Groups,
+                        contentDescription = null,
+                        modifier = Modifier.size(28.dp),
+                        tint = DuckTheme.colors.accent
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Group name
+            Text(
+                text = group.name,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = DuckTheme.colors.textPrimary,
+                modifier = Modifier.weight(1f)
+            )
+
+            // Member avatars on the right
             if (memberContacts.isNotEmpty()) {
-                val avatarSize = 44.dp
-                val overlap = 28.dp
-                val visibleMembers = memberContacts.take(2)
+                val avatarSize = 32.dp
+                val overlap = 20.dp
+                val visibleMembers = memberContacts.take(3)
                 val extraCount = memberContacts.size - visibleMembers.size
                 val itemCount = visibleMembers.size + if (extraCount > 0) 1 else 0
                 val totalWidth = avatarSize + (overlap * (itemCount - 1).coerceAtLeast(0))
@@ -504,7 +542,7 @@ private fun GroupCard(
                                 .size(avatarSize)
                                 .clip(CircleShape)
                                 .background(DuckTheme.colors.cardBackground)
-                                .padding(2.dp)
+                                .padding(1.5.dp)
                                 .clip(CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
@@ -527,14 +565,13 @@ private fun GroupCard(
                                     Icon(
                                         Icons.Default.Person,
                                         contentDescription = null,
-                                        modifier = Modifier.size(22.dp),
+                                        modifier = Modifier.size(16.dp),
                                         tint = DuckTheme.colors.accent
                                     )
                                 }
                             }
                         }
                     }
-                    // +N counter
                     if (extraCount > 0) {
                         val offsetX = overlap * visibleMembers.size
                         Box(
@@ -543,44 +580,21 @@ private fun GroupCard(
                                 .size(avatarSize)
                                 .clip(CircleShape)
                                 .background(DuckTheme.colors.cardBackground)
-                                .padding(2.dp)
+                                .padding(1.5.dp)
                                 .clip(CircleShape)
                                 .background(DuckTheme.colors.accent),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = "+$extraCount",
-                                fontSize = 14.sp,
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = DuckTheme.colors.textOnAccent
                             )
                         }
                     }
                 }
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(DuckTheme.colors.accentLight),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Groups,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                        tint = DuckTheme.colors.accent
-                    )
-                }
             }
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = group.name,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = DuckTheme.colors.textPrimary,
-                modifier = Modifier.weight(1f)
-            )
         }
     }
 }

@@ -1,10 +1,13 @@
 package com.whereduck.app.ui.groupdetail
 
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageMetadata
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.Contact
 import com.whereduck.app.data.model.StarnazzoLevel
@@ -12,6 +15,7 @@ import com.whereduck.app.data.repository.AlertRepository
 import com.whereduck.app.data.repository.ContactRepository
 import com.whereduck.app.data.repository.GroupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -21,11 +25,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 data class GroupDetailUiState(
     val isLoading: Boolean = true,
     val groupName: String = "",
+    val groupPhotoUrl: String = "",
     val contacts: List<Contact> = emptyList(),
     val selectedLevel: StarnazzoLevel = StarnazzoLevel.MEDIUM,
     val sendingToUserId: String? = null,
@@ -87,9 +93,39 @@ class GroupDetailViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         groupName = group?.name ?: "",
+                        groupPhotoUrl = group?.photoUrl ?: "",
                         contacts = contacts
                     )
                 }
+        }
+    }
+
+    fun updateGroupPhoto(uri: Uri) {
+        if (userId.isEmpty()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Copy to local file first (content Uri loses permission on background thread)
+                val file = java.io.File(app.filesDir, "group_photo_$groupId.jpg")
+                app.contentResolver.openInputStream(uri)?.use { input ->
+                    file.outputStream().use { output -> input.copyTo(output) }
+                } ?: return@launch
+
+                val storageRef = FirebaseStorage.getInstance()
+                    .reference
+                    .child("group_photos/$userId/$groupId.jpg")
+
+                val metadata = StorageMetadata.Builder()
+                    .setContentType("image/jpeg")
+                    .build()
+                storageRef.putBytes(file.readBytes(), metadata).await()
+
+                val downloadUrl = storageRef.downloadUrl.await().toString()
+                groupRepository.updateGroupPhotoUrl(userId, groupId, downloadUrl)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    lastSendResult = "Errore foto: ${e.message}"
+                )
+            }
         }
     }
 

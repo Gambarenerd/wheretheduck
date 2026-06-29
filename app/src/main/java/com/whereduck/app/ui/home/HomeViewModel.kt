@@ -24,6 +24,7 @@ data class HomeUiState(
     val contacts: List<Contact> = emptyList(),
     val vipContactIds: List<String> = emptyList(),
     val pendingInviteCount: Int = 0,
+    val zenMode: Boolean = false,
     val error: String? = null
 )
 
@@ -46,11 +47,16 @@ class HomeViewModel @Inject constructor(
         loadVipContacts()
     }
 
+    private val zenPrefs by lazy {
+        app.getSharedPreferences("zen_prefs", Context.MODE_PRIVATE)
+    }
+
     init {
         loadGroups()
         loadContacts()
         loadPendingInvites()
         loadVipContacts()
+        loadZenMode()
         vipPrefs.registerOnSharedPreferenceChangeListener(vipListener)
     }
 
@@ -141,4 +147,24 @@ class HomeViewModel @Inject constructor(
         saveVipContacts(current - contactId)
     }
 
+    private fun loadZenMode() {
+        val userId = auth.currentUser?.uid ?: return
+        val zen = zenPrefs.getBoolean("zen_$userId", false)
+        _uiState.value = _uiState.value.copy(zenMode = zen)
+    }
+
+    fun toggleZenMode() {
+        val userId = auth.currentUser?.uid ?: return
+        val newValue = !_uiState.value.zenMode
+        zenPrefs.edit().putBoolean("zen_$userId", newValue).apply()
+        _uiState.value = _uiState.value.copy(zenMode = newValue)
+    }
+
+    companion object {
+        fun isZenMode(context: Context): Boolean {
+            val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return false
+            return context.getSharedPreferences("zen_prefs", Context.MODE_PRIVATE)
+                .getBoolean("zen_$userId", false)
+        }
+    }
 }

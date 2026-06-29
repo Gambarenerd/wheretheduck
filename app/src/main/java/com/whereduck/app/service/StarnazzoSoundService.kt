@@ -64,35 +64,42 @@ class StarnazzoSoundService : Service() {
         acquireWakeLock()
         forceMaxVolume()
 
-        // Phase 1 (0s): Only screen/notification — nothing else
-        // Phase 2 (3s): Short vibrations, one per second for 3 seconds
-        handler.postDelayed({
-            if (!isPlaying) return@postDelayed
-            vibrateShort()
-        }, 3_000)
-        handler.postDelayed({
-            if (!isPlaying) return@postDelayed
-            vibrateShort()
-        }, 4_000)
-        handler.postDelayed({
-            if (!isPlaying) return@postDelayed
-            vibrateShort()
-        }, 5_000)
+        if (level == StarnazzoLevel.LIGHT) {
+            // Flash mode: instant vibration + sound, auto-stop after 3 seconds
+            startFlashVibration()
+            playTone(level, animalType)
+            handler.postDelayed({ stopAndCleanup() }, 3_000)
+        } else {
+            // Phase 1 (0s): Only screen/notification — nothing else
+            // Phase 2 (3s): Short vibrations, one per second for 3 seconds
+            handler.postDelayed({
+                if (!isPlaying) return@postDelayed
+                vibrateShort()
+            }, 3_000)
+            handler.postDelayed({
+                if (!isPlaying) return@postDelayed
+                vibrateShort()
+            }, 4_000)
+            handler.postDelayed({
+                if (!isPlaying) return@postDelayed
+                vibrateShort()
+            }, 5_000)
 
-        // Phase 3 (6s): 3 long vibrations only
-        handler.postDelayed({
-            if (!isPlaying) return@postDelayed
-            startLongVibrations()
-        }, 6_000)
+            // Phase 3 (6s): 3 long vibrations only
+            handler.postDelayed({
+                if (!isPlaying) return@postDelayed
+                startLongVibrations()
+            }, 6_000)
 
-        // Phase 4 (9s): Long vibrations + sound
-        handler.postDelayed({
-            if (!isPlaying) return@postDelayed
-            startLongVibrationsWithSound(level, animalType)
-        }, 9_000)
+            // Phase 4 (9s): Long vibrations + sound
+            handler.postDelayed({
+                if (!isPlaying) return@postDelayed
+                startLongVibrationsWithSound(level, animalType)
+            }, 9_000)
 
-        // Auto-stop after 30 seconds
-        handler.postDelayed({ stopAndCleanup() }, 30_000)
+            // Auto-stop after 30 seconds
+            handler.postDelayed({ stopAndCleanup() }, 30_000)
+        }
 
         return START_NOT_STICKY
     }
@@ -108,6 +115,12 @@ class StarnazzoSoundService : Service() {
             }
         }
         return vibrator!!
+    }
+
+    private fun startFlashVibration() {
+        val pattern = longArrayOf(0, 300, 100, 300, 100, 300)
+        val v = initVibrator()
+        v.vibrate(VibrationEffect.createWaveform(pattern, -1))
     }
 
     private fun vibrateShort() {
@@ -190,14 +203,15 @@ class StarnazzoSoundService : Service() {
 
     private fun playTone(level: StarnazzoLevel, animalType: String) {
         val soundRes = AnimalRegistry.getSoundRes(animalType, level)
+        val loop = level != StarnazzoLevel.LIGHT
         if (soundRes != null) {
-            playMp3(soundRes)
+            playMp3(soundRes, loop)
         } else {
             playGeneratedTone(level)
         }
     }
 
-    private fun playMp3(resId: Int) {
+    private fun playMp3(resId: Int, loop: Boolean = true) {
         try {
             val player = MediaPlayer().apply {
                 setAudioAttributes(
@@ -209,7 +223,7 @@ class StarnazzoSoundService : Service() {
                 val afd = resources.openRawResourceFd(resId) ?: return
                 setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
                 afd.close()
-                isLooping = true
+                isLooping = loop
                 prepare()
             }
             mediaPlayer = player

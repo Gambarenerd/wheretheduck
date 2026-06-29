@@ -35,6 +35,10 @@ class GroupRepository @Inject constructor(
         firestoreDataSource.addContactToGroup(userId, groupId, contactId)
     }
 
+    suspend fun updateGroupPhotoUrl(userId: String, groupId: String, photoUrl: String) {
+        firestoreDataSource.updateGroupPhotoUrl(userId, groupId, photoUrl)
+    }
+
     suspend fun removeContactFromGroup(userId: String, groupId: String, contactId: String) {
         firestoreDataSource.removeContactFromGroup(userId, groupId, contactId)
     }

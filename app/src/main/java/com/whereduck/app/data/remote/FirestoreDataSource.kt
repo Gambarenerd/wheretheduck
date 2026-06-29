@@ -188,6 +188,15 @@ class FirestoreDataSource @Inject constructor(
             .await()
     }
 
+    suspend fun updateGroupPhotoUrl(userId: String, groupId: String, photoUrl: String) {
+        firestore.collection("users")
+            .document(userId)
+            .collection("groups")
+            .document(groupId)
+            .update("photoUrl", photoUrl)
+            .await()
+    }
+
     suspend fun removeContactFromGroup(userId: String, groupId: String, contactId: String) {
         firestore.collection("users")
             .document(userId)

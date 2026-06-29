@@ -29,6 +29,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.ButtonDefaults
@@ -60,6 +61,7 @@ import androidx.compose.ui.util.lerp
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.ui.components.AnimalEmoji
+import com.whereduck.app.ui.theme.DuckOrange500
 import com.whereduck.app.ui.theme.DuckTheme
 import com.whereduck.app.ui.theme.StarnazzoHeavy
 import com.whereduck.app.ui.theme.StarnazzoLight
@@ -85,21 +87,11 @@ val animalsPerLevel: Map<StarnazzoLevel, List<AnimalOption>> = mapOf(
             key = "cricket",
             emoji = StarnazzoLevel.LIGHT.emoji,
             name = "Grillo",
-            description = "Fa cri cri nella notte, silenzioso ma letale",
-            quote = "\"Cri cri... ti sento respirare...\"",
+            description = "Un Duck istantaneo! Vibra, suona e sparisce in 3 secondi",
+            quote = "\"Cri cri... e sono gia sparito!\"",
             noisiness = 0.15f,
-            reactionTime = "~12s",
+            reactionTime = "~0s",
             soundRes = StarnazzoLevel.LIGHT.soundRes
-        ),
-        AnimalOption(
-            key = "robot",
-            emoji = "\uD83E\uDD16",
-            name = "Robot",
-            description = "Bzzzzzz, un fastidiosissimo rumore dal sapore vintage",
-            quote = "\"BZZZZZZZZ! Sono migliore di una papera in tutto\"",
-            noisiness = 0.28f,
-            reactionTime = "~9s",
-            soundRes = com.whereduck.app.R.raw.robot
         )
     ),
     StarnazzoLevel.MEDIUM to listOf(
@@ -112,6 +104,16 @@ val animalsPerLevel: Map<StarnazzoLevel, List<AnimalOption>> = mapOf(
             noisiness = 0.55f,
             reactionTime = "~5s",
             soundRes = StarnazzoLevel.MEDIUM.soundRes
+        ),
+        AnimalOption(
+            key = "robot",
+            emoji = "\uD83E\uDD16",
+            name = "Robot",
+            description = "Bzzzzzz, un fastidiosissimo rumore dal sapore vintage",
+            quote = "\"BZZZZZZZZ! Sono migliore di una papera in tutto\"",
+            noisiness = 0.28f,
+            reactionTime = "~9s",
+            soundRes = com.whereduck.app.R.raw.robot
         )
     ),
     StarnazzoLevel.HEAVY to listOf(
@@ -134,6 +136,7 @@ val animalsPerLevel: Map<StarnazzoLevel, List<AnimalOption>> = mapOf(
 fun CustomizeTab() {
     val context = LocalContext.current
     val mediaPlayer = remember { MediaPlayer() }
+    var playingAnimalKey by remember { mutableStateOf<String?>(null) }
 
     var expandedLevel by remember { mutableStateOf<StarnazzoLevel?>(null) }
 
@@ -146,6 +149,7 @@ fun CustomizeTab() {
     }
 
     DisposableEffect(Unit) {
+        mediaPlayer.setOnCompletionListener { playingAnimalKey = null }
         onDispose {
             try {
                 mediaPlayer.stop()
@@ -154,7 +158,15 @@ fun CustomizeTab() {
         }
     }
 
-    fun playSound(soundRes: Int?) {
+    fun stopSound() {
+        try {
+            mediaPlayer.stop()
+            mediaPlayer.reset()
+        } catch (_: Exception) { }
+        playingAnimalKey = null
+    }
+
+    fun playSound(animalKey: String, soundRes: Int?) {
         if (soundRes == null) return
         try {
             mediaPlayer.reset()
@@ -163,6 +175,7 @@ fun CustomizeTab() {
             afd.close()
             mediaPlayer.prepare()
             mediaPlayer.start()
+            playingAnimalKey = animalKey
         } catch (_: Exception) { }
     }
 
@@ -186,7 +199,9 @@ fun CustomizeTab() {
                     animals = animals,
                     selectedKey = selectedKey,
                     isExpanded = isExpanded,
-                    onTestSound = { animal -> playSound(animal.soundRes) },
+                    playingAnimalKey = playingAnimalKey,
+                    onTestSound = { animal -> playSound(animal.key, animal.soundRes) },
+                    onStopSound = { stopSound() },
                     onToggleCarousel = {
                         expandedLevel = if (isExpanded) null else level
                     },
@@ -199,7 +214,9 @@ fun CustomizeTab() {
                 SingleAnimalCard(
                     level = level,
                     animal = animals.first(),
-                    onTestSound = { playSound(animals.first().soundRes) }
+                    isPlaying = playingAnimalKey == animals.first().key,
+                    onTestSound = { playSound(animals.first().key, animals.first().soundRes) },
+                    onStopSound = { stopSound() }
                 )
             }
         }
@@ -214,7 +231,9 @@ fun CustomizeTab() {
 private fun SingleAnimalCard(
     level: StarnazzoLevel,
     animal: AnimalOption,
-    onTestSound: () -> Unit
+    isPlaying: Boolean,
+    onTestSound: () -> Unit,
+    onStopSound: () -> Unit
 ) {
     val levelColor = when (level) {
         StarnazzoLevel.LIGHT -> StarnazzoLight
@@ -235,7 +254,9 @@ private fun SingleAnimalCard(
                 levelColor = levelColor,
                 showSelectButton = false,
                 showChangeButton = false,
+                isPlaying = isPlaying,
                 onTestSound = onTestSound,
+                onStopSound = onStopSound,
                 onActionButton = {}
             )
         }
@@ -251,7 +272,9 @@ private fun CarouselLevelSection(
     animals: List<AnimalOption>,
     selectedKey: String,
     isExpanded: Boolean,
+    playingAnimalKey: String?,
     onTestSound: (AnimalOption) -> Unit,
+    onStopSound: () -> Unit,
     onToggleCarousel: () -> Unit,
     onSelectAnimal: (AnimalOption) -> Unit
 ) {
@@ -358,7 +381,9 @@ private fun CarouselLevelSection(
                 levelColor = levelColor,
                 showSelectButton = isExpanded,
                 showChangeButton = !isExpanded,
+                isPlaying = playingAnimalKey == animal.key,
                 onTestSound = { onTestSound(animal) },
+                onStopSound = onStopSound,
                 onActionButton = { onToggleCarousel() }
             )
         }
@@ -374,7 +399,9 @@ private fun AnimalCardContent(
     levelColor: Color,
     showSelectButton: Boolean,
     showChangeButton: Boolean,
+    isPlaying: Boolean,
     onTestSound: () -> Unit,
+    onStopSound: () -> Unit,
     onActionButton: () -> Unit
 ) {
     Column(
@@ -466,7 +493,9 @@ private fun AnimalCardContent(
             text = animal.description,
             fontSize = 13.sp,
             color = DuckTheme.colors.textSecondary,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            minLines = 2,
+            maxLines = 2
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -478,7 +507,9 @@ private fun AnimalCardContent(
             fontWeight = FontWeight.Medium,
             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
             color = levelColor,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            minLines = 2,
+            maxLines = 2
         )
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -523,7 +554,7 @@ private fun AnimalCardContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             FilledTonalButton(
-                onClick = onTestSound,
+                onClick = if (isPlaying) onStopSound else onTestSound,
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.filledTonalButtonColors(
                     containerColor = levelColor.copy(alpha = 0.15f),
@@ -531,12 +562,16 @@ private fun AnimalCardContent(
                 )
             ) {
                 Icon(
-                    Icons.Default.VolumeUp,
+                    if (isPlaying) Icons.Default.Pause else Icons.Default.VolumeUp,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Prova", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                Text(
+                    if (isPlaying) "Stop" else "Prova",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 13.sp
+                )
             }
 
             FilledTonalButton(
@@ -544,9 +579,9 @@ private fun AnimalCardContent(
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.filledTonalButtonColors(
                     containerColor = if (showSelectButton) levelColor.copy(alpha = 0.15f)
-                                     else DuckTheme.colors.cardBackgroundVariant,
+                                     else DuckOrange500.copy(alpha = 0.15f),
                     contentColor = if (showSelectButton) levelColor
-                                   else DuckTheme.colors.textPrimary
+                                   else DuckOrange500
                 )
             ) {
                 Icon(

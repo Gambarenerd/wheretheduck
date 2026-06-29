@@ -75,8 +75,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.util.lerp
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -93,6 +91,7 @@ import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.ui.components.AnimalEmoji
 import com.whereduck.app.ui.main.animalsPerLevel
+import com.whereduck.app.ui.theme.DuckOrange500
 import com.whereduck.app.ui.theme.DuckTheme
 import com.whereduck.app.ui.theme.StarnazzoHeavy
 import com.whereduck.app.ui.theme.StarnazzoLight
@@ -113,6 +112,7 @@ fun ContactDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showRemoveDialog by remember { mutableStateOf(false) }
     var showMuteOptions by remember { mutableStateOf(false) }
+    val isZenMode = com.whereduck.app.ui.home.HomeViewModel.isZenMode(LocalContext.current)
 
     val isCalling = uiState.callPhase != null
 
@@ -533,9 +533,28 @@ fun ContactDetailScreen(
                                     }
                                 }
 
-                                // ── Send Duck carousel ──
+                                // ── Send Duck section ──
                                 item {
                                     Spacer(modifier = Modifier.height(20.dp))
+                                    if (isZenMode) {
+                                        Box(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = DuckOrange500
+                                            ) {
+                                                Text(
+                                                    text = "Sei in modalita Zen",
+                                                    fontSize = 16.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color.White,
+                                                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
+                                                )
+                                            }
+                                        }
+                                    } else {
 
                                     // One animal per level (the one selected in CustomizeTab)
                                     val levelAnimals = remember {
@@ -553,32 +572,23 @@ fun ContactDetailScreen(
                                     val pagerState = rememberPagerState(initialPage = startPage) { virtualPageCount }
 
                                     // Sync pager → viewModel
-                                    val currentPage = pagerState.currentPage
-                                    LaunchedEffect(currentPage) {
-                                        val (level, animal) = levelAnimals[currentPage % levelAnimals.size]
+                                    val settledPage = pagerState.settledPage
+                                    LaunchedEffect(settledPage) {
+                                        val (level, animal) = levelAnimals[settledPage % levelAnimals.size]
                                         viewModel.selectAnimal(level, animal.key)
                                     }
 
                                     HorizontalPager(
                                         state = pagerState,
                                         contentPadding = PaddingValues(horizontal = 32.dp),
-                                        pageSpacing = 4.dp
+                                        pageSpacing = 12.dp
                                     ) { page ->
                                         val (level, animal) = levelAnimals[page % levelAnimals.size]
                                         val lvlColor = levelColor(level)
 
-                                        val pageOffset = kotlin.math.abs(
-                                            (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
-                                        ).coerceIn(0f, 1f)
-                                        val neighborScale = lerp(0.92f, 1f, 1f - pageOffset)
-
                                         Card(
                                             modifier = Modifier
-                                                .fillMaxWidth()
-                                                .graphicsLayer {
-                                                    scaleX = neighborScale
-                                                    scaleY = neighborScale
-                                                },
+                                                .fillMaxWidth(),
                                             shape = RoundedCornerShape(20.dp),
                                             colors = CardDefaults.cardColors(containerColor = DuckTheme.colors.cardBackground),
                                             elevation = CardDefaults.cardElevation(0.dp)
@@ -667,7 +677,9 @@ fun ContactDetailScreen(
                                                     text = animal.description,
                                                     fontSize = 13.sp,
                                                     color = DuckTheme.colors.textSecondary,
-                                                    textAlign = TextAlign.Center
+                                                    textAlign = TextAlign.Center,
+                                                    minLines = 2,
+                                                    maxLines = 2
                                                 )
 
                                                 Spacer(modifier = Modifier.height(8.dp))
@@ -678,7 +690,9 @@ fun ContactDetailScreen(
                                                     fontWeight = FontWeight.Medium,
                                                     fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                                                     color = lvlColor,
-                                                    textAlign = TextAlign.Center
+                                                    textAlign = TextAlign.Center,
+                                                    minLines = 2,
+                                                    maxLines = 2
                                                 )
                                             }
                                         }
@@ -686,7 +700,12 @@ fun ContactDetailScreen(
 
                                     Spacer(modifier = Modifier.height(16.dp))
 
-                                    // Orange DUCK! button
+                                    // DUCK! button
+                                    val duckButtonColor by animateColorAsState(
+                                        targetValue = levelColor(uiState.selectedLevel),
+                                        animationSpec = tween(400),
+                                        label = "duck_btn_color"
+                                    )
                                     Box(
                                         modifier = Modifier.fillMaxWidth(),
                                         contentAlignment = Alignment.Center
@@ -696,7 +715,7 @@ fun ContactDetailScreen(
                                                 .width(160.dp)
                                                 .height(52.dp)
                                                 .clip(RoundedCornerShape(26.dp))
-                                                .background(Color(0xFFFF9800))
+                                                .background(duckButtonColor)
                                                 .clickable { viewModel.sendStarnazzo() },
                                             contentAlignment = Alignment.Center
                                         ) {
@@ -716,6 +735,7 @@ fun ContactDetailScreen(
                                             }
                                         }
                                     }
+                                    } // else !isZenMode
                                 }
 
                                 // ── Stats section ──
@@ -802,7 +822,7 @@ fun ContactDetailScreen(
                                         RecentAlertRow(
                                             alert = alert,
                                             isSentByMe = alert.fromUserId != viewModel.contactId,
-                                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 3.dp)
+                                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
                                         )
                                     }
                                 }
@@ -904,14 +924,14 @@ private fun RecentAlertRow(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = DuckTheme.colors.cardBackground),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 10.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Direction icon
@@ -919,16 +939,16 @@ private fun RecentAlertRow(
                 imageVector = if (isSentByMe) Icons.AutoMirrored.Filled.CallMade
                               else Icons.AutoMirrored.Filled.CallReceived,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(18.dp),
                 tint = if (isSentByMe) DuckTheme.colors.accent else DuckTheme.colors.textSecondary
             )
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(10.dp))
 
             // Animal badge
             Box(
                 modifier = Modifier
-                    .size(28.dp)
+                    .size(34.dp)
                     .clip(CircleShape)
                     .background(levelColor),
                 contentAlignment = Alignment.Center
@@ -936,17 +956,17 @@ private fun RecentAlertRow(
                 AnimalEmoji(
                     animalKey = alert.animalType,
                     emoji = AnimalRegistry.getEmoji(alert.animalType, level),
-                    size = 18.dp,
-                    fontSize = 14.sp
+                    size = 22.dp,
+                    fontSize = 16.sp
                 )
             }
 
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
             // Time
             Text(
                 text = timeText,
-                fontSize = 13.sp,
+                fontSize = 14.sp,
                 color = DuckTheme.colors.textSecondary,
                 modifier = Modifier.weight(1f)
             )

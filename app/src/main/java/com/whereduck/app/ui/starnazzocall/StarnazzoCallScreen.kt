@@ -80,6 +80,13 @@ fun StarnazzoCallScreen(
         }
     }
 
+    // Flash level: auto-close after 3 seconds
+    if (uiState.shouldAutoDismiss) {
+        viewModel.cancelStarnazzo()
+        onDismiss()
+        return
+    }
+
     val infiniteTransition = rememberInfiniteTransition(label = "call_anim")
 
     val emojiScale by infiniteTransition.animateFloat(
@@ -226,6 +233,7 @@ fun StarnazzoCallScreen(
                     "muto" -> "\uD83D\uDD07" to "Non mi rompere!"
                     "revenge" -> "\uD83D\uDD25" to "REVENGE!"
                     "dismissed" -> "\uD83D\uDC4B" to "Ha chiuso"
+                    "zen" -> "\uD83E\uDDD8" to "${uiState.toName} e' in modalita Zen"
                     else -> "" to "Risposta ricevuta"
                 }
                 Text(
