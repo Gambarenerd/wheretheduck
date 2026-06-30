@@ -50,6 +50,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
@@ -465,7 +466,8 @@ private fun AnimalCardContent(
         Box(
             modifier = Modifier
                 .size(140.dp)
-                .background(levelColor.copy(alpha = 0.15f), CircleShape),
+                .clip(CircleShape)
+                .background(levelColor.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center
         ) {
             AnimalEmoji(

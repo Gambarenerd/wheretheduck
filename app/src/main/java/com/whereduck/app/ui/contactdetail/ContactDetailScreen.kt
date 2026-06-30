@@ -651,7 +651,8 @@ fun ContactDetailScreen(
                                                 Box(
                                                     modifier = Modifier
                                                         .size(140.dp)
-                                                        .background(lvlColor.copy(alpha = 0.15f), CircleShape),
+                                                        .clip(CircleShape)
+                                                        .background(lvlColor.copy(alpha = 0.15f)),
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     AnimalEmoji(

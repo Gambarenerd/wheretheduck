@@ -1,13 +1,17 @@
 package com.whereduck.app.data.model
 
 import android.content.Context
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.whereduck.app.R
 
 data class AnimalInfo(
     val key: String,
     val emoji: String,
     val name: String,
-    val soundRes: Int? = null
+    val soundRes: Int? = null,
+    val drawableRes: Int? = null,
+    val topPadding: Dp = 0.dp
 )
 
 /**
@@ -18,8 +22,8 @@ object AnimalRegistry {
 
     private val allAnimals: Map<String, AnimalInfo> = mapOf(
         "cricket" to AnimalInfo("cricket", "\uD83E\uDD97", "Grillo", R.raw.cricket),
-        "robot" to AnimalInfo("robot", "\uD83E\uDD16", "Robot", R.raw.robot),
-        "duck" to AnimalInfo("duck", "\uD83E\uDD86", "Anatra", R.raw.magiaz_duck_405695),
+        "robot" to AnimalInfo("robot", "\uD83E\uDD16", "Robot", R.raw.robot, R.drawable.roboto, 35.dp),
+        "duck" to AnimalInfo("duck", "\uD83E\uDD86", "Anatra", R.raw.magiaz_duck_405695, R.drawable.duck_icon),
         "goat" to AnimalInfo("goat", "\uD83D\uDC10", "Capra Pazza", R.raw.goat),
     )
 
