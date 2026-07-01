@@ -58,7 +58,10 @@ import com.whereduck.app.ui.theme.DuckGrey300
 import com.whereduck.app.ui.theme.DuckOrange500
 import com.whereduck.app.ui.theme.StarnazzoHeavy
 import com.whereduck.app.ui.theme.StarnazzoLight
+import com.whereduck.app.ui.theme.StarnazzoLightTenue
 import com.whereduck.app.ui.theme.StarnazzoMedium
+import com.whereduck.app.ui.theme.StarnazzoMediumTenue
+import com.whereduck.app.ui.theme.StarnazzoHeavyTenue
 import com.whereduck.app.ui.history.HistoryViewModel
 import com.whereduck.app.ui.home.HomeViewModel
 import com.whereduck.app.ui.theme.DuckTheme
@@ -333,11 +336,19 @@ fun DashboardTab(
                 // Arma preferita
                 val weaponBgColor = if (topLevel != null) {
                     when (topLevel.first) {
+                        StarnazzoLevel.LIGHT -> StarnazzoLightTenue
+                        StarnazzoLevel.MEDIUM -> StarnazzoMediumTenue
+                        StarnazzoLevel.HEAVY -> StarnazzoHeavyTenue
+                    }
+                } else DuckTheme.colors.cardBackground
+
+                val weaponTextColor = if (topLevel != null) {
+                    when (topLevel.first) {
                         StarnazzoLevel.LIGHT -> StarnazzoLight
                         StarnazzoLevel.MEDIUM -> StarnazzoMedium
                         StarnazzoLevel.HEAVY -> StarnazzoHeavy
                     }
-                } else DuckTheme.colors.cardBackground
+                } else DuckTheme.colors.textSecondary
 
                 Card(
                     modifier = Modifier
@@ -356,7 +367,7 @@ fun DashboardTab(
                             text = "Arma preferita",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White,
+                            color = weaponTextColor,
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
                                 .padding(top = 14.dp)

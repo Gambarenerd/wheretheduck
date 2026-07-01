@@ -10,6 +10,7 @@ import com.whereduck.app.data.model.Alert
 import com.whereduck.app.data.model.Contact
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
+import com.whereduck.app.data.remote.CloudFunctionsDataSource
 import com.whereduck.app.data.repository.AlertRepository
 import com.whereduck.app.data.repository.ContactRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -52,7 +53,8 @@ class ContactDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val contactRepository: ContactRepository,
     private val alertRepository: AlertRepository,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val cloudFunctions: CloudFunctionsDataSource
 ) : ViewModel() {
 
     val contactId: String = savedStateHandle.get<String>("contactId") ?: ""
@@ -121,13 +123,16 @@ class ContactDetailViewModel @Inject constructor(
         }
     }
 
-    private fun loadMuteStatus() {
+    fun loadMuteStatus() {
         val muteUntil = mutePrefs.getLong("mute_$contactId", 0L)
         val now = System.currentTimeMillis()
         if (muteUntil > now) {
             _uiState.value = _uiState.value.copy(isMuted = true, muteExpiresAt = muteUntil)
-        } else if (muteUntil > 0) {
-            mutePrefs.edit().remove("mute_$contactId").apply()
+        } else {
+            if (muteUntil > 0) {
+                mutePrefs.edit().remove("mute_$contactId").apply()
+            }
+            _uiState.value = _uiState.value.copy(isMuted = false, muteExpiresAt = 0L)
         }
     }
 
@@ -139,6 +144,12 @@ class ContactDetailViewModel @Inject constructor(
         } else {
             mutePrefs.edit().remove("mute_$contactId").apply()
             _uiState.value = _uiState.value.copy(isMuted = false, muteExpiresAt = 0L)
+            viewModelScope.launch {
+                try {
+                    cloudFunctions.unmuteSender(contactId)
+                } catch (_: Exception) {
+                }
+            }
         }
     }
 

@@ -8,12 +8,15 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,6 +28,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,7 +41,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -76,6 +82,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -95,7 +102,11 @@ import com.whereduck.app.ui.theme.DuckOrange500
 import com.whereduck.app.ui.theme.DuckTheme
 import com.whereduck.app.ui.theme.StarnazzoHeavy
 import com.whereduck.app.ui.theme.StarnazzoLight
+import com.whereduck.app.ui.theme.StarnazzoLightTenue
 import com.whereduck.app.ui.theme.StarnazzoMedium
+import com.whereduck.app.ui.theme.StarnazzoMediumTenue
+import com.whereduck.app.ui.theme.StarnazzoHeavyTenue
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -115,6 +126,14 @@ fun ContactDetailScreen(
     val isZenMode = com.whereduck.app.ui.home.HomeViewModel.isZenMode(LocalContext.current)
 
     val isCalling = uiState.callPhase != null
+
+    // Reload mute status when screen becomes visible (e.g. after IncomingAlertActivity mute)
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
+            viewModel.loadMuteStatus()
+        }
+    }
 
     // Auto-dismiss snackbar
     LaunchedEffect(uiState.lastSendResult) {
@@ -136,6 +155,12 @@ fun ContactDetailScreen(
         StarnazzoLevel.LIGHT -> StarnazzoLight
         StarnazzoLevel.MEDIUM -> StarnazzoMedium
         StarnazzoLevel.HEAVY -> StarnazzoHeavy
+    }
+
+    fun levelTenueColor(level: StarnazzoLevel): Color = when (level) {
+        StarnazzoLevel.LIGHT -> StarnazzoLightTenue
+        StarnazzoLevel.MEDIUM -> StarnazzoMediumTenue
+        StarnazzoLevel.HEAVY -> StarnazzoHeavyTenue
     }
 
     // Call animations
@@ -178,7 +203,7 @@ fun ContactDetailScreen(
         label = "topbar_color"
     )
     val buttonWidth by animateDpAsState(
-        targetValue = if (isCalling) 60.dp else 160.dp,
+        targetValue = if (isCalling) 52.dp else 160.dp,
         animationSpec = spring(stiffness = Spring.StiffnessLow),
         label = "btn_width"
     )
@@ -246,338 +271,297 @@ fun ContactDetailScreen(
                         val navBarBottom = WindowInsets.navigationBars
                             .asPaddingValues().calculateBottomPadding()
 
-                        if (isCalling) {
-                            // ── CALLING STATE: full screen colored ──
-                            val levels = StarnazzoLevel.entries.toList()
-                            val virtualPageCount = 1000
-                            val startPage = (virtualPageCount / 2) - ((virtualPageCount / 2) % levels.size) + levels.indexOf(uiState.selectedLevel)
-                            val pagerState = rememberPagerState(
-                                initialPage = startPage,
-                                pageCount = { virtualPageCount }
-                            )
-
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(top = topPadding),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                // Photo
-                                if (contact.photoUrl.isNotBlank()) {
-                                    AsyncImage(
-                                        model = contact.photoUrl,
-                                        contentDescription = contact.displayName,
-                                        modifier = Modifier
-                                            .size(140.dp)
-                                            .clip(CircleShape),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                } else {
-                                    Surface(
-                                        modifier = Modifier.size(140.dp),
-                                        shape = CircleShape,
-                                        color = Color.White.copy(alpha = 0.2f)
-                                    ) {
-                                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                            Icon(Icons.Default.Person, null, Modifier.size(50.dp), tint = Color.White.copy(alpha = 0.6f))
-                                        }
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                when (uiState.callPhase) {
-                                    CallPhase.RINGING -> {
-                                        Text(
-                                            text = "Ducking...",
-                                            fontSize = 18.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = Color.White.copy(alpha = dotsAlpha),
-                                            textAlign = TextAlign.Center
-                                        )
-                                    }
-                                    CallPhase.RESPONDED -> {
-                                        val (responseEmoji, responseText) = when (uiState.callResponse) {
-                                            "ok" -> "\uD83D\uDC4D" to "OK! Ha visto!"
-                                            "muto" -> "\uD83D\uDD07" to "Non mi rompere!"
-                                            "revenge" -> "\uD83D\uDD25" to "REVENGE!"
-                                            "dismissed" -> "\uD83D\uDC4B" to "Ha chiuso"
-                                            else -> "" to "Risposta ricevuta"
-                                        }
-                                        Text(responseEmoji, fontSize = 48.sp, textAlign = TextAlign.Center)
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(responseText, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, textAlign = TextAlign.Center)
-                                    }
-                                    CallPhase.FAILED -> {
-                                        Text("Invio fallito", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
-                                    }
-                                    else -> {}
-                                }
-
-                                // Animal
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .weight(1f),
-                                    contentAlignment = Alignment.BottomCenter
-                                ) {
-                                    val aKey = AnimalRegistry.getSelectedAnimal(context, uiState.selectedLevel)
-                                    val emoji = AnimalRegistry.getEmoji(aKey, uiState.selectedLevel)
-                                    AnimalEmoji(
-                                        animalKey = aKey,
-                                        emoji = emoji,
-                                        size = 120.dp,
-                                        fontSize = 120.sp,
-                                        modifier = Modifier
-                                            .fillMaxHeight(0.75f)
-                                            .scale(if (uiState.callPhase == CallPhase.RINGING) emojiScale else 1f)
-                                    )
-                                    if (uiState.callPhase == CallPhase.RINGING) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(100.dp)
-                                                .scale(rippleScale)
-                                                .alpha(rippleAlpha)
-                                                .background(Color.White, CircleShape)
-                                        )
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.height(16.dp))
-
-                                // Cancel button
-                                Box(
-                                    modifier = Modifier
-                                        .size(60.dp)
-                                        .clip(CircleShape)
-                                        .background(DuckTheme.colors.negative)
-                                        .clickable { viewModel.cancelStarnazzo() },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(Icons.Default.Close, "Chiudi", Modifier.size(28.dp), tint = Color.White)
-                                }
-
-                                Spacer(modifier = Modifier.height(maxOf(24.dp, navBarBottom + 16.dp)))
+                        // ── UNIFIED LAYOUT: animates between normal and calling ──
+                        val levelAnimals = remember {
+                            StarnazzoLevel.entries.map { level ->
+                                val selectedKey = AnimalRegistry.getSelectedAnimal(context, level)
+                                val animal = animalsPerLevel[level]
+                                    ?.find { it.key == selectedKey }
+                                    ?: animalsPerLevel[level]!!.first()
+                                level to animal
                             }
-                        } else {
-                            // ── NORMAL STATE: scrollable profile ──
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(top = topPadding),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                        }
+
+                        val virtualPageCount = 1000
+                        val startPage = (virtualPageCount / 2) - ((virtualPageCount / 2) % levelAnimals.size)
+                        val pagerState = rememberPagerState(initialPage = startPage) { virtualPageCount }
+
+                        // Sync pager → viewModel
+                        val settledPage = pagerState.settledPage
+                        LaunchedEffect(settledPage) {
+                            val (level, animal) = levelAnimals[settledPage % levelAnimals.size]
+                            viewModel.selectAnimal(level, animal.key)
+                        }
+
+                        // Card scale animation during calling
+                        val cardScale by animateFloatAsState(
+                            targetValue = if (isCalling && uiState.callPhase == CallPhase.RINGING) emojiScale else 1f,
+                            animationSpec = spring(stiffness = Spring.StiffnessLow),
+                            label = "card_scale"
+                        )
+
+                        // Text color animation
+                        val textColor by animateColorAsState(
+                            targetValue = if (isCalling) Color.White else DuckTheme.colors.textSecondary,
+                            animationSpec = tween(500),
+                            label = "text_color"
+                        )
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(top = topPadding)
+                                .verticalScroll(rememberScrollState()),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // ── Photo (always visible) ──
+                            if (contact.photoUrl.isNotBlank()) {
+                                AsyncImage(
+                                    model = contact.photoUrl,
+                                    contentDescription = contact.displayName,
+                                    modifier = Modifier
+                                        .size(180.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Surface(
+                                    modifier = Modifier.size(180.dp),
+                                    shape = CircleShape,
+                                    color = if (isCalling) Color.White.copy(alpha = 0.2f)
+                                            else DuckTheme.colors.cardBackgroundVariant
+                                ) {
+                                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            Icons.Default.Person, null,
+                                            Modifier.size(56.dp),
+                                            tint = if (isCalling) Color.White.copy(alpha = 0.6f)
+                                                   else DuckTheme.colors.textSecondary
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // ── Email (always visible) ──
+                            if (contact.email.isNotBlank()) {
+                                Text(
+                                    text = contact.email,
+                                    fontSize = 13.sp,
+                                    color = textColor,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+
+                            // ── Motto (always visible) ──
+                            if (contact.motto.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(20.dp),
+                                    color = if (isCalling) Color.White.copy(alpha = 0.15f)
+                                            else DuckTheme.colors.pillBackground
+                                ) {
+                                    Text(
+                                        text = contact.motto,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = if (isCalling) Color.White else DuckTheme.colors.textPrimary,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                    )
+                                }
+                            }
+
+                            // ── Call phase text (only during call) ──
+                            AnimatedVisibility(
+                                visible = isCalling,
+                                enter = fadeIn(tween(300)) + expandVertically(),
+                                exit = fadeOut(tween(200)) + shrinkVertically()
                             ) {
-                                // ── Profile section ──
-                                item {
-                                    Column(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Spacer(modifier = Modifier.height(8.dp))
-
-                                        // Photo
-                                        if (contact.photoUrl.isNotBlank()) {
-                                            AsyncImage(
-                                                model = contact.photoUrl,
-                                                contentDescription = contact.displayName,
-                                                modifier = Modifier
-                                                    .size(180.dp)
-                                                    .clip(CircleShape),
-                                                contentScale = ContentScale.Crop
-                                            )
-                                        } else {
-                                            Surface(
-                                                modifier = Modifier.size(180.dp),
-                                                shape = CircleShape,
-                                                color = DuckTheme.colors.cardBackgroundVariant
-                                            ) {
-                                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                                    Icon(Icons.Default.Person, null, Modifier.size(56.dp), tint = DuckTheme.colors.textSecondary)
-                                                }
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    when (uiState.callPhase) {
+                                        CallPhase.RINGING -> {}
+                                        CallPhase.RESPONDED -> {
+                                            val (responseEmoji, responseText) = when (uiState.callResponse) {
+                                                "ok" -> "\uD83D\uDC4D" to "OK! Ha visto!"
+                                                "muto" -> "\uD83D\uDD07" to "Non mi rompere!"
+                                                "revenge" -> "\uD83D\uDD25" to "REVENGE!"
+                                                "dismissed" -> "\uD83D\uDC4B" to "Ha chiuso"
+                                                "zen" -> "\uD83E\uDDD8" to "${contact.displayName} e' in modalita Zen"
+                                                else -> "" to "Risposta ricevuta"
                                             }
+                                            Text(responseEmoji, fontSize = 48.sp, textAlign = TextAlign.Center)
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(responseText, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, textAlign = TextAlign.Center)
                                         }
-
-                                        Spacer(modifier = Modifier.height(8.dp))
-
-                                        // Email
-                                        if (contact.email.isNotBlank()) {
-                                            Text(
-                                                text = contact.email,
-                                                fontSize = 13.sp,
-                                                color = DuckTheme.colors.textSecondary,
-                                                textAlign = TextAlign.Center
-                                            )
+                                        CallPhase.FAILED -> {
+                                            Text("Invio fallito", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
                                         }
+                                        else -> {}
+                                    }
+                                }
+                            }
 
-                                        // Motto
-                                        if (contact.motto.isNotBlank()) {
-                                            Spacer(modifier = Modifier.height(6.dp))
-                                            Surface(
-                                                shape = RoundedCornerShape(20.dp),
-                                                color = DuckTheme.colors.pillBackground
+                            // ── Action buttons (hide during call) ──
+                            AnimatedVisibility(
+                                visible = !isCalling,
+                                enter = fadeIn(tween(300)) + expandVertically(),
+                                exit = fadeOut(tween(200)) + shrinkVertically()
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        // VIP button
+                                        Surface(
+                                            onClick = { viewModel.toggleVip() },
+                                            shape = CircleShape,
+                                            color = DuckTheme.colors.outline
+                                        ) {
+                                            Box(
+                                                modifier = Modifier.size(64.dp),
+                                                contentAlignment = Alignment.Center
                                             ) {
-                                                Text(
-                                                    text = contact.motto,
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.Medium,
-                                                    color = DuckTheme.colors.textPrimary,
-                                                    textAlign = TextAlign.Center,
-                                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                                Icon(
+                                                    if (uiState.isVip) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                                    contentDescription = "Preferito",
+                                                    modifier = Modifier.size(28.dp),
+                                                    tint = if (uiState.isVip) DuckTheme.colors.vipHeart
+                                                           else DuckTheme.colors.textSecondary
                                                 )
                                             }
                                         }
 
-                                        Spacer(modifier = Modifier.height(16.dp))
-
-                                        // Action buttons row
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Row(
-                                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                // VIP button
-                                                Surface(
-                                                    onClick = { viewModel.toggleVip() },
-                                                    shape = CircleShape,
-                                                    color = DuckTheme.colors.outline
-                                                ) {
-                                                    Box(
-                                                        modifier = Modifier.size(64.dp),
-                                                        contentAlignment = Alignment.Center
-                                                    ) {
-                                                        Icon(
-                                                            if (uiState.isVip) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                                            contentDescription = "Preferito",
-                                                            modifier = Modifier.size(28.dp),
-                                                            tint = if (uiState.isVip) DuckTheme.colors.vipHeart
-                                                                   else DuckTheme.colors.textSecondary
-                                                        )
-                                                    }
+                                        // Mute button
+                                        Surface(
+                                            onClick = {
+                                                if (uiState.isMuted) {
+                                                    viewModel.toggleMute(null)
+                                                } else {
+                                                    showMuteOptions = !showMuteOptions
                                                 }
+                                            },
+                                            shape = CircleShape,
+                                            color = DuckTheme.colors.outline
+                                        ) {
+                                            Box(
+                                                modifier = Modifier.size(64.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    if (uiState.isMuted) Icons.Default.VolumeOff else Icons.Default.NotificationsOff,
+                                                    contentDescription = "Silenzia",
+                                                    modifier = Modifier.size(28.dp),
+                                                    tint = if (uiState.isMuted) DuckTheme.colors.negative
+                                                           else DuckTheme.colors.textSecondary
+                                                )
+                                            }
+                                        }
 
-                                                // Mute button
+                                        // Remove contact button
+                                        Surface(
+                                            onClick = { showRemoveDialog = true },
+                                            shape = CircleShape,
+                                            color = DuckTheme.colors.outline
+                                        ) {
+                                            Box(
+                                                modifier = Modifier.size(64.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.PersonRemove,
+                                                    contentDescription = "Rimuovi",
+                                                    modifier = Modifier.size(28.dp),
+                                                    tint = DuckTheme.colors.textSecondary
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    // Mute duration chips
+                                    AnimatedVisibility(
+                                        visible = showMuteOptions && !uiState.isMuted
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(top = 12.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            listOf(5 to "5 min", 30 to "30 min", 60 to "1 ora").forEach { (min, label) ->
                                                 Surface(
                                                     onClick = {
-                                                        if (uiState.isMuted) {
-                                                            viewModel.toggleMute(null)
-                                                        } else {
-                                                            showMuteOptions = !showMuteOptions
-                                                        }
+                                                        viewModel.toggleMute(min)
+                                                        showMuteOptions = false
                                                     },
-                                                    shape = CircleShape,
-                                                    color = DuckTheme.colors.outline
+                                                    shape = RoundedCornerShape(20.dp),
+                                                    color = Color(0xFFFF9800)
                                                 ) {
-                                                    Box(
-                                                        modifier = Modifier.size(64.dp),
-                                                        contentAlignment = Alignment.Center
-                                                    ) {
-                                                        Icon(
-                                                            if (uiState.isMuted) Icons.Default.VolumeOff else Icons.Default.NotificationsOff,
-                                                            contentDescription = "Silenzia",
-                                                            modifier = Modifier.size(28.dp),
-                                                            tint = if (uiState.isMuted) DuckTheme.colors.negative
-                                                                   else DuckTheme.colors.textSecondary
-                                                        )
-                                                    }
-                                                }
-
-                                                // Remove contact button
-                                                Surface(
-                                                    onClick = { showRemoveDialog = true },
-                                                    shape = CircleShape,
-                                                    color = DuckTheme.colors.outline
-                                                ) {
-                                                    Box(
-                                                        modifier = Modifier.size(64.dp),
-                                                        contentAlignment = Alignment.Center
-                                                    ) {
-                                                        Icon(
-                                                            Icons.Default.PersonRemove,
-                                                            contentDescription = "Rimuovi",
-                                                            modifier = Modifier.size(28.dp),
-                                                            tint = DuckTheme.colors.textSecondary
-                                                        )
-                                                    }
-                                                }
-                                            }
-
-                                            // Mute duration chips
-                                            AnimatedVisibility(
-                                                visible = showMuteOptions && !uiState.isMuted
-                                            ) {
-                                                Row(
-                                                    modifier = Modifier.padding(top = 12.dp),
-                                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                                ) {
-                                                    listOf(5 to "5 min", 30 to "30 min", 60 to "1 ora").forEach { (min, label) ->
-                                                        Surface(
-                                                            onClick = {
-                                                                viewModel.toggleMute(min)
-                                                                showMuteOptions = false
-                                                            },
-                                                            shape = RoundedCornerShape(20.dp),
-                                                            color = Color(0xFFFF9800)
-                                                        ) {
-                                                            Text(
-                                                                text = label,
-                                                                fontSize = 13.sp,
-                                                                fontWeight = FontWeight.Bold,
-                                                                color = Color.White,
-                                                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
-                                                            )
-                                                        }
-                                                    }
+                                                    Text(
+                                                        text = label,
+                                                        fontSize = 13.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color.White,
+                                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+                                                    )
                                                 }
                                             }
                                         }
                                     }
                                 }
+                            }
 
-                                // ── Send Duck section ──
-                                item {
-                                    Spacer(modifier = Modifier.height(20.dp))
-                                    if (isZenMode) {
-                                        Box(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Surface(
-                                                shape = CircleShape,
-                                                color = DuckOrange500
-                                            ) {
-                                                Text(
-                                                    text = "Sei in modalita Zen",
-                                                    fontSize = 16.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = Color.White,
-                                                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
-                                                )
-                                            }
-                                        }
-                                    } else {
+                            Spacer(modifier = Modifier.height(20.dp))
 
-                                    // One animal per level (the one selected in CustomizeTab)
-                                    val levelAnimals = remember {
-                                        StarnazzoLevel.entries.map { level ->
-                                            val selectedKey = AnimalRegistry.getSelectedAnimal(context, level)
-                                            val animal = animalsPerLevel[level]
-                                                ?.find { it.key == selectedKey }
-                                                ?: animalsPerLevel[level]!!.first()
-                                            level to animal
-                                        }
+                            // ── Animal card / Zen mode ──
+                            if (isZenMode && !isCalling) {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = DuckOrange500
+                                    ) {
+                                        Text(
+                                            text = "Sei in modalita Zen",
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
+                                        )
                                     }
+                                }
+                            } else if (!isZenMode || isCalling) {
+                                // Animated card properties
+                                val selectedIndex = levelAnimals.indexOfFirst { it.first == uiState.selectedLevel }
+                                val currentIndex = if (selectedIndex >= 0) selectedIndex else 0
+                                val (selectedLevel, selectedAnimal) = levelAnimals[currentIndex]
+                                val selectedLvlColor = levelColor(selectedLevel)
 
-                                    val virtualPageCount = 1000
-                                    val startPage = (virtualPageCount / 2) - ((virtualPageCount / 2) % levelAnimals.size)
-                                    val pagerState = rememberPagerState(initialPage = startPage) { virtualPageCount }
+                                val cardBgColor by animateColorAsState(
+                                    targetValue = if (isCalling) levelTenueColor(selectedLevel)
+                                                  else DuckTheme.colors.cardBackground,
+                                    animationSpec = tween(500),
+                                    label = "card_bg"
+                                )
+                                val circleFraction by animateFloatAsState(
+                                    targetValue = if (isCalling) 1f else 0f,
+                                    animationSpec = tween(600),
+                                    label = "circle_grow"
+                                )
+                                val textAlpha by animateFloatAsState(
+                                    targetValue = if (isCalling) 0f else 1f,
+                                    animationSpec = tween(300),
+                                    label = "text_alpha"
+                                )
 
-                                    // Sync pager → viewModel
-                                    val settledPage = pagerState.settledPage
-                                    LaunchedEffect(settledPage) {
-                                        val (level, animal) = levelAnimals[settledPage % levelAnimals.size]
-                                        viewModel.selectAnimal(level, animal.key)
-                                    }
-
+                                if (!isCalling) {
+                                    // Normal state: carousel
                                     HorizontalPager(
                                         state = pagerState,
                                         contentPadding = PaddingValues(horizontal = 32.dp),
@@ -587,8 +571,7 @@ fun ContactDetailScreen(
                                         val lvlColor = levelColor(level)
 
                                         Card(
-                                            modifier = Modifier
-                                                .fillMaxWidth(),
+                                            modifier = Modifier.fillMaxWidth(),
                                             shape = RoundedCornerShape(20.dp),
                                             colors = CardDefaults.cardColors(containerColor = DuckTheme.colors.cardBackground),
                                             elevation = CardDefaults.cardElevation(0.dp)
@@ -599,16 +582,12 @@ fun ContactDetailScreen(
                                                     .padding(20.dp),
                                                 horizontalAlignment = Alignment.CenterHorizontally
                                             ) {
-                                                // Top row: level chip + noisiness bar
                                                 Row(
                                                     modifier = Modifier.fillMaxWidth(),
                                                     verticalAlignment = Alignment.CenterVertically,
                                                     horizontalArrangement = Arrangement.SpaceBetween
                                                 ) {
-                                                    Surface(
-                                                        shape = CircleShape,
-                                                        color = lvlColor
-                                                    ) {
+                                                    Surface(shape = CircleShape, color = lvlColor) {
                                                         Text(
                                                             text = level.displayName,
                                                             fontSize = 11.sp,
@@ -617,23 +596,14 @@ fun ContactDetailScreen(
                                                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                                                         )
                                                     }
-
                                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                                        Icon(
-                                                            Icons.Default.VolumeUp,
-                                                            contentDescription = null,
-                                                            modifier = Modifier.size(14.dp),
-                                                            tint = DuckTheme.colors.textSecondary
-                                                        )
+                                                        Icon(Icons.Default.VolumeUp, null, Modifier.size(14.dp), tint = DuckTheme.colors.textSecondary)
                                                         Spacer(modifier = Modifier.width(6.dp))
                                                         Box(
                                                             modifier = Modifier
                                                                 .width(60.dp)
                                                                 .height(12.dp)
-                                                                .background(
-                                                                    DuckTheme.colors.cardBackgroundVariant,
-                                                                    RoundedCornerShape(6.dp)
-                                                                )
+                                                                .background(DuckTheme.colors.cardBackgroundVariant, RoundedCornerShape(6.dp))
                                                         ) {
                                                             Box(
                                                                 modifier = Modifier
@@ -647,12 +617,11 @@ fun ContactDetailScreen(
 
                                                 Spacer(modifier = Modifier.height(16.dp))
 
-                                                // Animal emoji in circle
                                                 Box(
                                                     modifier = Modifier
                                                         .size(140.dp)
                                                         .clip(CircleShape)
-                                                        .background(lvlColor.copy(alpha = 0.15f)),
+                                                        .background(levelTenueColor(level)),
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     AnimalEmoji(
@@ -664,92 +633,169 @@ fun ContactDetailScreen(
                                                 }
 
                                                 Spacer(modifier = Modifier.height(12.dp))
-
-                                                Text(
-                                                    text = animal.name,
-                                                    fontSize = 18.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = DuckTheme.colors.textPrimary
-                                                )
-
+                                                Text(animal.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DuckTheme.colors.textPrimary)
                                                 Spacer(modifier = Modifier.height(4.dp))
-
-                                                Text(
-                                                    text = animal.description,
-                                                    fontSize = 13.sp,
-                                                    color = DuckTheme.colors.textSecondary,
-                                                    textAlign = TextAlign.Center,
-                                                    minLines = 2,
-                                                    maxLines = 2
-                                                )
-
+                                                Text(animal.description, fontSize = 13.sp, color = DuckTheme.colors.textSecondary, textAlign = TextAlign.Center, minLines = 2, maxLines = 2)
                                                 Spacer(modifier = Modifier.height(8.dp))
-
-                                                Text(
-                                                    text = animal.quote,
-                                                    fontSize = 12.sp,
-                                                    fontWeight = FontWeight.Medium,
-                                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                                    color = lvlColor,
-                                                    textAlign = TextAlign.Center,
-                                                    minLines = 2,
-                                                    maxLines = 2
-                                                )
+                                                Text(animal.quote, fontSize = 12.sp, fontWeight = FontWeight.Medium, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = lvlColor, textAlign = TextAlign.Center, minLines = 2, maxLines = 2)
                                             }
                                         }
                                     }
-
-                                    Spacer(modifier = Modifier.height(16.dp))
-
-                                    // DUCK! button
-                                    val duckButtonColor by animateColorAsState(
-                                        targetValue = levelColor(uiState.selectedLevel),
-                                        animationSpec = tween(400),
-                                        label = "duck_btn_color"
-                                    )
-                                    Box(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        contentAlignment = Alignment.Center
+                                } else {
+                                    // Calling state: single card with animated expansion
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 32.dp)
+                                            .aspectRatio(1f)
+                                            .scale(cardScale),
+                                        shape = RoundedCornerShape(20.dp),
+                                        colors = CardDefaults.cardColors(containerColor = cardBgColor),
+                                        elevation = CardDefaults.cardElevation(0.dp)
                                     ) {
                                         Box(
                                             modifier = Modifier
-                                                .width(160.dp)
-                                                .height(52.dp)
-                                                .clip(RoundedCornerShape(26.dp))
-                                                .background(duckButtonColor)
-                                                .clickable { viewModel.sendStarnazzo() },
-                                            contentAlignment = Alignment.Center
+                                                .fillMaxSize()
+                                                .clip(RoundedCornerShape(20.dp))
                                         ) {
-                                            if (uiState.isSending) {
-                                                CircularProgressIndicator(
-                                                    modifier = Modifier.size(24.dp),
-                                                    strokeWidth = 2.dp,
-                                                    color = Color.White
+                                            // Expanding circle background
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                val circleSize = 140.dp + (400.dp - 140.dp) * circleFraction
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(circleSize)
+                                                        .clip(CircleShape)
+                                                        .background(levelTenueColor(selectedLevel))
                                                 )
-                                            } else {
-                                                Text(
-                                                    text = "DUCK!",
-                                                    fontSize = 18.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = Color.White
+                                            }
+
+                                            // Top row: level chip + noisiness bar
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(16.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Surface(shape = CircleShape, color = selectedLvlColor) {
+                                                    Text(
+                                                        text = selectedLevel.displayName,
+                                                        fontSize = 11.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color.White,
+                                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                                                    )
+                                                }
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Icon(Icons.Default.VolumeUp, null, Modifier.size(14.dp), tint = DuckTheme.colors.textSecondary)
+                                                    Spacer(modifier = Modifier.width(6.dp))
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .width(60.dp)
+                                                            .height(12.dp)
+                                                            .background(DuckTheme.colors.cardBackgroundVariant, RoundedCornerShape(6.dp))
+                                                    ) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .fillMaxWidth(fraction = selectedAnimal.noisiness)
+                                                                .height(12.dp)
+                                                                .background(selectedLvlColor, RoundedCornerShape(6.dp))
+                                                        )
+                                                    }
+                                                }
+                                            }
+
+                                            // Animal aligned to bottom
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .padding(top = 48.dp, start = 20.dp, end = 20.dp),
+                                                contentAlignment = Alignment.BottomCenter
+                                            ) {
+                                                AnimalEmoji(
+                                                    animalKey = selectedAnimal.key,
+                                                    emoji = selectedAnimal.emoji,
+                                                    size = 200.dp,
+                                                    fontSize = 120.sp
                                                 )
+                                            }
+
+                                            // Fading text
+                                            if (textAlpha > 0.01f) {
+                                                Column(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .align(Alignment.BottomCenter)
+                                                        .padding(bottom = 16.dp, start = 20.dp, end = 20.dp)
+                                                        .graphicsLayer { alpha = textAlpha },
+                                                    horizontalAlignment = Alignment.CenterHorizontally
+                                                ) {
+                                                    Text(selectedAnimal.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DuckTheme.colors.textPrimary)
+                                                    Spacer(modifier = Modifier.height(4.dp))
+                                                    Text(selectedAnimal.description, fontSize = 13.sp, color = DuckTheme.colors.textSecondary, textAlign = TextAlign.Center, maxLines = 2)
+                                                }
                                             }
                                         }
                                     }
-                                    } // else !isZenMode
                                 }
 
-                                // ── Stats section ──
-                                item {
-                                    Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height(16.dp))
 
+                                // ── DUCK! / Cancel button ──
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .width(buttonWidth)
+                                            .height(52.dp)
+                                            .clip(CircleShape)
+                                            .background(buttonColor)
+                                            .clickable {
+                                                if (isCalling) viewModel.cancelStarnazzo()
+                                                else viewModel.sendStarnazzo()
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        if (uiState.isSending) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(24.dp),
+                                                strokeWidth = 2.dp,
+                                                color = Color.White
+                                            )
+                                        } else if (isCalling) {
+                                            Icon(Icons.Default.Close, "Chiudi", Modifier.size(28.dp), tint = Color.White)
+                                        } else {
+                                            Text(
+                                                text = "DUCK!",
+                                                fontSize = 18.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            // ── Stats (hide during call) ──
+                            AnimatedVisibility(
+                                visible = !isCalling,
+                                enter = fadeIn(tween(300)) + expandVertically(),
+                                exit = fadeOut(tween(200)) + shrinkVertically()
+                            ) {
+                                Column {
+                                    Spacer(modifier = Modifier.height(16.dp))
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(horizontal = 20.dp),
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-                                        // Sent count
                                         Card(
                                             modifier = Modifier.weight(1f),
                                             shape = RoundedCornerShape(20.dp),
@@ -757,26 +803,13 @@ fun ContactDetailScreen(
                                             elevation = CardDefaults.cardElevation(0.dp)
                                         ) {
                                             Column(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(16.dp),
+                                                modifier = Modifier.fillMaxWidth().padding(16.dp),
                                                 horizontalAlignment = Alignment.CenterHorizontally
                                             ) {
-                                                Text(
-                                                    text = "${uiState.sentCount}",
-                                                    fontSize = 28.sp,
-                                                    fontWeight = FontWeight.ExtraBold,
-                                                    color = DuckTheme.colors.accentDark
-                                                )
-                                                Text(
-                                                    text = "Inviati",
-                                                    fontSize = 12.sp,
-                                                    color = DuckTheme.colors.textSecondary
-                                                )
+                                                Text("${uiState.sentCount}", fontSize = 28.sp, fontWeight = FontWeight.ExtraBold, color = DuckTheme.colors.accentDark)
+                                                Text("Inviati", fontSize = 12.sp, color = DuckTheme.colors.textSecondary)
                                             }
                                         }
-
-                                        // Received count
                                         Card(
                                             modifier = Modifier.weight(1f),
                                             shape = RoundedCornerShape(20.dp),
@@ -784,42 +817,34 @@ fun ContactDetailScreen(
                                             elevation = CardDefaults.cardElevation(0.dp)
                                         ) {
                                             Column(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(16.dp),
+                                                modifier = Modifier.fillMaxWidth().padding(16.dp),
                                                 horizontalAlignment = Alignment.CenterHorizontally
                                             ) {
-                                                Text(
-                                                    text = "${uiState.receivedCount}",
-                                                    fontSize = 28.sp,
-                                                    fontWeight = FontWeight.ExtraBold,
-                                                    color = DuckTheme.colors.accentDark
-                                                )
-                                                Text(
-                                                    text = "Ricevuti",
-                                                    fontSize = 12.sp,
-                                                    color = DuckTheme.colors.textSecondary
-                                                )
+                                                Text("${uiState.receivedCount}", fontSize = 28.sp, fontWeight = FontWeight.ExtraBold, color = DuckTheme.colors.accentDark)
+                                                Text("Ricevuti", fontSize = 12.sp, color = DuckTheme.colors.textSecondary)
                                             }
                                         }
                                     }
                                 }
+                            }
 
-                                // ── Recent history section ──
-                                if (uiState.recentAlerts.isNotEmpty()) {
-                                    item {
-                                        Spacer(modifier = Modifier.height(16.dp))
-                                        Text(
-                                            text = "Ultimi Duck",
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = DuckTheme.colors.sectionTitle,
-                                            modifier = Modifier.padding(horizontal = 20.dp)
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                    }
-
-                                    items(uiState.recentAlerts, key = { it.id }) { alert ->
+                            // ── Recent history (hide during call) ──
+                            AnimatedVisibility(
+                                visible = !isCalling && uiState.recentAlerts.isNotEmpty(),
+                                enter = fadeIn(tween(300)) + expandVertically(),
+                                exit = fadeOut(tween(200)) + shrinkVertically()
+                            ) {
+                                Column {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text(
+                                        text = "Ultimi Duck",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = DuckTheme.colors.sectionTitle,
+                                        modifier = Modifier.padding(horizontal = 20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    uiState.recentAlerts.forEach { alert ->
                                         RecentAlertRow(
                                             alert = alert,
                                             isSentByMe = alert.fromUserId != viewModel.contactId,
@@ -827,12 +852,9 @@ fun ContactDetailScreen(
                                         )
                                     }
                                 }
-
-                                // Bottom spacer
-                                item {
-                                    Spacer(modifier = Modifier.height(maxOf(24.dp, navBarBottom + 16.dp)))
-                                }
                             }
+
+                            Spacer(modifier = Modifier.height(maxOf(24.dp, navBarBottom + 16.dp)))
                         }
                     }
                 }

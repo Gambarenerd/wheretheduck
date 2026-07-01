@@ -16,3 +16,4 @@ export { sendBroadcastStarnazzo } from "./starnazzo/sendBroadcast";
 export { respondStarnazzo } from "./starnazzo/respondStarnazzo";
 export { revengeStarnazzo } from "./starnazzo/revengeStarnazzo";
 export { cancelStarnazzo } from "./starnazzo/cancelStarnazzo";
+export { unmuteSender } from "./starnazzo/unmuteSender";

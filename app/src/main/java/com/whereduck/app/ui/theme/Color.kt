@@ -55,6 +55,11 @@ val StarnazzoLightCard  = Color(0xFF88C240)
 val StarnazzoMediumCard = Color(0xFFFFD95A)
 val StarnazzoHeavyCard  = Color(0xFFD84B4B)
 
+// Livelli Duck tenue (sfondo animale, card chiamata)
+val StarnazzoLightTenue  = Color(0xFFDFEDCC)
+val StarnazzoMediumTenue = Color(0xFFFFF3CD)
+val StarnazzoHeavyTenue  = Color(0xFFF4D4D4)
+
 // Errore / distruttivo
 val DuckError = Color(0xFFD32F2F)
 
