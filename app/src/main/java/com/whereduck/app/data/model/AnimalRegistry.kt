@@ -22,9 +22,11 @@ object AnimalRegistry {
 
     private val allAnimals: Map<String, AnimalInfo> = mapOf(
         "cricket" to AnimalInfo("cricket", "\uD83E\uDD97", "Grillo", R.raw.cricket),
+        "mosquito" to AnimalInfo("mosquito", "\uD83E\uDD9F", "Zanzara", R.raw.mosquito),
         "robot" to AnimalInfo("robot", "\uD83E\uDD16", "Robot", R.raw.robot, R.drawable.roboto, 35.dp),
         "duck" to AnimalInfo("duck", "\uD83E\uDD86", "Anatra", R.raw.magiaz_duck_405695, R.drawable.duck_icon),
         "goat" to AnimalInfo("goat", "\uD83D\uDC10", "Capra Pazza", R.raw.goat),
+        "godzilla" to AnimalInfo("godzilla", "\uD83E\uDD96", "Godzilla", R.raw.godzilla),
     )
 
     /** Look up an animal by key. Returns null if not found (e.g. newer version animal). */

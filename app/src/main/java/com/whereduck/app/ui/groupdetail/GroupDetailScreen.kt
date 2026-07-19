@@ -65,16 +65,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.animation.core.tween
-import coil.compose.AsyncImage
+import com.whereduck.app.R
+import com.whereduck.app.ui.components.CachedAsyncImage
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.ui.components.AnimalEmoji
 import com.whereduck.app.ui.components.ContactCard
-import com.whereduck.app.ui.main.animalsPerLevel
+import com.whereduck.app.ui.main.rememberAnimalsPerLevel
 import com.whereduck.app.ui.theme.DuckOrange500
 import com.whereduck.app.ui.theme.DuckTheme
 import com.whereduck.app.ui.theme.StarnazzoHeavy
@@ -121,21 +123,21 @@ fun GroupDetailScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = uiState.groupName.ifEmpty { "Gruppo" },
+                        text = uiState.groupName.ifEmpty { stringResource(R.string.group_fallback) },
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Indietro")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = {
                         onNavigateToGroupManagement(viewModel.groupId)
                     }) {
-                        Icon(Icons.Default.Settings, "Gestione gruppo")
+                        Icon(Icons.Default.Settings, stringResource(R.string.group_manage_desc))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -165,13 +167,13 @@ fun GroupDetailScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Sei solo nel gruppo!",
+                            text = stringResource(R.string.group_empty),
                             style = MaterialTheme.typography.titleLarge,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Aggiungi contatti al gruppo per iniziare a duckare.",
+                            text = stringResource(R.string.group_empty_hint),
                             style = MaterialTheme.typography.bodyLarge,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
@@ -180,7 +182,7 @@ fun GroupDetailScreen(
                         Button(onClick = {
                             onNavigateToGroupManagement(viewModel.groupId)
                         }) {
-                            Text("Aggiungi contatti")
+                            Text(stringResource(R.string.group_empty_button))
                         }
                     }
                 }
@@ -204,7 +206,7 @@ fun GroupDetailScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     if (uiState.groupPhotoUrl.isNotBlank()) {
-                                        AsyncImage(
+                                        CachedAsyncImage(
                                             model = uiState.groupPhotoUrl,
                                             contentDescription = uiState.groupName,
                                             modifier = Modifier
@@ -241,7 +243,7 @@ fun GroupDetailScreen(
                                     ) {
                                         Icon(
                                             Icons.Default.CameraAlt,
-                                            contentDescription = "Cambia foto",
+                                            contentDescription = stringResource(R.string.group_change_photo_desc),
                                             modifier = Modifier.size(18.dp),
                                             tint = DuckTheme.colors.textPrimary
                                         )
@@ -254,7 +256,7 @@ fun GroupDetailScreen(
                         // Contacts header
                         item {
                             Text(
-                                text = "Duckers",
+                                text = stringResource(R.string.group_members_header),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -278,7 +280,7 @@ fun GroupDetailScreen(
                                     ) {
                                         Icon(
                                             Icons.Default.Campaign,
-                                            contentDescription = "Duck",
+                                            contentDescription = stringResource(R.string.dashboard_duck_desc),
                                             modifier = Modifier.size(20.dp),
                                             tint = DuckTheme.colors.sectionTitle
                                         )
@@ -302,7 +304,7 @@ fun GroupDetailScreen(
                                         color = DuckOrange500
                                     ) {
                                         Text(
-                                            text = "Sei in modalita Zen",
+                                            text = stringResource(R.string.group_zen_banner),
                                             fontSize = 16.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color.White,
@@ -314,7 +316,8 @@ fun GroupDetailScreen(
                             Spacer(modifier = Modifier.height(8.dp))
 
                             val context = LocalContext.current
-                            val levelAnimals = remember {
+                            val animalsPerLevel = rememberAnimalsPerLevel()
+                            val levelAnimals = remember(animalsPerLevel) {
                                 StarnazzoLevel.entries.map { level ->
                                     val selectedKey = AnimalRegistry.getSelectedAnimal(context, level)
                                     val animal = animalsPerLevel[level]
@@ -490,7 +493,7 @@ fun GroupDetailScreen(
                                         )
                                     } else {
                                         Text(
-                                            text = "Duck di gruppo!",
+                                            text = stringResource(R.string.group_duck_button),
                                             fontSize = 18.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color.White

@@ -3,6 +3,8 @@ package com.whereduck.app.ui.login
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,10 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,14 +24,22 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.whereduck.app.R
+import com.whereduck.app.ui.theme.DuckOrange500
+import com.whereduck.app.ui.theme.DuckTheme
+import com.whereduck.app.ui.theme.StarnazzoLight
 
 @Composable
 fun LoginScreen(
@@ -47,12 +57,11 @@ fun LoginScreen(
             try {
                 val account = task.getResult(ApiException::class.java)
                 account.idToken?.let { viewModel.signInWithGoogle(it) }
-                    ?: viewModel.onSignInError("ID Token nullo")
+                    ?: viewModel.onSignInError(context.getString(R.string.login_error_token_null))
             } catch (e: ApiException) {
                 viewModel.onSignInError("Google Sign-In failed: code ${e.statusCode} - ${e.message}")
             }
         } else {
-            // Try to extract error even if resultCode is not OK
             try {
                 val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
                 task.getResult(ApiException::class.java)
@@ -73,30 +82,39 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(32.dp),
+            .background(DuckTheme.colors.sectionDashboard)
+            .padding(horizontal = 32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "WhereTheDuck",
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.primary
+        Image(
+            painter = painterResource(id = R.drawable.duck_icon),
+            contentDescription = stringResource(R.string.login_logo_desc),
+            modifier = Modifier.size(120.dp)
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Where the Duck are you?!",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            text = stringResource(R.string.login_title_1),
+            fontSize = 32.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = DuckTheme.colors.textPrimary
         )
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Text(
+            text = stringResource(R.string.login_title_2),
+            fontSize = 32.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = DuckOrange500
+        )
+
+        Spacer(modifier = Modifier.height(60.dp))
 
         if (uiState.isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(48.dp),
-                color = MaterialTheme.colorScheme.primary
+                color = StarnazzoLight
             )
         } else {
             Button(
@@ -112,14 +130,17 @@ fun LoginScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
+                    .height(56.dp),
+                shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor = DuckOrange500,
+                    contentColor = Color.White
                 )
             ) {
                 Text(
-                    text = "Accedi con Google",
-                    style = MaterialTheme.typography.labelLarge
+                    text = stringResource(R.string.login_button),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -128,8 +149,9 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = uiState.error!!,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium,
+                color = DuckTheme.colors.negative,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
             )
         }

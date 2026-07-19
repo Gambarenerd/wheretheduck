@@ -1,6 +1,7 @@
 package com.whereduck.app.ui.main
 
 import android.media.MediaPlayer
+import com.whereduck.app.R
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -54,6 +55,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -82,26 +84,37 @@ data class AnimalOption(
     val soundRes: Int? = null
 )
 
-val animalsPerLevel: Map<StarnazzoLevel, List<AnimalOption>> = mapOf(
+@Composable
+fun rememberAnimalsPerLevel(): Map<StarnazzoLevel, List<AnimalOption>> = mapOf(
     StarnazzoLevel.LIGHT to listOf(
         AnimalOption(
             key = "cricket",
             emoji = StarnazzoLevel.LIGHT.emoji,
-            name = "Grillo",
-            description = "Un Duck istantaneo! Vibra, suona e sparisce in 3 secondi",
-            quote = "\"Cri cri... e sono gia sparito!\"",
+            name = stringResource(R.string.customize_animal_cricket),
+            description = stringResource(R.string.customize_desc_cricket),
+            quote = stringResource(R.string.customize_quote_cricket),
             noisiness = 0.15f,
             reactionTime = "~0s",
             soundRes = StarnazzoLevel.LIGHT.soundRes
+        ),
+        AnimalOption(
+            key = "mosquito",
+            emoji = "\uD83E\uDD9F",
+            name = stringResource(R.string.customize_animal_mosquito),
+            description = stringResource(R.string.customize_desc_mosquito),
+            quote = stringResource(R.string.customize_quote_mosquito),
+            noisiness = 0.35f,
+            reactionTime = "~0s",
+            soundRes = R.raw.mosquito
         )
     ),
     StarnazzoLevel.MEDIUM to listOf(
         AnimalOption(
             key = "duck",
             emoji = StarnazzoLevel.MEDIUM.emoji,
-            name = "Anatra",
-            description = "Il classico Duck, perfetto per ogni occasione",
-            quote = "\"QUACK! Non puoi ignorarmi.\"",
+            name = stringResource(R.string.customize_animal_duck),
+            description = stringResource(R.string.customize_desc_duck),
+            quote = stringResource(R.string.customize_quote_duck),
             noisiness = 0.55f,
             reactionTime = "~5s",
             soundRes = StarnazzoLevel.MEDIUM.soundRes
@@ -109,9 +122,9 @@ val animalsPerLevel: Map<StarnazzoLevel, List<AnimalOption>> = mapOf(
         AnimalOption(
             key = "robot",
             emoji = "\uD83E\uDD16",
-            name = "Robot",
-            description = "Bzzzzzz, un fastidiosissimo rumore dal sapore vintage",
-            quote = "\"BZZZZZZZZ! Sono migliore di una papera in tutto\"",
+            name = stringResource(R.string.customize_animal_robot),
+            description = stringResource(R.string.customize_desc_robot),
+            quote = stringResource(R.string.customize_quote_robot),
             noisiness = 0.28f,
             reactionTime = "~9s",
             soundRes = com.whereduck.app.R.raw.robot
@@ -121,12 +134,22 @@ val animalsPerLevel: Map<StarnazzoLevel, List<AnimalOption>> = mapOf(
         AnimalOption(
             key = "goat",
             emoji = StarnazzoLevel.HEAVY.emoji,
-            name = "Capra Pazza",
-            description = "Urla come se non ci fosse un domani",
-            quote = "\"BEEEH! Non mi ferma nessuno!\"",
-            noisiness = 0.92f,
+            name = stringResource(R.string.customize_animal_goat),
+            description = stringResource(R.string.customize_desc_goat),
+            quote = stringResource(R.string.customize_quote_goat),
+            noisiness = 0.75f,
             reactionTime = "~2s",
             soundRes = StarnazzoLevel.HEAVY.soundRes
+        ),
+        AnimalOption(
+            key = "godzilla",
+            emoji = "\uD83E\uDD96",
+            name = stringResource(R.string.customize_animal_godzilla),
+            description = stringResource(R.string.customize_desc_godzilla),
+            quote = stringResource(R.string.customize_quote_godzilla),
+            noisiness = 1.0f,
+            reactionTime = "~0s",
+            soundRes = R.raw.godzilla
         )
     )
 )
@@ -188,6 +211,7 @@ fun CustomizeTab() {
     ) {
         Spacer(modifier = Modifier.height(4.dp))
 
+        val animalsPerLevel = rememberAnimalsPerLevel()
         StarnazzoLevel.entries.forEach { level ->
             val animals = animalsPerLevel[level] ?: return@forEach
             val selectedKey = selectedAnimals[level] ?: animals.first().key
@@ -534,7 +558,7 @@ private fun AnimalCardContent(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "Tempo di reazione",
+                    text = stringResource(R.string.customize_reaction_time),
                     fontSize = 12.sp,
                     color = DuckTheme.colors.textSecondary,
                     modifier = Modifier.weight(1f)
@@ -570,7 +594,8 @@ private fun AnimalCardContent(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    if (isPlaying) "Stop" else "Prova",
+                    if (isPlaying) stringResource(R.string.customize_btn_stop)
+                    else stringResource(R.string.customize_btn_try),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 13.sp
                 )
@@ -593,7 +618,8 @@ private fun AnimalCardContent(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    if (showSelectButton) "Fatto" else "Cambia",
+                    if (showSelectButton) stringResource(R.string.customize_btn_done)
+                    else stringResource(R.string.customize_btn_change),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 13.sp
                 )

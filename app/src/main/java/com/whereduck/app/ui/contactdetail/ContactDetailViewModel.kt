@@ -42,6 +42,7 @@ data class ContactDetailUiState(
     val currentAlertId: String? = null,
     val sentCount: Int = 0,
     val receivedCount: Int = 0,
+    val streakDays: Int = 0,
     val recentAlerts: List<Alert> = emptyList(),
     val isMuted: Boolean = false,
     val muteExpiresAt: Long = 0L
@@ -165,14 +166,44 @@ class ContactDetailViewModel @Inject constructor(
                 val all = (sentToContact + receivedFromContact)
                     .sortedByDescending { it.createdAt?.toDate()?.time ?: 0L }
                     .take(10)
-                Triple(sentToContact.size, receivedFromContact.size, all)
+                // Calculate streak: consecutive days with at least one exchange
+                val allDays = (sentToContact + receivedFromContact)
+                    .mapNotNull { it.createdAt?.toDate() }
+                    .map { java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(it) }
+                    .toSortedSet()
+                    .toList()
+                    .sortedDescending()
+                var streak = 0
+                val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date())
+                val cal = java.util.Calendar.getInstance()
+                // Check if today or yesterday has activity (allow streak to count even if today has none yet)
+                val startDay = if (allDays.isNotEmpty() && (allDays[0] == today || run {
+                    cal.time = java.util.Date()
+                    cal.add(java.util.Calendar.DAY_OF_YEAR, -1)
+                    allDays[0] == java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(cal.time)
+                })) allDays[0] else null
+
+                if (startDay != null) {
+                    val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                    cal.time = sdf.parse(startDay)!!
+                    for (day in allDays) {
+                        val expected = sdf.format(cal.time)
+                        if (day == expected) {
+                            streak++
+                            cal.add(java.util.Calendar.DAY_OF_YEAR, -1)
+                        } else break
+                    }
+                }
+                data class AlertStats(val sent: Int, val received: Int, val streak: Int, val recent: List<Alert>)
+                AlertStats(sentToContact.size, receivedFromContact.size, streak, all)
             }
                 .catch { /* ignore */ }
-                .collect { (sentCount, receivedCount, recent) ->
+                .collect { stats ->
                     _uiState.value = _uiState.value.copy(
-                        sentCount = sentCount,
-                        receivedCount = receivedCount,
-                        recentAlerts = recent
+                        sentCount = stats.sent,
+                        receivedCount = stats.received,
+                        streakDays = stats.streak,
+                        recentAlerts = stats.recent
                     )
                 }
         }

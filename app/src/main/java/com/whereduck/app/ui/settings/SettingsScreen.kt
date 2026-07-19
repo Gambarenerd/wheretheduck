@@ -65,7 +65,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
+import com.whereduck.app.R
+import com.whereduck.app.ui.theme.DuckOrange500
 import com.whereduck.app.ui.theme.DuckTheme
 import java.io.File
 
@@ -93,14 +96,14 @@ fun SettingsScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Profilo",
+                        text = stringResource(R.string.settings_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Indietro")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -138,7 +141,7 @@ fun SettingsScreen(
                                 .memoryCacheKey(cacheKey)
                                 .diskCacheKey(cacheKey)
                                 .build(),
-                            contentDescription = "Foto profilo",
+                            contentDescription = stringResource(R.string.settings_photo_desc),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(CircleShape),
@@ -174,7 +177,7 @@ fun SettingsScreen(
                 ) {
                     Icon(
                         Icons.Default.CameraAlt,
-                        contentDescription = "Cambia foto",
+                        contentDescription = stringResource(R.string.settings_change_photo_desc),
                         modifier = Modifier.size(18.dp),
                         tint = DuckTheme.colors.textPrimary
                     )
@@ -189,7 +192,7 @@ fun SettingsScreen(
                 modifier = Modifier.clickable { showNameDialog = true }
             ) {
                 Text(
-                    text = uiState.user?.displayName?.ifBlank { "Utente" } ?: "Utente",
+                    text = uiState.user?.displayName?.ifBlank { stringResource(R.string.settings_user_fallback) } ?: stringResource(R.string.settings_user_fallback),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = DuckTheme.colors.textPrimary
@@ -197,7 +200,7 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(
                     Icons.Default.Edit,
-                    contentDescription = "Modifica nome",
+                    contentDescription = stringResource(R.string.settings_edit_name_desc),
                     modifier = Modifier.size(18.dp),
                     tint = DuckTheme.colors.textSecondary
                 )
@@ -215,7 +218,7 @@ fun SettingsScreen(
             val motto = uiState.user?.motto ?: ""
             Surface(
                 shape = RoundedCornerShape(20.dp),
-                color = DuckTheme.colors.pillBackgroundLight,
+                color = DuckOrange500.copy(alpha = 0.15f),
                 modifier = Modifier.clickable { showMottoDialog = true }
             ) {
                 Row(
@@ -223,7 +226,7 @@ fun SettingsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = motto.ifBlank { "Aggiungi un motto..." },
+                        text = motto.ifBlank { stringResource(R.string.settings_motto_placeholder) },
                         fontSize = 14.sp,
                         fontWeight = if (motto.isNotBlank()) FontWeight.Medium else FontWeight.Normal,
                         fontStyle = if (motto.isBlank()) androidx.compose.ui.text.font.FontStyle.Italic
@@ -234,7 +237,7 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.width(6.dp))
                     Icon(
                         Icons.Default.Edit,
-                        contentDescription = "Modifica motto",
+                        contentDescription = stringResource(R.string.settings_edit_motto_desc),
                         modifier = Modifier.size(14.dp),
                         tint = DuckTheme.colors.textSecondary
                     )
@@ -247,7 +250,7 @@ fun SettingsScreen(
 
             DrawerItemRow(
                 icon = Icons.Default.Language,
-                label = "Lingua",
+                label = stringResource(R.string.settings_language),
                 badge = uiState.currentLanguage.displayName,
                 onClick = { showLanguageDialog = true }
             )
@@ -255,7 +258,7 @@ fun SettingsScreen(
             DrawerItemRow(
                 icon = if (uiState.currentTheme == AppTheme.DARK) Icons.Default.DarkMode
                        else Icons.Default.LightMode,
-                label = "Tema scuro",
+                label = stringResource(R.string.settings_dark_theme),
                 action = {
                     Switch(
                         checked = uiState.currentTheme == AppTheme.DARK,
@@ -272,7 +275,7 @@ fun SettingsScreen(
 
             DrawerItemRow(
                 icon = Icons.Default.WorkspacePremium,
-                label = "Piano",
+                label = stringResource(R.string.settings_plan),
                 badge = uiState.currentTier.replaceFirstChar { it.uppercase() },
                 onClick = { /* TODO: PlansScreen */ }
             )
@@ -284,7 +287,7 @@ fun SettingsScreen(
 
             // ── Debug: Tier Switcher ──
             Text(
-                text = "Debug",
+                text = stringResource(R.string.settings_debug),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = DuckTheme.colors.textSecondary,
@@ -297,7 +300,7 @@ fun SettingsScreen(
                 DrawerItemRow(
                     icon = if (tier == "premium") Icons.Default.Star else Icons.Default.WorkspacePremium,
                     label = tier.replaceFirstChar { it.uppercase() },
-                    badge = if (uiState.currentTier == tier) "Attivo" else null,
+                    badge = if (uiState.currentTier == tier) stringResource(R.string.settings_active) else null,
                     onClick = { viewModel.setTier(tier) }
                 )
             }
@@ -310,7 +313,7 @@ fun SettingsScreen(
             // ── Sign Out ──
             DrawerItemRow(
                 icon = Icons.AutoMirrored.Filled.ExitToApp,
-                label = "Esci",
+                label = stringResource(R.string.settings_logout),
                 onClick = {
                     viewModel.signOut()
                     onLogout()
@@ -321,7 +324,7 @@ fun SettingsScreen(
 
             // ── Footer ──
             Text(
-                text = "WhereTheDuck v1.0",
+                text = stringResource(R.string.settings_version),
                 fontSize = 12.sp,
                 color = DuckTheme.colors.textSecondary,
                 textAlign = TextAlign.Center
@@ -336,12 +339,12 @@ fun SettingsScreen(
         var nameInput by remember { mutableStateOf(uiState.user?.displayName ?: "") }
         AlertDialog(
             onDismissRequest = { showNameDialog = false },
-            title = { Text("Modifica nome") },
+            title = { Text(stringResource(R.string.settings_name_dialog_title)) },
             text = {
                 OutlinedTextField(
                     value = nameInput,
                     onValueChange = { nameInput = it },
-                    label = { Text("Nome") },
+                    label = { Text(stringResource(R.string.settings_name_dialog_field)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -353,10 +356,10 @@ fun SettingsScreen(
                         showNameDialog = false
                     },
                     enabled = nameInput.isNotBlank()
-                ) { Text("Salva") }
+                ) { Text(stringResource(R.string.common_save)) }
             },
             dismissButton = {
-                TextButton(onClick = { showNameDialog = false }) { Text("Annulla") }
+                TextButton(onClick = { showNameDialog = false }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
@@ -366,20 +369,20 @@ fun SettingsScreen(
         var mottoInput by remember { mutableStateOf(uiState.user?.motto ?: "") }
         AlertDialog(
             onDismissRequest = { showMottoDialog = false },
-            title = { Text("Il tuo motto") },
+            title = { Text(stringResource(R.string.settings_motto_dialog_title)) },
             text = {
                 Column {
                     OutlinedTextField(
                         value = mottoInput,
                         onValueChange = { if (it.length <= 50) mottoInput = it },
-                        label = { Text("Motto") },
-                        placeholder = { Text("Es: Ducker Seriale") },
+                        label = { Text(stringResource(R.string.settings_motto_dialog_field)) },
+                        placeholder = { Text(stringResource(R.string.settings_motto_dialog_placeholder)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "${mottoInput.length}/50",
+                        text = stringResource(R.string.settings_motto_counter, mottoInput.length),
                         fontSize = 12.sp,
                         color = DuckTheme.colors.textSecondary,
                         modifier = Modifier.fillMaxWidth(),
@@ -393,10 +396,10 @@ fun SettingsScreen(
                         viewModel.updateMotto(mottoInput.trim())
                         showMottoDialog = false
                     }
-                ) { Text("Salva") }
+                ) { Text(stringResource(R.string.common_save)) }
             },
             dismissButton = {
-                TextButton(onClick = { showMottoDialog = false }) { Text("Annulla") }
+                TextButton(onClick = { showMottoDialog = false }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
@@ -405,7 +408,7 @@ fun SettingsScreen(
     if (showLanguageDialog) {
         AlertDialog(
             onDismissRequest = { showLanguageDialog = false },
-            title = { Text("Lingua") },
+            title = { Text(stringResource(R.string.settings_language_dialog_title)) },
             text = {
                 Column {
                     AppLanguage.entries.forEach { lang ->
@@ -441,7 +444,7 @@ fun SettingsScreen(
             },
             confirmButton = {},
             dismissButton = {
-                TextButton(onClick = { showLanguageDialog = false }) { Text("Annulla") }
+                TextButton(onClick = { showLanguageDialog = false }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
@@ -485,14 +488,15 @@ private fun DrawerItemRow(
             action()
         } else if (badge != null) {
             Surface(
-                color = DuckTheme.colors.accent.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(12.dp)
+                color = DuckTheme.colors.accent,
+                shape = RoundedCornerShape(20.dp)
             ) {
                 Text(
                     text = badge,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = DuckTheme.colors.accent
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = DuckTheme.colors.textPrimary
                 )
             }
         }

@@ -48,7 +48,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.whereduck.app.R
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -56,11 +58,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import com.whereduck.app.ui.components.CachedAsyncImage
 import com.whereduck.app.data.model.Contact
 import com.whereduck.app.data.model.Group
 import com.whereduck.app.ui.history.HistoryViewModel
 import com.whereduck.app.ui.home.HomeViewModel
+import com.whereduck.app.ui.theme.DuckOrange500
 import com.whereduck.app.ui.theme.DuckTheme
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -155,7 +158,10 @@ fun ContactsTab(
                                 }
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Text(
-                                    text = "Hai ${uiState.pendingInviteCount} invit${if (uiState.pendingInviteCount == 1) "o" else "i"} in sospeso",
+                                    text = if (uiState.pendingInviteCount == 1)
+                                        stringResource(R.string.contacts_pending_one, uiState.pendingInviteCount)
+                                    else
+                                        stringResource(R.string.contacts_pending_many, uiState.pendingInviteCount),
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = DuckTheme.colors.textPrimary
@@ -175,7 +181,7 @@ fun ContactsTab(
                 item {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Gruppi",
+                        text = stringResource(R.string.contacts_groups),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = DuckTheme.colors.sectionTitle
@@ -206,14 +212,14 @@ fun ContactsTab(
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "Nessun gruppo ancora",
+                                    text = stringResource(R.string.contacts_no_groups),
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = DuckTheme.colors.textPrimary,
                                     textAlign = TextAlign.Center
                                 )
                                 Text(
-                                    text = "Usa il + per creare il tuo primo gruppo",
+                                    text = stringResource(R.string.contacts_no_groups_hint),
                                     fontSize = 13.sp,
                                     color = DuckTheme.colors.textSecondary,
                                     textAlign = TextAlign.Center
@@ -235,7 +241,7 @@ fun ContactsTab(
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Contatti",
+                        text = stringResource(R.string.contacts_contacts),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = DuckTheme.colors.sectionTitle
@@ -266,14 +272,14 @@ fun ContactsTab(
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "Nessun contatto ancora",
+                                    text = stringResource(R.string.contacts_no_contacts),
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = DuckTheme.colors.textPrimary,
                                     textAlign = TextAlign.Center
                                 )
                                 Text(
-                                    text = "Invita qualcuno con la sua email",
+                                    text = stringResource(R.string.contacts_no_contacts_hint),
                                     fontSize = 13.sp,
                                     color = DuckTheme.colors.textSecondary,
                                     textAlign = TextAlign.Center
@@ -344,7 +350,7 @@ private fun ContactListCard(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (contact.photoUrl.isNotBlank()) {
-                        AsyncImage(
+                        CachedAsyncImage(
                             model = contact.photoUrl,
                             contentDescription = contact.displayName,
                             modifier = Modifier
@@ -381,7 +387,7 @@ private fun ContactListCard(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(16.dp))
-                                    .background(DuckTheme.colors.pillBackgroundLight)
+                                    .background(DuckOrange500.copy(alpha = 0.15f))
                                     .padding(horizontal = 10.dp, vertical = 4.dp)
                             ) {
                                 Text(
@@ -411,7 +417,7 @@ private fun ContactListCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (contact.photoUrl.isNotBlank()) {
-                    AsyncImage(
+                    CachedAsyncImage(
                         model = contact.photoUrl,
                         contentDescription = contact.displayName,
                         modifier = Modifier
@@ -484,7 +490,7 @@ private fun GroupCard(
         ) {
             // Group photo on the left
             if (group.photoUrl.isNotBlank()) {
-                AsyncImage(
+                CachedAsyncImage(
                     model = group.photoUrl,
                     contentDescription = group.name,
                     modifier = Modifier
@@ -547,7 +553,7 @@ private fun GroupCard(
                             contentAlignment = Alignment.Center
                         ) {
                             if (contact.photoUrl.isNotBlank()) {
-                                AsyncImage(
+                                CachedAsyncImage(
                                     model = contact.photoUrl,
                                     contentDescription = contact.displayName,
                                     modifier = Modifier
@@ -608,11 +614,11 @@ private fun InviteContactDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Aggiungi contatto") },
+        title = { Text(stringResource(R.string.contacts_invite_title)) },
         text = {
             Column {
                 Text(
-                    text = "Inserisci l'email del contatto da invitare",
+                    text = stringResource(R.string.contacts_invite_body),
                     fontSize = 14.sp,
                     color = DuckTheme.colors.textSecondary
                 )
@@ -620,7 +626,7 @@ private fun InviteContactDialog(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it.trim() },
-                    label = { Text("Email") },
+                    label = { Text(stringResource(R.string.contacts_invite_field)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Email,
@@ -635,7 +641,7 @@ private fun InviteContactDialog(
                     trailingIcon = {
                         if (email.isNotBlank()) {
                             IconButton(onClick = { email = "" }) {
-                                Icon(Icons.Default.Close, contentDescription = "Cancella")
+                                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.contacts_invite_clear_desc))
                             }
                         }
                     }
@@ -647,12 +653,12 @@ private fun InviteContactDialog(
                 onClick = { onInvite(email) },
                 enabled = email.isNotBlank() && email.contains("@")
             ) {
-                Text("Invita")
+                Text(stringResource(R.string.contacts_invite_confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annulla")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )

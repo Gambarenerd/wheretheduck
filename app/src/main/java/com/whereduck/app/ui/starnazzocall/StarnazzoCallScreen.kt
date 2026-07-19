@@ -43,8 +43,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import com.whereduck.app.ui.components.CachedAsyncImage
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.whereduck.app.R
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.ui.components.AnimalEmoji
@@ -139,7 +141,7 @@ fun StarnazzoCallScreen(
 
         // Profile photo
         if (uiState.contactPhotoUrl.isNotBlank()) {
-            AsyncImage(
+            CachedAsyncImage(
                 model = uiState.contactPhotoUrl,
                 contentDescription = uiState.toName,
                 modifier = Modifier
@@ -212,7 +214,7 @@ fun StarnazzoCallScreen(
         when (uiState.phase) {
             CallPhase.SENDING -> {
                 Text(
-                    text = "Invio in corso...",
+                    text = stringResource(R.string.call_sending),
                     fontSize = 16.sp,
                     color = Color.White.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center
@@ -220,7 +222,7 @@ fun StarnazzoCallScreen(
             }
             CallPhase.RINGING -> {
                 Text(
-                    text = "Ducking...",
+                    text = stringResource(R.string.call_ringing),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White.copy(alpha = dotsAlpha),
@@ -229,12 +231,12 @@ fun StarnazzoCallScreen(
             }
             CallPhase.RESPONDED -> {
                 val (responseEmoji, responseText) = when (uiState.response) {
-                    "ok" -> "\uD83D\uDC4D" to "OK! Ha visto!"
-                    "muto" -> "\uD83D\uDD07" to "Non mi rompere!"
-                    "revenge" -> "\uD83D\uDD25" to "REVENGE!"
-                    "dismissed" -> "\uD83D\uDC4B" to "Ha chiuso"
-                    "zen" -> "\uD83E\uDDD8" to "${uiState.toName} e' in modalita Zen"
-                    else -> "" to "Risposta ricevuta"
+                    "ok" -> "\uD83D\uDC4D" to stringResource(R.string.response_ok)
+                    "muto" -> "\uD83D\uDD07" to stringResource(R.string.response_mute)
+                    "revenge" -> "\uD83D\uDD25" to stringResource(R.string.response_revenge)
+                    "dismissed" -> "\uD83D\uDC4B" to stringResource(R.string.response_dismissed)
+                    "zen" -> "\uD83E\uDDD8" to stringResource(R.string.response_zen, uiState.toName)
+                    else -> "" to stringResource(R.string.response_fallback)
                 }
                 Text(
                     text = responseEmoji,
@@ -252,7 +254,7 @@ fun StarnazzoCallScreen(
             }
             CallPhase.FAILED -> {
                 Text(
-                    text = "Invio fallito",
+                    text = stringResource(R.string.call_failed),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
@@ -260,7 +262,7 @@ fun StarnazzoCallScreen(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Non e' stato possibile raggiungere ${uiState.toName}",
+                    text = stringResource(R.string.call_failed_body, uiState.toName),
                     fontSize = 14.sp,
                     color = Color.White.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center
@@ -316,7 +318,7 @@ fun StarnazzoCallScreen(
             ) {
                 Icon(
                     Icons.Default.Close,
-                    contentDescription = "Chiudi",
+                    contentDescription = stringResource(R.string.call_close_desc),
                     modifier = Modifier.size(28.dp),
                     tint = Color.White
                 )

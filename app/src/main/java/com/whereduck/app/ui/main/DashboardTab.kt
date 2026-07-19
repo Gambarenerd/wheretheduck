@@ -48,9 +48,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import com.whereduck.app.ui.components.CachedAsyncImage
 import com.whereduck.app.data.model.Contact
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.whereduck.app.R
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.ui.components.AnimalEmoji
 import com.whereduck.app.data.model.StarnazzoLevel
@@ -189,7 +191,7 @@ fun DashboardTab(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "Vittime preferite",
+                    text = stringResource(R.string.dashboard_vip),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = DuckTheme.colors.sectionTitle
@@ -226,7 +228,7 @@ fun DashboardTab(
                             ) {
                                 Icon(
                                     Icons.Default.PersonAdd,
-                                    contentDescription = "Aggiungi vittima",
+                                    contentDescription = stringResource(R.string.dashboard_add_victim_desc),
                                     tint = DuckTheme.colors.vipAddIcon,
                                     modifier = Modifier.size(30.dp)
                                 )
@@ -247,7 +249,7 @@ fun DashboardTab(
         // Zen Mode
         item {
             Text(
-                text = "Modalita Zen",
+                text = stringResource(R.string.dashboard_zen),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = DuckTheme.colors.sectionTitle
@@ -269,7 +271,7 @@ fun DashboardTab(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Niente Duck, solo relax",
+                        text = stringResource(R.string.dashboard_zen_desc),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (homeState.zenMode) Color.White
@@ -296,7 +298,7 @@ fun DashboardTab(
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "Danni della settimana",
+                    text = stringResource(R.string.dashboard_weekly),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = DuckTheme.colors.sectionTitle
@@ -336,9 +338,9 @@ fun DashboardTab(
                 // Arma preferita
                 val weaponBgColor = if (topLevel != null) {
                     when (topLevel.first) {
-                        StarnazzoLevel.LIGHT -> StarnazzoLightTenue
-                        StarnazzoLevel.MEDIUM -> StarnazzoMediumTenue
-                        StarnazzoLevel.HEAVY -> StarnazzoHeavyTenue
+                        StarnazzoLevel.LIGHT -> Color(0xFFCFE4B2)
+                        StarnazzoLevel.MEDIUM -> Color(0xFFFFECB4)
+                        StarnazzoLevel.HEAVY -> Color(0xFFEEBEBE)
                     }
                 } else DuckTheme.colors.cardBackground
 
@@ -364,7 +366,7 @@ fun DashboardTab(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         Text(
-                            text = "Arma preferita",
+                            text = stringResource(R.string.dashboard_weapon),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = weaponTextColor,
@@ -378,15 +380,15 @@ fun DashboardTab(
                             AnimalEmoji(
                                 animalKey = dashAnimalKey,
                                 emoji = AnimalRegistry.getEmoji(dashAnimalKey, topLevel.first),
-                                size = 60.dp,
-                                fontSize = 50.sp,
+                                size = 100.dp,
+                                fontSize = 70.sp,
                                 modifier = Modifier
-                                    .fillMaxHeight(0.6f)
+                                    .fillMaxHeight(0.8f)
                                     .align(Alignment.BottomCenter)
                             )
                         } else {
                             Text(
-                                text = "—",
+                                text = stringResource(R.string.dashboard_no_weapon),
                                 fontSize = 40.sp,
                                 color = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier.align(Alignment.Center)
@@ -410,7 +412,7 @@ fun DashboardTab(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         Text(
-                            text = "Duck totali",
+                            text = stringResource(R.string.dashboard_total),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = DuckTheme.colors.sectionTitle,
@@ -442,7 +444,7 @@ fun DashboardTab(
             item {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Chi l'ha fatta grossa",
+                    text = stringResource(R.string.dashboard_enemy),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = DuckTheme.colors.sectionTitle
@@ -452,19 +454,19 @@ fun DashboardTab(
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (weekWarContact != null) {
                         EnemyCard(
-                            label = "Guerra aperta",
+                            label = stringResource(R.string.dashboard_enemy_label_week),
                             name = weekWarContact.name,
                             photoUrl = weekWarContact.photoUrl,
-                            subtitle = "Duckato ${weekWarContact.count} volte questa settimana",
+                            subtitle = stringResource(R.string.dashboard_enemy_week, weekWarContact.count),
                             onClick = { onNavigateToContact?.invoke(weekWarContact.userId) }
                         )
                     }
                     if (allTimeEnemy != null) {
                         EnemyCard(
-                            label = "Miglior nemico di sempre",
+                            label = stringResource(R.string.dashboard_enemy_label_alltime),
                             name = allTimeEnemy.name,
                             photoUrl = allTimeEnemy.photoUrl,
-                            subtitle = "Duckato ${allTimeEnemy.count} volte in totale",
+                            subtitle = stringResource(R.string.dashboard_enemy_alltime, allTimeEnemy.count),
                             onClick = { onNavigateToContact?.invoke(allTimeEnemy.userId) }
                         )
                     }
@@ -526,7 +528,7 @@ private fun EnemyCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (photoUrl.isNotBlank()) {
-                    AsyncImage(
+                    CachedAsyncImage(
                         model = photoUrl,
                         contentDescription = name,
                         modifier = Modifier
@@ -573,7 +575,7 @@ private fun EnemyCard(
                 ) {
                     Icon(
                         Icons.Default.Campaign,
-                        contentDescription = "Duck",
+                        contentDescription = stringResource(R.string.dashboard_duck_desc),
                         modifier = Modifier.size(20.dp),
                         tint = DuckTheme.colors.sectionTitle
                     )
@@ -595,7 +597,7 @@ private fun VipAvatar(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             if (contact.photoUrl.isNotBlank()) {
-                AsyncImage(
+                CachedAsyncImage(
                     model = contact.photoUrl,
                     contentDescription = contact.displayName,
                     modifier = Modifier
@@ -641,11 +643,11 @@ private fun VipPickerDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Scegli una vittima") },
+        title = { Text(stringResource(R.string.dashboard_vip_picker_title)) },
         text = {
             if (contacts.isEmpty()) {
                 Text(
-                    text = "Nessun contatto disponibile",
+                    text = stringResource(R.string.dashboard_vip_picker_empty),
                     color = DuckTheme.colors.textSecondary
                 )
             } else {
@@ -660,7 +662,7 @@ private fun VipPickerDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             if (contact.photoUrl.isNotBlank()) {
-                                AsyncImage(
+                                CachedAsyncImage(
                                     model = contact.photoUrl,
                                     contentDescription = contact.displayName,
                                     modifier = Modifier
@@ -699,7 +701,7 @@ private fun VipPickerDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annulla")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )

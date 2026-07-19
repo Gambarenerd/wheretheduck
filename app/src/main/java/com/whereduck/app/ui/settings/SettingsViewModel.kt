@@ -39,7 +39,7 @@ enum class AppTheme(val displayName: String) {
 data class SettingsUiState(
     val user: User? = null,
     val profilePicturePath: String? = null,
-    val currentLanguage: AppLanguage = AppLanguage.ENGLISH,
+    val currentLanguage: AppLanguage = AppLanguage.ITALIAN,
     val currentTheme: AppTheme = AppTheme.LIGHT,
     val currentTier: String = "free",
     val isSaving: Boolean = false,
@@ -66,7 +66,15 @@ class SettingsViewModel @Inject constructor(
     private fun loadSettings() {
         val langTag = prefs.getString("language", null)
             ?: AppCompatDelegate.getApplicationLocales().toLanguageTags().take(2)
-        val language = AppLanguage.entries.find { it.tag == langTag } ?: AppLanguage.ENGLISH
+        val language = AppLanguage.entries.find { it.tag == langTag } ?: AppLanguage.ITALIAN
+
+        // Apply saved locale on startup
+        val currentLocales = AppCompatDelegate.getApplicationLocales()
+        if (currentLocales.isEmpty || currentLocales.toLanguageTags() != language.tag) {
+            AppCompatDelegate.setApplicationLocales(
+                LocaleListCompat.forLanguageTags(language.tag)
+            )
+        }
 
         val themeName = prefs.getString("theme", "LIGHT") ?: "LIGHT"
         val theme = try { AppTheme.valueOf(themeName) } catch (_: Exception) { AppTheme.LIGHT }

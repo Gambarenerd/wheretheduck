@@ -28,9 +28,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.whereduck.app.R
 import com.whereduck.app.ui.theme.DuckTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,6 +43,7 @@ fun CreateGroupScreen(
     onNavigateBack: () -> Unit,
     viewModel: CreateGroupViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     var groupName by remember { mutableStateOf("") }
     var isCreating by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -50,14 +54,14 @@ fun CreateGroupScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Crea Gruppo",
+                        text = stringResource(R.string.create_group_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Indietro")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -76,15 +80,15 @@ fun CreateGroupScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Come si chiama il tuo gruppo?",
+                text = stringResource(R.string.create_group_prompt),
                 style = MaterialTheme.typography.titleMedium
             )
 
             OutlinedTextField(
                 value = groupName,
                 onValueChange = { groupName = it },
-                label = { Text("Nome del gruppo") },
-                placeholder = { Text("Es. Famiglia, Coinquilini...") },
+                label = { Text(stringResource(R.string.create_group_field)) },
+                placeholder = { Text(stringResource(R.string.create_group_placeholder)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -107,7 +111,7 @@ fun CreateGroupScreen(
                         isCreating = false
                         result.fold(
                             onSuccess = { groupId -> onGroupCreated(groupId) },
-                            onFailure = { e -> error = e.message ?: "Errore nella creazione" }
+                            onFailure = { e -> error = e.message ?: context.getString(R.string.create_group_error) }
                         )
                     }
                 },
@@ -123,7 +127,7 @@ fun CreateGroupScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
-                    Text("Crea gruppo")
+                    Text(stringResource(R.string.create_group_button))
                 }
             }
         }

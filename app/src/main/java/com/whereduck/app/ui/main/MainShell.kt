@@ -71,19 +71,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.whereduck.app.R
 import com.whereduck.app.ui.theme.DuckTheme
 import kotlinx.coroutines.launch
 
 data class BottomTab(
     val icon: ImageVector,
-    val label: String
+    val labelRes: Int
 )
 
 val bottomTabs = listOf(
-    BottomTab(Icons.Default.Dashboard, "Dashboard"),
-    BottomTab(Icons.Default.People, "Duckers"),
-    BottomTab(Icons.Default.MusicNote, "Personalizza"),
-    BottomTab(Icons.Default.History, "Cronologia"),
+    BottomTab(Icons.Default.Dashboard, R.string.tab_dashboard),
+    BottomTab(Icons.Default.People, R.string.tab_duckers),
+    BottomTab(Icons.Default.MusicNote, R.string.tab_customize),
+    BottomTab(Icons.Default.History, R.string.tab_history),
 )
 
 // Section titles are now built as AnnotatedString in sectionTitle() below
@@ -193,7 +195,7 @@ fun MainShell(
                     if (hasPhoto) {
                         AsyncImage(
                             model = java.io.File(picturePath!!),
-                            contentDescription = "Profilo",
+                            contentDescription = stringResource(R.string.shell_profile_desc),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(CircleShape),
@@ -202,7 +204,7 @@ fun MainShell(
                     } else {
                         Icon(
                             Icons.Default.Person,
-                            contentDescription = "Profilo",
+                            contentDescription = stringResource(R.string.shell_profile_desc),
                             tint = DuckTheme.colors.textOnAccent,
                             modifier = Modifier.size(28.dp)
                         )
@@ -296,7 +298,7 @@ fun MainShell(
                     ) {
                         Icon(
                             imageVector = tab.icon,
-                            contentDescription = tab.label,
+                            contentDescription = stringResource(tab.labelRes),
                             tint = if (selected) DuckTheme.colors.sectionTitle
                             else DuckTheme.colors.bottomBarIcon,
                             modifier = Modifier.size(22.dp)
@@ -354,7 +356,7 @@ fun MainShell(
         ) {
             Icon(
                 Icons.Default.PersonAdd,
-                contentDescription = "Aggiungi persona",
+                contentDescription = stringResource(R.string.shell_fab_add_person),
                 modifier = Modifier.size(22.dp),
                 tint = DuckTheme.colors.textOnAccent
             )
@@ -378,7 +380,7 @@ fun MainShell(
         ) {
             Icon(
                 Icons.Default.GroupAdd,
-                contentDescription = "Crea gruppo",
+                contentDescription = stringResource(R.string.shell_fab_create_group),
                 modifier = Modifier.size(22.dp),
                 tint = DuckTheme.colors.textOnAccent
             )
@@ -405,7 +407,7 @@ fun MainShell(
         ) {
             Icon(
                 Icons.Default.Add,
-                contentDescription = if (fabExpanded) "Chiudi" else "Aggiungi",
+                contentDescription = if (fabExpanded) stringResource(R.string.shell_fab_close) else stringResource(R.string.shell_fab_add),
                 modifier = Modifier
                     .size(26.dp)
                     .graphicsLayer { rotationZ = fabRotation },

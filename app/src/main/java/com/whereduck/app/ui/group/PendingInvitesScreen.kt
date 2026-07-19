@@ -37,7 +37,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.whereduck.app.R
 import com.whereduck.app.ui.theme.DuckTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,14 +57,14 @@ fun PendingInvitesScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "Inviti contatto",
+                        text = stringResource(R.string.invites_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Indietro")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -100,7 +102,7 @@ fun PendingInvitesScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Nessun invito pendente",
+                    text = stringResource(R.string.invites_empty),
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center
                 )
@@ -128,12 +130,12 @@ fun PendingInvitesScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = invite.fromDisplayName.ifEmpty { "Qualcuno" },
+                                    text = invite.fromDisplayName.ifEmpty { stringResource(R.string.invites_someone) },
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
-                                    text = "Vuole aggiungerti come contatto",
+                                    text = stringResource(R.string.invites_body),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                 )
@@ -147,7 +149,7 @@ fun PendingInvitesScreen(
                             ) {
                                 Icon(
                                     Icons.Default.Check,
-                                    contentDescription = "Accetta",
+                                    contentDescription = stringResource(R.string.invites_accept_desc),
                                     tint = MaterialTheme.colorScheme.secondary,
                                     modifier = Modifier.size(32.dp)
                                 )
@@ -159,7 +161,7 @@ fun PendingInvitesScreen(
                             ) {
                                 Icon(
                                     Icons.Default.Close,
-                                    contentDescription = "Rifiuta",
+                                    contentDescription = stringResource(R.string.invites_reject_desc),
                                     tint = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.size(32.dp)
                                 )

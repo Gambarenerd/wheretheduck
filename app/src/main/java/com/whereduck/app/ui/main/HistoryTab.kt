@@ -44,14 +44,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import com.whereduck.app.R
+import com.whereduck.app.ui.components.CachedAsyncImage
 import com.whereduck.app.data.model.Alert
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.ui.components.AnimalEmoji
 import com.whereduck.app.ui.history.HistoryViewModel
+import com.whereduck.app.ui.theme.DuckOrange500
 import com.whereduck.app.ui.theme.DuckTheme
 import com.whereduck.app.ui.theme.StarnazzoHeavy
 import com.whereduck.app.ui.theme.StarnazzoLight
@@ -73,6 +76,10 @@ private data class GroupedAlert(
     val lastResponse: String?,
     val lastTime: Date?
 )
+
+private const val DAY_LABEL_TODAY = "__TODAY__"
+private const val DAY_LABEL_YESTERDAY = "__YESTERDAY__"
+private const val PERSON_NAME_UNKNOWN = "__UNKNOWN__"
 
 private data class DaySection(
     val label: String,
@@ -113,14 +120,14 @@ fun HistoryTab(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Nessun Duck ancora",
+                    text = stringResource(R.string.history_empty),
                     fontSize = 18.sp,
                     color = DuckTheme.colors.textPrimary,
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "La cronologia dei tuoi Duck apparira' qui",
+                    text = stringResource(R.string.history_empty_hint),
                     fontSize = 14.sp,
                     color = DuckTheme.colors.textSecondary,
                     textAlign = TextAlign.Center
@@ -157,7 +164,7 @@ fun HistoryTab(
                         FilterChip(
                             selected = selectedTab == 0,
                             onClick = { selectedTab = 0 },
-                            label = { Text("Tutti") },
+                            label = { Text(stringResource(R.string.history_filter_all)) },
                             shape = CircleShape,
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = DuckTheme.colors.accent,
@@ -167,7 +174,7 @@ fun HistoryTab(
                         FilterChip(
                             selected = selectedTab == 1,
                             onClick = { selectedTab = 1 },
-                            label = { Text("Inviati (${uiState.sentCount})") },
+                            label = { Text(stringResource(R.string.history_filter_sent, uiState.sentCount)) },
                             shape = CircleShape,
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = DuckTheme.colors.accent,
@@ -177,7 +184,7 @@ fun HistoryTab(
                         FilterChip(
                             selected = selectedTab == 2,
                             onClick = { selectedTab = 2 },
-                            label = { Text("Ricevuti (${uiState.receivedCount})") },
+                            label = { Text(stringResource(R.string.history_filter_received, uiState.receivedCount)) },
                             shape = CircleShape,
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = DuckTheme.colors.accent,
@@ -189,9 +196,14 @@ fun HistoryTab(
 
                 daySections.forEach { section ->
                     item {
+                        val sectionLabel = when (section.label) {
+                            DAY_LABEL_TODAY -> stringResource(R.string.history_today)
+                            DAY_LABEL_YESTERDAY -> stringResource(R.string.history_yesterday)
+                            else -> section.label
+                        }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = section.label,
+                            text = sectionLabel,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = DuckTheme.colors.sectionTitle
@@ -222,7 +234,7 @@ private fun buildDaySections(
     val today = dayFmt.format(Date())
     val yesterday = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }
         .let { dayFmt.format(it.time) }
-    val displayFmt = SimpleDateFormat("EEEE d MMMM", Locale.ITALIAN)
+    val displayFmt = SimpleDateFormat("EEEE d MMMM", Locale.getDefault())
 
     // Group by day
     val byDay = alerts
@@ -232,8 +244,8 @@ private fun buildDaySections(
 
     return byDay.map { (dayKey, dayAlerts) ->
         val label = when (dayKey) {
-            today -> "Oggi"
-            yesterday -> "Ieri"
+            today -> DAY_LABEL_TODAY
+            yesterday -> DAY_LABEL_YESTERDAY
             else -> displayFmt.format(dayFmt.parse(dayKey)!!).replaceFirstChar { it.uppercase() }
         }
 
@@ -247,8 +259,8 @@ private fun buildDaySections(
             val first = groupAlerts.first()
             val isSent = first.id in sentIds
             val personId = if (isSent) first.toUserId else first.fromUserId
-            val personName = if (isSent) first.toDisplayName.ifBlank { "???" }
-                             else first.fromDisplayName.ifBlank { "???" }
+            val personName = if (isSent) first.toDisplayName.ifBlank { PERSON_NAME_UNKNOWN }
+                             else first.fromDisplayName.ifBlank { PERSON_NAME_UNKNOWN }
             val photoUrl = contactPhotos[personId] ?: ""
             val lastAlert = groupAlerts.maxByOrNull { it.createdAt?.toDate()?.time ?: 0L } ?: first
 
@@ -274,6 +286,8 @@ private fun buildDaySections(
 private fun GroupedAlertCard(group: GroupedAlert, onClick: () -> Unit) {
     val timeFmt = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
     val timeText = group.lastTime?.let { timeFmt.format(it) } ?: ""
+    val resolvedName = if (group.personName == PERSON_NAME_UNKNOWN)
+        stringResource(R.string.history_unknown) else group.personName
 
     val levelColor = when (group.level) {
         StarnazzoLevel.LIGHT -> StarnazzoLight
@@ -299,9 +313,9 @@ private fun GroupedAlertCard(group: GroupedAlert, onClick: () -> Unit) {
             // Avatar with level emoji badge
             Box(modifier = Modifier.size(48.dp)) {
                 if (group.personPhotoUrl.isNotBlank()) {
-                    AsyncImage(
+                    CachedAsyncImage(
                         model = group.personPhotoUrl,
-                        contentDescription = group.personName,
+                        contentDescription = resolvedName,
                         modifier = Modifier
                             .size(44.dp)
                             .clip(CircleShape),
@@ -358,12 +372,12 @@ private fun GroupedAlertCard(group: GroupedAlert, onClick: () -> Unit) {
                                       else Icons.AutoMirrored.Filled.CallReceived,
                         contentDescription = null,
                         modifier = Modifier.size(14.dp),
-                        tint = if (group.isSentByMe) DuckTheme.colors.accent
-                               else DuckTheme.colors.textSecondary
+                        tint = if (group.isSentByMe) DuckOrange500
+                               else StarnazzoLight
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = group.personName,
+                        text = resolvedName,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = DuckTheme.colors.textPrimary
@@ -371,10 +385,10 @@ private fun GroupedAlertCard(group: GroupedAlert, onClick: () -> Unit) {
                     // Response chip right after name
                     group.lastResponse?.let { resp ->
                         val (chipText, chipColor) = when (resp) {
-                            "ok" -> "OK!" to Color(0xFF4CAF50)
-                            "muto" -> "Mutato" to DuckTheme.colors.negative
-                            "revenge" -> "Revenge" to Color(0xFFFF9800)
-                            "dismissed" -> "Chiuso" to DuckTheme.colors.textSecondary
+                            "ok" -> stringResource(R.string.chip_ok) to Color(0xFF4CAF50)
+                            "muto" -> stringResource(R.string.chip_muted) to DuckTheme.colors.negative
+                            "revenge" -> stringResource(R.string.chip_revenge) to Color(0xFFFF9800)
+                            "dismissed" -> stringResource(R.string.chip_dismissed) to DuckTheme.colors.textSecondary
                             else -> null to null
                         }
                         if (chipText != null && chipColor != null) {
@@ -401,7 +415,7 @@ private fun GroupedAlertCard(group: GroupedAlert, onClick: () -> Unit) {
                             color = Color(0xFFFF9800).copy(alpha = 0.15f)
                         ) {
                             Text(
-                                text = "REVENGE",
+                                text = stringResource(R.string.history_revenge),
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFFFF9800),
@@ -423,8 +437,8 @@ private fun GroupedAlertCard(group: GroupedAlert, onClick: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (group.isSentByMe) "Hai duckato ${group.personName}"
-                               else "${group.personName} ti ha duckato",
+                        text = if (group.isSentByMe) stringResource(R.string.history_sent_to, resolvedName)
+                               else stringResource(R.string.history_received_from, resolvedName),
                         fontSize = 12.sp,
                         color = DuckTheme.colors.textSecondary,
                         modifier = Modifier.weight(1f)

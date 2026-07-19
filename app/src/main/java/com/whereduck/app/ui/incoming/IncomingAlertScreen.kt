@@ -56,11 +56,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+import androidx.compose.ui.res.stringResource
+import com.whereduck.app.R
+import com.whereduck.app.ui.components.CachedAsyncImage
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.ui.components.AnimalEmoji
-import com.whereduck.app.ui.main.animalsPerLevel
+import com.whereduck.app.ui.main.rememberAnimalsPerLevel
 import com.whereduck.app.ui.theme.DuckOrange500
 import com.whereduck.app.ui.theme.DuckTheme
 import com.whereduck.app.ui.theme.StarnazzoHeavy
@@ -106,6 +108,7 @@ fun IncomingAlertScreen(
 
     // Find the animal display info
     val animalInfo = AnimalRegistry.findAnimal(animalKey)
+    val animalsPerLevel = rememberAnimalsPerLevel()
     val animalOption = animalsPerLevel[level]?.find { it.key == animalKey }
     val noisiness = animalOption?.noisiness ?: 0.5f
 
@@ -134,7 +137,7 @@ fun IncomingAlertScreen(
 
         // ── Sender photo ──
         if (fromPhotoUrl.isNotBlank()) {
-            AsyncImage(
+            CachedAsyncImage(
                 model = fromPhotoUrl,
                 contentDescription = fromName,
                 modifier = Modifier
@@ -162,7 +165,7 @@ fun IncomingAlertScreen(
 
         // ── Title ──
         Text(
-            text = if (isRevenge) "You got Revenged!" else "Where the Duck are you?",
+            text = if (isRevenge) stringResource(R.string.incoming_title_revenge) else stringResource(R.string.incoming_title),
             fontSize = 32.sp,
             fontWeight = FontWeight.ExtraBold,
             color = Color.White,
@@ -252,7 +255,7 @@ fun IncomingAlertScreen(
                 contentColor = lvlColor
             )
         ) {
-            Text("OK!", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.incoming_btn_ok), fontSize = 22.sp, fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -282,7 +285,7 @@ fun IncomingAlertScreen(
                             contentColor = Color.White
                         )
                     ) {
-                        Text("Non mi rompere!", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(stringResource(R.string.incoming_btn_mute), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
 
                     if (!isRevenge) {
@@ -297,12 +300,16 @@ fun IncomingAlertScreen(
                                 contentColor = Color.White
                             )
                         ) {
-                            Text("Revenge!", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            Text(stringResource(R.string.incoming_btn_revenge), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         }
                     }
                 } else {
                     // Mute duration buttons
-                    listOf(5 to "5 min", 30 to "30 min", 60 to "1 ora").forEach { (minutes, label) ->
+                    listOf(
+                        5 to stringResource(R.string.incoming_mute_5),
+                        30 to stringResource(R.string.incoming_mute_30),
+                        60 to stringResource(R.string.incoming_mute_60)
+                    ).forEach { (minutes, label) ->
                         Button(
                             onClick = { onMute(minutes) },
                             modifier = Modifier

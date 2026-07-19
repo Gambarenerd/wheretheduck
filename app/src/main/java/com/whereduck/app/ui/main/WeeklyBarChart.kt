@@ -24,8 +24,10 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.whereduck.app.R
 import com.whereduck.app.ui.theme.DuckTheme
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -75,6 +77,9 @@ fun WeeklyBarChart(
     val titleColor = DuckTheme.colors.sectionTitle
     val todayColor = DuckTheme.colors.highlight
 
+    val sentLabel = stringResource(R.string.chart_sent)
+    val receivedLabel = stringResource(R.string.chart_received)
+
     Column(modifier = modifier) {
         // "Inflitti: N · Subiti: N" — same row, right aligned
         Row(
@@ -85,7 +90,7 @@ fun WeeklyBarChart(
             Text(
                 text = buildAnnotatedString {
                     withStyle(SpanStyle(color = titleColor, fontWeight = FontWeight.SemiBold)) {
-                        append("Inflitti: ")
+                        append(sentLabel)
                     }
                     withStyle(SpanStyle(color = sentColor, fontWeight = FontWeight.Bold)) {
                         append("$totalSent")
@@ -97,7 +102,7 @@ fun WeeklyBarChart(
             Text(
                 text = buildAnnotatedString {
                     withStyle(SpanStyle(color = titleColor, fontWeight = FontWeight.SemiBold)) {
-                        append("Subiti: ")
+                        append(receivedLabel)
                     }
                     withStyle(SpanStyle(color = receivedColor, fontWeight = FontWeight.Bold)) {
                         append("$totalReceived")

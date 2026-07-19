@@ -47,8 +47,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.whereduck.app.R
 import com.whereduck.app.ui.theme.DuckTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,19 +77,19 @@ fun GroupManagementScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = uiState.groupName.ifEmpty { "Gestione" },
+                        text = uiState.groupName.ifEmpty { stringResource(R.string.group_mgmt_fallback) },
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Indietro")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { showRenameDialog = true }) {
-                        Icon(Icons.Default.Edit, "Rinomina")
+                        Icon(Icons.Default.Edit, stringResource(R.string.group_mgmt_rename_desc))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -114,12 +116,12 @@ fun GroupManagementScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Contatti nel gruppo",
+                        text = stringResource(R.string.group_mgmt_members_header),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
                     IconButton(onClick = { showAddContactDialog = true }) {
-                        Icon(Icons.Default.Add, "Aggiungi contatto")
+                        Icon(Icons.Default.Add, stringResource(R.string.group_mgmt_add_desc))
                     }
                 }
             }
@@ -127,7 +129,7 @@ fun GroupManagementScreen(
             if (uiState.groupContacts.isEmpty()) {
                 item {
                     Text(
-                        text = "Nessun contatto nel gruppo",
+                        text = stringResource(R.string.group_mgmt_no_members),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
@@ -161,7 +163,7 @@ fun GroupManagementScreen(
                             IconButton(onClick = { showRemoveContactId = contact.id }) {
                                 Icon(
                                     Icons.Default.Close,
-                                    contentDescription = "Rimuovi",
+                                    contentDescription = stringResource(R.string.group_mgmt_remove_desc),
                                     tint = MaterialTheme.colorScheme.error
                                 )
                             }
@@ -183,7 +185,7 @@ fun GroupManagementScreen(
                 ) {
                     Icon(Icons.Default.Delete, null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Elimina gruppo")
+                    Text(stringResource(R.string.group_mgmt_delete))
                 }
             }
 
@@ -196,12 +198,12 @@ fun GroupManagementScreen(
         var newName by remember { mutableStateOf(uiState.groupName) }
         AlertDialog(
             onDismissRequest = { showRenameDialog = false },
-            title = { Text("Rinomina gruppo") },
+            title = { Text(stringResource(R.string.group_mgmt_rename_title)) },
             text = {
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
-                    label = { Text("Nome gruppo") },
+                    label = { Text(stringResource(R.string.group_mgmt_rename_field)) },
                     singleLine = true
                 )
             },
@@ -211,10 +213,10 @@ fun GroupManagementScreen(
                         viewModel.renameGroup(newName.trim())
                         showRenameDialog = false
                     }
-                }) { Text("Salva") }
+                }) { Text(stringResource(R.string.common_save)) }
             },
             dismissButton = {
-                TextButton(onClick = { showRenameDialog = false }) { Text("Annulla") }
+                TextButton(onClick = { showRenameDialog = false }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
@@ -223,16 +225,16 @@ fun GroupManagementScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Elimina gruppo") },
-            text = { Text("Sei sicuro di voler eliminare \"${uiState.groupName}\"? I contatti non verranno cancellati.") },
+            title = { Text(stringResource(R.string.group_mgmt_delete_title)) },
+            text = { Text(stringResource(R.string.group_mgmt_delete_body, uiState.groupName)) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteGroup()
                     showDeleteDialog = false
-                }) { Text("Elimina", color = MaterialTheme.colorScheme.error) }
+                }) { Text(stringResource(R.string.common_delete), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Annulla") }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
@@ -242,16 +244,16 @@ fun GroupManagementScreen(
         val contact = uiState.groupContacts.find { it.id == contactId }
         AlertDialog(
             onDismissRequest = { showRemoveContactId = null },
-            title = { Text("Rimuovi dal gruppo") },
-            text = { Text("Rimuovere ${contact?.displayName ?: ""} da questo gruppo? Resterà nei tuoi contatti.") },
+            title = { Text(stringResource(R.string.group_mgmt_remove_title)) },
+            text = { Text(stringResource(R.string.group_mgmt_remove_body, contact?.displayName ?: "")) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.removeContactFromGroup(contactId)
                     showRemoveContactId = null
-                }) { Text("Rimuovi", color = MaterialTheme.colorScheme.error) }
+                }) { Text(stringResource(R.string.common_remove), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { showRemoveContactId = null }) { Text("Annulla") }
+                TextButton(onClick = { showRemoveContactId = null }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
@@ -261,10 +263,10 @@ fun GroupManagementScreen(
         val availableContacts = uiState.allContacts.filter { it.id !in uiState.groupContactIds }
         AlertDialog(
             onDismissRequest = { showAddContactDialog = false },
-            title = { Text("Aggiungi contatti") },
+            title = { Text(stringResource(R.string.group_mgmt_add_title)) },
             text = {
                 if (availableContacts.isEmpty()) {
-                    Text("Tutti i tuoi contatti sono già nel gruppo")
+                    Text(stringResource(R.string.group_mgmt_add_empty))
                 } else {
                     Column {
                         availableContacts.forEach { contact ->
@@ -287,7 +289,7 @@ fun GroupManagementScreen(
                                 }
                                 Icon(
                                     Icons.Default.Add,
-                                    contentDescription = "Aggiungi",
+                                    contentDescription = stringResource(R.string.group_mgmt_add_desc),
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -296,7 +298,7 @@ fun GroupManagementScreen(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showAddContactDialog = false }) { Text("Chiudi") }
+                TextButton(onClick = { showAddContactDialog = false }) { Text(stringResource(R.string.common_close)) }
             }
         )
     }

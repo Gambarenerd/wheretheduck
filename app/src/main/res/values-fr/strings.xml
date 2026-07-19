@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WhereTheDuck</string>
+
+    <!-- ═══ Login ═══ -->
+    <string name="login_title_1">Where The Duck</string>
+    <string name="login_title_2">are you</string>
+    <string name="login_button">Connexion avec Google</string>
+    <string name="login_logo_desc">Duck logo</string>
+    <string name="login_error_token_null">ID Token nul</string>
+    <string name="login_error_cancelled">Connexion annulée ou échouée</string>
+    <string name="login_error_failed">Connexion échouée</string>
+
+    <!-- ═══ Disclaimer ═══ -->
+    <string name="disclaimer_title">Attention !</string>
+    <string name="disclaimer_subtitle">Tu es sur le point d\'entrer dans une zone de guerre.</string>
+    <string name="disclaimer_body">Cette app permet d\'envoyer des notifications BRUYANTES à tes amis, capables de passer outre le volume de la sonnerie et le mode Ne Pas Déranger du téléphone.\n\nOui, t\'as bien compris. Même à 3h du mat. Même pendant la réunion avec le patron. Même pendant qu\'il dort.\n\nT\'inquiète, il y a le mode \u201CZen\u201D pour te mettre à l\'abri quand t\'en as marre. Mais attention : si tu l\'utilises trop, tes amis vont penser que t\'es un lâche.\n\nUtilise-la à tes risques et périls. On décline toute responsabilité pour les amitiés ruinées, les téléphones balancés par la fenêtre ou les collègues en furie.</string>
+    <string name="disclaimer_accept">J\'ai compris !</string>
+
+    <!-- ═══ Permissions ═══ -->
+    <string name="permissions_welcome">Bienvenue !</string>
+    <string name="permissions_subtitle">Il faut quelques permissions pour recevoir les Duck</string>
+    <string name="permissions_notifications_title">Notifications</string>
+    <string name="permissions_notifications_desc">Pour recevoir les Duck</string>
+    <string name="permissions_dnd_title">Ne Pas Déranger</string>
+    <string name="permissions_dnd_desc">Pour passer outre le mode silencieux</string>
+    <string name="permissions_battery_title">Batterie</string>
+    <string name="permissions_battery_desc">Pour recevoir les Duck en arrière-plan</string>
+    <string name="permissions_fullscreen_title">Plein Écran</string>
+    <string name="permissions_fullscreen_desc">Pour afficher le Duck sur l\'écran de verrouillage</string>
+    <string name="permissions_oem_important">Important pour %1$s</string>
+    <string name="permissions_oem_open_settings">Ouvrir les paramètres %1$s</string>
+    <string name="permissions_warning">Ne force pas la fermeture de l\'app depuis les paramètres, sinon tu ne pourras plus recevoir de Duck !</string>
+    <string name="permissions_enable">Activer</string>
+    <string name="permissions_granted">OK</string>
+    <string name="permissions_continue">Continuer</string>
+    <string name="permissions_grant_all">Accorder toutes les permissions</string>
+    <string name="permissions_refresh">Actualiser l\'état des permissions</string>
+
+    <!-- ═══ Main Shell / Navigation ═══ -->
+    <string name="tab_dashboard">Dashboard</string>
+    <string name="tab_duckers">Duckers</string>
+    <string name="tab_customize">Personnalise</string>
+    <string name="tab_history">Historique</string>
+    <string name="shell_title_dashboard">Where \nThe Duck\nAre You?!</string>
+    <string name="shell_title_duckers">Hey \nDuckers!</string>
+    <string name="shell_title_customize">On va faire\nun peu\nle Bazar !</string>
+    <string name="shell_title_history">Duck \nPassés</string>
+    <string name="shell_profile_desc">Profil</string>
+    <string name="shell_fab_add_person">Ajouter une personne</string>
+    <string name="shell_fab_create_group">Créer un groupe</string>
+    <string name="shell_fab_close">Fermer</string>
+    <string name="shell_fab_add">Ajouter</string>
+
+    <!-- ═══ Dashboard ═══ -->
+    <string name="dashboard_vip">Victimes préférées</string>
+    <string name="dashboard_zen">Mode Zen</string>
+    <string name="dashboard_zen_desc">Pas de Duck, juste du calme</string>
+    <string name="dashboard_weekly">Dégâts de la semaine</string>
+    <string name="dashboard_weapon">Arme préférée</string>
+    <string name="dashboard_total">Duck totaux</string>
+    <string name="dashboard_enemy">Qui a déconné grave</string>
+    <string name="dashboard_enemy_week">Ducké %1$d fois cette semaine</string>
+    <string name="dashboard_enemy_alltime">Ducké %1$d fois au total</string>
+    <string name="dashboard_enemy_label_week">Guerre ouverte</string>
+    <string name="dashboard_enemy_label_alltime">Meilleur ennemi de toujours</string>
+    <string name="dashboard_add_victim_desc">Ajouter une victime</string>
+    <string name="dashboard_duck_desc">Duck</string>
+    <string name="dashboard_no_weapon">\u2014</string>
+    <string name="dashboard_vip_picker_title">Choisis une victime</string>
+    <string name="dashboard_vip_picker_empty">Aucun contact disponible</string>
+
+    <!-- ═══ Contacts Tab ═══ -->
+    <string name="contacts_groups">Groupes</string>
+    <string name="contacts_contacts">Contacts</string>
+    <string name="contacts_pending_one">Tu as %1$d invitation en attente</string>
+    <string name="contacts_pending_many">Tu as %1$d invitations en attente</string>
+    <string name="contacts_no_groups">Aucun groupe pour l\'instant</string>
+    <string name="contacts_no_groups_hint">Utilise le + pour créer ton premier groupe</string>
+    <string name="contacts_no_contacts">Aucun contact pour l\'instant</string>
+    <string name="contacts_no_contacts_hint">Invite quelqu\'un avec son email</string>
+    <string name="contacts_invite_title">Ajouter un contact</string>
+    <string name="contacts_invite_body">Entre l\'email du contact à inviter</string>
+    <string name="contacts_invite_field">Email</string>
+    <string name="contacts_invite_clear_desc">Effacer</string>
+    <string name="contacts_invite_confirm">Inviter</string>
+
+    <!-- ═══ History Tab ═══ -->
+    <string name="history_filter_all">Tous</string>
+    <string name="history_filter_sent">Envoyés (%1$d)</string>
+    <string name="history_filter_received">Reçus (%1$d)</string>
+    <string name="history_empty">Aucun Duck pour l\'instant</string>
+    <string name="history_empty_hint">L\'historique de tes Duck apparaîtra ici</string>
+    <string name="history_today">Aujourd\'hui</string>
+    <string name="history_yesterday">Hier</string>
+    <string name="history_unknown">\?\?\?</string>
+    <string name="history_sent_to">T\'as ducké %1$s</string>
+    <string name="history_received_from">%1$s t\'a ducké</string>
+    <string name="history_revenge">REVENGE</string>
+
+    <!-- ═══ Customize Tab ═══ -->
+    <string name="customize_animal_cricket">Grillon</string>
+    <string name="customize_animal_mosquito">Moustique</string>
+    <string name="customize_animal_duck">Canard</string>
+    <string name="customize_animal_robot">Robot</string>
+    <string name="customize_animal_goat">Chèvre Folle</string>
+    <string name="customize_animal_godzilla">Godzilla</string>
+    <string name="customize_desc_cricket">Un Duck instantané ! Vibre, sonne et disparaît en 3 secondes</string>
+    <string name="customize_desc_mosquito">Ce bourdonnement subtil qui te rentre dans le crâne et ne repart plus</string>
+    <string name="customize_desc_duck">Le Duck classique, parfait pour toutes les occasions</string>
+    <string name="customize_desc_robot">Bzzzzzz, un bruit horripilant au goût vintage</string>
+    <string name="customize_desc_goat">Hurle comme s\'il n\'y avait pas de lendemain</string>
+    <string name="customize_desc_godzilla">Le roi des monstres. Celui qui le reçoit ne dort pas pendant une semaine</string>
+    <string name="customize_quote_cricket">"Cri cri\u2026 et j\'ai déjà disparu !"</string>
+    <string name="customize_quote_mosquito">"Bzzzz\u2026 essaie de m\'attraper, t\'y arriveras jamais"</string>
+    <string name="customize_quote_duck">"COIN COIN ! Tu peux pas m\'ignorer."</string>
+    <string name="customize_quote_robot">"BZZZZZZZZ ! Je suis meilleur qu\'un canard en tout"</string>
+    <string name="customize_quote_goat">"BÊÊÊÊ ! Personne m\'arrête !"</string>
+    <string name="customize_quote_godzilla">"ROOOOAR ! Ta ville est déjà en flammes"</string>
+    <string name="customize_reaction_time">Temps de réaction</string>
+    <string name="customize_btn_stop">Stop</string>
+    <string name="customize_btn_try">Essayer</string>
+    <string name="customize_btn_done">Fait</string>
+    <string name="customize_btn_change">Changer</string>
+
+    <!-- ═══ Contact Detail ═══ -->
+    <string name="contact_fallback">Contact</string>
+    <string name="contact_not_found">Contact introuvable</string>
+    <string name="contact_back_desc">Retour</string>
+    <string name="contact_favorite_desc">Favori</string>
+    <string name="contact_mute_desc">Muet</string>
+    <string name="contact_remove_desc">Supprimer</string>
+    <string name="contact_close_desc">Fermer</string>
+    <string name="contact_zen_banner">Tu es en Mode Zen</string>
+    <string name="contact_duck_button">DUCK !</string>
+    <string name="contact_stats_streak">Streak</string>
+    <string name="contact_stats_sent">Envoyés</string>
+    <string name="contact_stats_received">Reçus</string>
+    <string name="contact_recent_header">Derniers Duck</string>
+    <string name="contact_yesterday_prefix">Hier </string>
+    <string name="contact_remove_title">Supprimer le contact</string>
+    <string name="contact_remove_body">Tu veux supprimer %1$s ? Vous ne pourrez plus vous envoyer de Duck.</string>
+    <string name="contact_remove_body_fallback">ce contact</string>
+
+    <!-- ═══ Starnazzo Call (sending) ═══ -->
+    <string name="call_sending">Envoi en cours\u2026</string>
+    <string name="call_ringing">Ducking\u2026</string>
+    <string name="call_failed">Envoi échoué</string>
+    <string name="call_failed_body">Impossible de joindre %1$s</string>
+    <string name="call_close_desc">Fermer</string>
+
+    <!-- ═══ Incoming Alert ═══ -->
+    <string name="incoming_title">Where the Duck are you?</string>
+    <string name="incoming_title_revenge">You got Revenged!</string>
+    <string name="incoming_btn_ok">OK !</string>
+    <string name="incoming_btn_mute">Me casse pas les pieds !</string>
+    <string name="incoming_btn_revenge">Revenge !</string>
+    <string name="incoming_mute_5">5 min</string>
+    <string name="incoming_mute_30">30 min</string>
+    <string name="incoming_mute_60">1 heure</string>
+
+    <!-- ═══ Response texts (shared) ═══ -->
+    <string name="response_ok">OK ! Il a vu !</string>
+    <string name="response_mute">Me casse pas les pieds !</string>
+    <string name="response_revenge">REVENGE !</string>
+    <string name="response_dismissed">A fermé</string>
+    <string name="response_zen">%1$s est en Mode Zen</string>
+    <string name="response_fallback">Réponse reçue</string>
+
+    <!-- ═══ Response chips (history) ═══ -->
+    <string name="chip_ok">OK !</string>
+    <string name="chip_muted">Muet</string>
+    <string name="chip_revenge">Revenge</string>
+    <string name="chip_dismissed">Fermé</string>
+
+    <!-- ═══ Group Detail ═══ -->
+    <string name="group_fallback">Groupe</string>
+    <string name="group_back_desc">Retour</string>
+    <string name="group_manage_desc">Gérer le groupe</string>
+    <string name="group_change_photo_desc">Changer la photo</string>
+    <string name="group_empty">T\'es tout seul dans le groupe !</string>
+    <string name="group_empty_hint">Ajoute des contacts au groupe pour commencer à ducker.</string>
+    <string name="group_empty_button">Ajouter des contacts</string>
+    <string name="group_members_header">Duckers</string>
+    <string name="group_zen_banner">Tu es en Mode Zen</string>
+    <string name="group_duck_button">Duck de groupe !</string>
+
+    <!-- ═══ Group Management ═══ -->
+    <string name="group_mgmt_fallback">Gestion</string>
+    <string name="group_mgmt_back_desc">Retour</string>
+    <string name="group_mgmt_rename_desc">Renommer</string>
+    <string name="group_mgmt_add_desc">Ajouter un contact</string>
+    <string name="group_mgmt_remove_desc">Supprimer</string>
+    <string name="group_mgmt_members_header">Contacts dans le groupe</string>
+    <string name="group_mgmt_no_members">Aucun contact dans le groupe</string>
+    <string name="group_mgmt_delete">Supprimer le groupe</string>
+    <string name="group_mgmt_rename_title">Renommer le groupe</string>
+    <string name="group_mgmt_rename_field">Nom du groupe</string>
+    <string name="group_mgmt_delete_title">Supprimer le groupe</string>
+    <string name="group_mgmt_delete_body">T\'es sûr de vouloir supprimer \"%1$s\" ? Les contacts ne seront pas supprimés.</string>
+    <string name="group_mgmt_remove_title">Retirer du groupe</string>
+    <string name="group_mgmt_remove_body">Retirer %1$s de ce groupe ? Il restera dans tes contacts.</string>
+    <string name="group_mgmt_add_title">Ajouter des contacts</string>
+    <string name="group_mgmt_add_empty">Tous tes contacts sont déjà dans le groupe</string>
+
+    <!-- ═══ Create Group ═══ -->
+    <string name="create_group_title">Créer un groupe</string>
+    <string name="create_group_back_desc">Retour</string>
+    <string name="create_group_prompt">Comment s\'appelle ton groupe ?</string>
+    <string name="create_group_field">Nom du groupe</string>
+    <string name="create_group_placeholder">Ex. Famille, Colocataires\u2026</string>
+    <string name="create_group_error">Erreur lors de la création</string>
+    <string name="create_group_button">Créer le groupe</string>
+
+    <!-- ═══ Pending Invites ═══ -->
+    <string name="invites_title">Invitations de contact</string>
+    <string name="invites_back_desc">Retour</string>
+    <string name="invites_accept_desc">Accepter</string>
+    <string name="invites_reject_desc">Refuser</string>
+    <string name="invites_empty">Aucune invitation en attente</string>
+    <string name="invites_someone">Quelqu\'un</string>
+    <string name="invites_body">Veut t\'ajouter comme contact</string>
+
+    <!-- ═══ Settings ═══ -->
+    <string name="settings_title">Profil</string>
+    <string name="settings_back_desc">Retour</string>
+    <string name="settings_photo_desc">Photo de profil</string>
+    <string name="settings_change_photo_desc">Changer la photo</string>
+    <string name="settings_edit_name_desc">Modifier le nom</string>
+    <string name="settings_edit_motto_desc">Modifier la devise</string>
+    <string name="settings_user_fallback">Utilisateur</string>
+    <string name="settings_motto_placeholder">Ajoute une devise\u2026</string>
+    <string name="settings_language">Langue</string>
+    <string name="settings_dark_theme">Thème sombre</string>
+    <string name="settings_plan">Abonnement</string>
+    <string name="settings_debug">Debug</string>
+    <string name="settings_active">Actif</string>
+    <string name="settings_logout">Déconnexion</string>
+    <string name="settings_version">WhereTheDuck v1.0</string>
+    <string name="settings_name_dialog_title">Modifier le nom</string>
+    <string name="settings_name_dialog_field">Nom</string>
+    <string name="settings_motto_dialog_title">Ta devise</string>
+    <string name="settings_motto_dialog_field">Devise</string>
+    <string name="settings_motto_dialog_placeholder">Ex : Ducker en Série</string>
+    <string name="settings_motto_counter">%1$d/50</string>
+    <string name="settings_language_dialog_title">Langue</string>
+
+    <!-- ═══ Offline ═══ -->
+    <string name="offline_title">Désolé, t\'es hors ligne !</string>
+    <string name="offline_body">Reconnecte-toi pour ducker.</string>
+
+    <!-- ═══ Weekly Chart ═══ -->
+    <string name="chart_sent">Infligés : </string>
+    <string name="chart_received">Subis : </string>
+
+    <!-- ═══ Common ═══ -->
+    <string name="common_cancel">Annuler</string>
+    <string name="common_save">Enregistrer</string>
+    <string name="common_remove">Supprimer</string>
+    <string name="common_delete">Effacer</string>
+    <string name="common_close">Fermer</string>
+    <string name="common_back">Retour</string>
+</resources>

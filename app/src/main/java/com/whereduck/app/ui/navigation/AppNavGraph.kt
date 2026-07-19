@@ -21,6 +21,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.firebase.auth.FirebaseAuth
+import com.whereduck.app.ui.disclaimer.DisclaimerScreen
 import com.whereduck.app.ui.group.CreateGroupScreen
 import com.whereduck.app.ui.group.GroupManagementScreen
 import com.whereduck.app.ui.group.PendingInvitesScreen
@@ -38,6 +39,7 @@ import com.whereduck.app.ui.starnazzocall.StarnazzoCallScreen
 
 object Route {
     const val LOGIN = "login"
+    const val DISCLAIMER = "disclaimer"
     const val PERMISSION_SETUP = "permissions"
     const val HOME = "home"
     const val CREATE_GROUP = "create_group"
@@ -73,8 +75,17 @@ fun AppNavGraph() {
         composable(Route.LOGIN) {
             LoginScreen(
                 onLoginSuccess = {
-                    navController.navigate(Route.PERMISSION_SETUP) {
+                    navController.navigate(Route.DISCLAIMER) {
                         popUpTo(Route.LOGIN) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(Route.DISCLAIMER) {
+            DisclaimerScreen(
+                onAccepted = {
+                    navController.navigate(Route.PERMISSION_SETUP) {
+                        popUpTo(Route.DISCLAIMER) { inclusive = true }
                     }
                 }
             )

@@ -87,17 +87,19 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+import com.whereduck.app.R
+import com.whereduck.app.ui.components.CachedAsyncImage
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.platform.LocalContext
 import com.whereduck.app.data.model.Alert
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.ui.components.AnimalEmoji
-import com.whereduck.app.ui.main.animalsPerLevel
+import com.whereduck.app.ui.main.rememberAnimalsPerLevel
 import com.whereduck.app.ui.theme.DuckOrange500
 import com.whereduck.app.ui.theme.DuckTheme
 import com.whereduck.app.ui.theme.StarnazzoHeavy
@@ -222,7 +224,7 @@ fun ContactDetailScreen(
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
-                            text = uiState.contact?.displayName?.ifBlank { "Contatto" } ?: "Contatto",
+                            text = uiState.contact?.displayName?.ifBlank { stringResource(R.string.contact_fallback) } ?: stringResource(R.string.contact_fallback),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -231,7 +233,7 @@ fun ContactDetailScreen(
                         IconButton(onClick = {
                             if (isCalling) viewModel.cancelStarnazzo() else onNavigateBack()
                         }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Indietro")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back))
                         }
                     },
                     actions = {},
@@ -259,7 +261,7 @@ fun ContactDetailScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Contatto non trovato",
+                                text = stringResource(R.string.contact_not_found),
                                 style = MaterialTheme.typography.titleLarge,
                                 textAlign = TextAlign.Center
                             )
@@ -272,7 +274,8 @@ fun ContactDetailScreen(
                             .asPaddingValues().calculateBottomPadding()
 
                         // ── UNIFIED LAYOUT: animates between normal and calling ──
-                        val levelAnimals = remember {
+                        val animalsPerLevel = rememberAnimalsPerLevel()
+                        val levelAnimals = remember(animalsPerLevel) {
                             StarnazzoLevel.entries.map { level ->
                                 val selectedKey = AnimalRegistry.getSelectedAnimal(context, level)
                                 val animal = animalsPerLevel[level]
@@ -318,7 +321,7 @@ fun ContactDetailScreen(
 
                             // ── Photo (always visible) ──
                             if (contact.photoUrl.isNotBlank()) {
-                                AsyncImage(
+                                CachedAsyncImage(
                                     model = contact.photoUrl,
                                     contentDescription = contact.displayName,
                                     modifier = Modifier
@@ -362,7 +365,7 @@ fun ContactDetailScreen(
                                 Surface(
                                     shape = RoundedCornerShape(20.dp),
                                     color = if (isCalling) Color.White.copy(alpha = 0.15f)
-                                            else DuckTheme.colors.pillBackground
+                                            else DuckOrange500.copy(alpha = 0.15f)
                                 ) {
                                     Text(
                                         text = contact.motto,
@@ -387,19 +390,19 @@ fun ContactDetailScreen(
                                         CallPhase.RINGING -> {}
                                         CallPhase.RESPONDED -> {
                                             val (responseEmoji, responseText) = when (uiState.callResponse) {
-                                                "ok" -> "\uD83D\uDC4D" to "OK! Ha visto!"
-                                                "muto" -> "\uD83D\uDD07" to "Non mi rompere!"
-                                                "revenge" -> "\uD83D\uDD25" to "REVENGE!"
-                                                "dismissed" -> "\uD83D\uDC4B" to "Ha chiuso"
-                                                "zen" -> "\uD83E\uDDD8" to "${contact.displayName} e' in modalita Zen"
-                                                else -> "" to "Risposta ricevuta"
+                                                "ok" -> "\uD83D\uDC4D" to stringResource(R.string.response_ok)
+                                                "muto" -> "\uD83D\uDD07" to stringResource(R.string.response_mute)
+                                                "revenge" -> "\uD83D\uDD25" to stringResource(R.string.response_revenge)
+                                                "dismissed" -> "\uD83D\uDC4B" to stringResource(R.string.response_dismissed)
+                                                "zen" -> "\uD83E\uDDD8" to stringResource(R.string.response_zen, contact.displayName)
+                                                else -> "" to stringResource(R.string.response_fallback)
                                             }
                                             Text(responseEmoji, fontSize = 48.sp, textAlign = TextAlign.Center)
                                             Spacer(modifier = Modifier.height(4.dp))
                                             Text(responseText, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, textAlign = TextAlign.Center)
                                         }
                                         CallPhase.FAILED -> {
-                                            Text("Invio fallito", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
+                                            Text(stringResource(R.string.call_failed), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
                                         }
                                         else -> {}
                                     }
@@ -430,7 +433,7 @@ fun ContactDetailScreen(
                                             ) {
                                                 Icon(
                                                     if (uiState.isVip) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                                    contentDescription = "Preferito",
+                                                    contentDescription = stringResource(R.string.contact_favorite_desc),
                                                     modifier = Modifier.size(28.dp),
                                                     tint = if (uiState.isVip) DuckTheme.colors.vipHeart
                                                            else DuckTheme.colors.textSecondary
@@ -456,7 +459,7 @@ fun ContactDetailScreen(
                                             ) {
                                                 Icon(
                                                     if (uiState.isMuted) Icons.Default.VolumeOff else Icons.Default.NotificationsOff,
-                                                    contentDescription = "Silenzia",
+                                                    contentDescription = stringResource(R.string.contact_mute_desc),
                                                     modifier = Modifier.size(28.dp),
                                                     tint = if (uiState.isMuted) DuckTheme.colors.negative
                                                            else DuckTheme.colors.textSecondary
@@ -476,7 +479,7 @@ fun ContactDetailScreen(
                                             ) {
                                                 Icon(
                                                     Icons.Default.PersonRemove,
-                                                    contentDescription = "Rimuovi",
+                                                    contentDescription = stringResource(R.string.contact_remove_desc),
                                                     modifier = Modifier.size(28.dp),
                                                     tint = DuckTheme.colors.textSecondary
                                                 )
@@ -492,7 +495,7 @@ fun ContactDetailScreen(
                                             modifier = Modifier.padding(top = 12.dp),
                                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
-                                            listOf(5 to "5 min", 30 to "30 min", 60 to "1 ora").forEach { (min, label) ->
+                                            listOf(5 to stringResource(R.string.incoming_mute_5), 30 to stringResource(R.string.incoming_mute_30), 60 to stringResource(R.string.incoming_mute_60)).forEach { (min, label) ->
                                                 Surface(
                                                     onClick = {
                                                         viewModel.toggleMute(min)
@@ -528,7 +531,7 @@ fun ContactDetailScreen(
                                         color = DuckOrange500
                                     ) {
                                         Text(
-                                            text = "Sei in modalita Zen",
+                                            text = stringResource(R.string.contact_zen_banner),
                                             fontSize = 16.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color.White,
@@ -769,10 +772,10 @@ fun ContactDetailScreen(
                                                 color = Color.White
                                             )
                                         } else if (isCalling) {
-                                            Icon(Icons.Default.Close, "Chiudi", Modifier.size(28.dp), tint = Color.White)
+                                            Icon(Icons.Default.Close, stringResource(R.string.contact_close_desc), Modifier.size(28.dp), tint = Color.White)
                                         } else {
                                             Text(
-                                                text = "DUCK!",
+                                                text = stringResource(R.string.contact_duck_button),
                                                 fontSize = 18.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = Color.White
@@ -798,30 +801,44 @@ fun ContactDetailScreen(
                                     ) {
                                         Card(
                                             modifier = Modifier.weight(1f),
-                                            shape = RoundedCornerShape(20.dp),
+                                            shape = RoundedCornerShape(28.dp),
                                             colors = CardDefaults.cardColors(containerColor = DuckTheme.colors.cardBackground),
                                             elevation = CardDefaults.cardElevation(0.dp)
                                         ) {
                                             Column(
-                                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
                                                 horizontalAlignment = Alignment.CenterHorizontally
                                             ) {
-                                                Text("${uiState.sentCount}", fontSize = 28.sp, fontWeight = FontWeight.ExtraBold, color = DuckTheme.colors.accentDark)
-                                                Text("Inviati", fontSize = 12.sp, color = DuckTheme.colors.textSecondary)
+                                                Text(stringResource(R.string.contact_stats_streak), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = DuckTheme.colors.textSecondary)
+                                                Text("${uiState.streakDays}d", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = DuckOrange500)
                                             }
                                         }
                                         Card(
                                             modifier = Modifier.weight(1f),
-                                            shape = RoundedCornerShape(20.dp),
+                                            shape = RoundedCornerShape(28.dp),
                                             colors = CardDefaults.cardColors(containerColor = DuckTheme.colors.cardBackground),
                                             elevation = CardDefaults.cardElevation(0.dp)
                                         ) {
                                             Column(
-                                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
                                                 horizontalAlignment = Alignment.CenterHorizontally
                                             ) {
-                                                Text("${uiState.receivedCount}", fontSize = 28.sp, fontWeight = FontWeight.ExtraBold, color = DuckTheme.colors.accentDark)
-                                                Text("Ricevuti", fontSize = 12.sp, color = DuckTheme.colors.textSecondary)
+                                                Text(stringResource(R.string.contact_stats_sent), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = DuckTheme.colors.textSecondary)
+                                                Text("${uiState.sentCount}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = DuckTheme.colors.accentDark)
+                                            }
+                                        }
+                                        Card(
+                                            modifier = Modifier.weight(1f),
+                                            shape = RoundedCornerShape(28.dp),
+                                            colors = CardDefaults.cardColors(containerColor = DuckTheme.colors.cardBackground),
+                                            elevation = CardDefaults.cardElevation(0.dp)
+                                        ) {
+                                            Column(
+                                                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                                                horizontalAlignment = Alignment.CenterHorizontally
+                                            ) {
+                                                Text(stringResource(R.string.contact_stats_received), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = DuckTheme.colors.textSecondary)
+                                                Text("${uiState.receivedCount}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = StarnazzoLight)
                                             }
                                         }
                                     }
@@ -837,7 +854,7 @@ fun ContactDetailScreen(
                                 Column {
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Text(
-                                        text = "Ultimi Duck",
+                                        text = stringResource(R.string.contact_recent_header),
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = DuckTheme.colors.sectionTitle,
@@ -891,9 +908,13 @@ fun ContactDetailScreen(
     if (showRemoveDialog) {
         AlertDialog(
             onDismissRequest = { showRemoveDialog = false },
-            title = { Text("Rimuovi contatto") },
+            title = { Text(stringResource(R.string.contact_remove_title)) },
             text = {
-                Text("Vuoi rimuovere ${uiState.contact?.displayName ?: "questo contatto"}? Non potrete piu' inviarvi Duck.")
+                val displayName = uiState.contact?.displayName
+                Text(
+                    if (displayName != null) stringResource(R.string.contact_remove_body, displayName)
+                    else stringResource(R.string.contact_remove_body_fallback)
+                )
             },
             confirmButton = {
                 TextButton(onClick = {
@@ -901,12 +922,12 @@ fun ContactDetailScreen(
                     viewModel.removeContact()
                     onContactRemoved()
                 }) {
-                    Text("Rimuovi", color = DuckTheme.colors.negative)
+                    Text(stringResource(R.string.common_remove), color = DuckTheme.colors.negative)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showRemoveDialog = false }) {
-                    Text("Annulla")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )
@@ -933,7 +954,7 @@ private fun RecentAlertRow(
         val dayKey = dayFmt.format(it)
         when (dayKey) {
             today -> timeFmt.format(it)
-            yesterday -> "Ieri ${timeFmt.format(it)}"
+            yesterday -> "${stringResource(R.string.contact_yesterday_prefix)}${timeFmt.format(it)}"
             else -> "${displayFmt.format(it)} ${timeFmt.format(it)}"
         }
     } ?: ""
@@ -945,46 +966,52 @@ private fun RecentAlertRow(
         StarnazzoLevel.HEAVY -> StarnazzoHeavy
     }
 
+    val tenueColor = when (level) {
+        StarnazzoLevel.LIGHT -> StarnazzoLightTenue
+        StarnazzoLevel.MEDIUM -> StarnazzoMediumTenue
+        StarnazzoLevel.HEAVY -> StarnazzoHeavyTenue
+    }
+
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(50),
         colors = CardDefaults.cardColors(containerColor = DuckTheme.colors.cardBackground),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Direction icon
-            Icon(
-                imageVector = if (isSentByMe) Icons.AutoMirrored.Filled.CallMade
-                              else Icons.AutoMirrored.Filled.CallReceived,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-                tint = if (isSentByMe) DuckTheme.colors.accent else DuckTheme.colors.textSecondary
-            )
-
-            Spacer(modifier = Modifier.width(10.dp))
-
-            // Animal badge
+            // Animal badge (large)
             Box(
                 modifier = Modifier
-                    .size(34.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
-                    .background(levelColor),
+                    .background(tenueColor),
                 contentAlignment = Alignment.Center
             ) {
                 AnimalEmoji(
                     animalKey = alert.animalType,
                     emoji = AnimalRegistry.getEmoji(alert.animalType, level),
-                    size = 22.dp,
-                    fontSize = 16.sp
+                    size = 34.dp,
+                    fontSize = 26.sp
                 )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            // Direction arrow (thick, next to animal)
+            Icon(
+                imageVector = if (isSentByMe) Icons.AutoMirrored.Filled.CallMade
+                              else Icons.AutoMirrored.Filled.CallReceived,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(start = 6.dp)
+                    .size(22.dp),
+                tint = if (isSentByMe) DuckOrange500 else StarnazzoLight
+            )
+
+            Spacer(modifier = Modifier.width(10.dp))
 
             // Time
             Text(
@@ -999,7 +1026,7 @@ private fun RecentAlertRow(
                 val (chipText, chipColor) = when (resp) {
                     "ok" -> "OK!" to Color(0xFF4CAF50)
                     "muto" -> "Mutato" to DuckTheme.colors.negative
-                    "revenge" -> "Revenge" to Color(0xFFFF9800)
+                    "revenge" -> "Revenge!" to Color(0xFFFF9800)
                     "dismissed" -> "Chiuso" to DuckTheme.colors.textSecondary
                     else -> null to null
                 }
@@ -1010,10 +1037,10 @@ private fun RecentAlertRow(
                     ) {
                         Text(
                             text = chipText,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.ExtraBold,
                             color = chipColor,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                         )
                     }
                 }
@@ -1028,10 +1055,10 @@ private fun RecentAlertRow(
                 ) {
                     Text(
                         text = "REVENGE",
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.ExtraBold,
                         color = Color(0xFFFF9800),
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
             }

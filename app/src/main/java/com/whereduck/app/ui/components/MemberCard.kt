@@ -27,7 +27,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+import com.whereduck.app.ui.components.CachedAsyncImage
 import com.whereduck.app.data.model.Contact
 import com.whereduck.app.ui.theme.DuckTheme
 
@@ -54,7 +54,7 @@ fun ContactCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (contact.photoUrl.isNotBlank()) {
-                AsyncImage(
+                CachedAsyncImage(
                     model = contact.photoUrl,
                     contentDescription = contact.displayName,
                     modifier = Modifier
