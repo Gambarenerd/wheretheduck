@@ -20,8 +20,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.whereduck.app.ui.home.HomeViewModel
 import com.whereduck.app.ui.disclaimer.DisclaimerScreen
+import com.whereduck.app.ui.legal.PrivacyPolicyScreen
+import com.whereduck.app.ui.legal.TermsOfServiceScreen
 import com.whereduck.app.ui.group.CreateGroupScreen
 import com.whereduck.app.ui.group.GroupManagementScreen
 import com.whereduck.app.ui.group.PendingInvitesScreen
@@ -49,6 +53,8 @@ object Route {
     const val STARNAZZO_CALL = "starnazzo_call/{alertId}/{toName}/{level}"
     const val CONTACT_DETAIL = "contact_detail/{contactId}"
     const val SETTINGS = "settings"
+    const val PRIVACY_POLICY = "privacy_policy"
+    const val TERMS_OF_SERVICE = "terms_of_service"
     const val CUSTOMIZE = "customize"
 
     fun contactDetail(contactId: String) = "contact_detail/$contactId"
@@ -100,12 +106,16 @@ fun AppNavGraph() {
             )
         }
         composable(Route.HOME) {
+            val homeViewModel: HomeViewModel = hiltViewModel()
             MainShell(
                 onOpenUserMenu = {
                     navController.navigate(Route.SETTINGS)
                 },
                 onCreateGroup = {
                     navController.navigate(Route.CREATE_GROUP)
+                },
+                onInviteContact = { email ->
+                    homeViewModel.sendContactInvite(email)
                 },
                 dashboardContent = {
                     DashboardTab(
@@ -117,7 +127,7 @@ fun AppNavGraph() {
                         }
                     )
                 },
-                contactsContent = { inviteTrigger ->
+                contactsContent = {
                     ContactsTab(
                         onNavigateToContactDetail = { contactId ->
                             navController.navigate(Route.contactDetail(contactId))
@@ -128,7 +138,7 @@ fun AppNavGraph() {
                         onNavigateToInvites = {
                             navController.navigate(Route.PENDING_INVITES)
                         },
-                        inviteTrigger = inviteTrigger
+                        viewModel = homeViewModel
                     )
                 },
                 historyContent = {
@@ -245,12 +255,32 @@ fun AppNavGraph() {
         ) {
             SettingsScreen(
                 onNavigateBack = { navController.popBackStack() },
+                onNavigateToPrivacy = { navController.navigate(Route.PRIVACY_POLICY) },
+                onNavigateToTerms = { navController.navigate(Route.TERMS_OF_SERVICE) },
                 onLogout = {
                     navController.navigate(Route.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
                 }
             )
+        }
+        composable(
+            Route.PRIVACY_POLICY,
+            enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+            exitTransition = { fadeOut(tween(150)) },
+            popEnterTransition = { fadeIn(tween(150)) },
+            popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+        ) {
+            PrivacyPolicyScreen(onBack = { navController.popBackStack() })
+        }
+        composable(
+            Route.TERMS_OF_SERVICE,
+            enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+            exitTransition = { fadeOut(tween(150)) },
+            popEnterTransition = { fadeIn(tween(150)) },
+            popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+        ) {
+            TermsOfServiceScreen(onBack = { navController.popBackStack() })
         }
     }
 }

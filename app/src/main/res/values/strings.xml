@@ -244,6 +244,10 @@
     <string name="settings_motto_dialog_placeholder">Es: Ducker Seriale</string>
     <string name="settings_motto_counter">%1$d/50</string>
     <string name="settings_language_dialog_title">Lingua</string>
+    <string name="settings_delete_account">Elimina account</string>
+    <string name="settings_delete_title">Eliminare l\'account\?</string>
+    <string name="settings_delete_body">Tutti i tuoi dati verranno eliminati definitivamente: contatti, gruppi, cronologia e foto profilo. Questa azione non pu\u00F2 essere annullata.</string>
+    <string name="settings_delete_confirm">Elimina definitivamente</string>
 
     <!-- ═══ Offline ═══ -->
     <string name="offline_title">Mi dispiace, sei offline!</string>

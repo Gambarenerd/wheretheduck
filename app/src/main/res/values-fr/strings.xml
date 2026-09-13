@@ -244,6 +244,10 @@
     <string name="settings_motto_dialog_placeholder">Ex : Ducker en Série</string>
     <string name="settings_motto_counter">%1$d/50</string>
     <string name="settings_language_dialog_title">Langue</string>
+    <string name="settings_delete_account">Supprimer le compte</string>
+    <string name="settings_delete_title">Supprimer le compte \?</string>
+    <string name="settings_delete_body">Toutes tes donn\u00E9es seront d\u00E9finitivement supprim\u00E9es : contacts, groupes, historique et photo de profil. Cette action est irr\u00E9versible.</string>
+    <string name="settings_delete_confirm">Supprimer d\u00E9finitivement</string>
 
     <!-- ═══ Offline ═══ -->
     <string name="offline_title">Désolé, t\'es hors ligne !</string>

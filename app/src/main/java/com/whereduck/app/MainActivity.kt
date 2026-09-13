@@ -5,9 +5,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.whereduck.app.ui.navigation.AppNavGraph
+import com.whereduck.app.ui.theme.ThemeState
 import com.whereduck.app.ui.theme.WhereTheDuckTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -15,10 +17,14 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ThemeState.init(this)
         enableEdgeToEdge()
         setContent {
             WhereTheDuckTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
                     AppNavGraph()
                 }
             }

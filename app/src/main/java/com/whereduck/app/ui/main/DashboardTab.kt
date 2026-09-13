@@ -285,8 +285,8 @@ fun DashboardTab(
                             checkedThumbColor = Color.White,
                             checkedTrackColor = Color.White.copy(alpha = 0.3f),
                             checkedBorderColor = Color.Transparent,
-                            uncheckedThumbColor = Color.White,
-                            uncheckedTrackColor = DuckGrey300,
+                            uncheckedThumbColor = DuckTheme.colors.textSecondary,
+                            uncheckedTrackColor = DuckTheme.colors.divider,
                             uncheckedBorderColor = Color.Transparent
                         )
                     )
@@ -577,7 +577,7 @@ private fun EnemyCard(
                         Icons.Default.Campaign,
                         contentDescription = stringResource(R.string.dashboard_duck_desc),
                         modifier = Modifier.size(20.dp),
-                        tint = DuckTheme.colors.sectionTitle
+                        tint = DuckTheme.colors.textOnAccent
                     )
                 }
             }

@@ -23,9 +23,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Star
@@ -45,6 +48,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -76,6 +81,8 @@ import java.io.File
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToPrivacy: () -> Unit = {},
+    onNavigateToTerms: () -> Unit = {},
     onLogout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
@@ -83,6 +90,7 @@ fun SettingsScreen(
     var showNameDialog by remember { mutableStateOf(false) }
     var showMottoDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -231,15 +239,15 @@ fun SettingsScreen(
                         fontWeight = if (motto.isNotBlank()) FontWeight.Medium else FontWeight.Normal,
                         fontStyle = if (motto.isBlank()) androidx.compose.ui.text.font.FontStyle.Italic
                                     else androidx.compose.ui.text.font.FontStyle.Normal,
-                        color = if (motto.isNotBlank()) DuckTheme.colors.textPrimary
-                                else DuckTheme.colors.textSecondary
+                        color = if (motto.isNotBlank()) DuckOrange500
+                                else DuckOrange500.copy(alpha = 0.5f)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Icon(
                         Icons.Default.Edit,
                         contentDescription = stringResource(R.string.settings_edit_motto_desc),
                         modifier = Modifier.size(14.dp),
-                        tint = DuckTheme.colors.textSecondary
+                        tint = DuckOrange500
                     )
                 }
             }
@@ -265,9 +273,22 @@ fun SettingsScreen(
                         onCheckedChange = {
                             viewModel.setTheme(if (it) AppTheme.DARK else AppTheme.LIGHT)
                         },
+                        thumbContent = {
+                            Icon(
+                                imageVector = if (uiState.currentTheme == AppTheme.DARK)
+                                    Icons.Default.DarkMode else Icons.Default.LightMode,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = if (uiState.currentTheme == AppTheme.DARK)
+                                    DuckTheme.colors.accent else DuckOrange500
+                            )
+                        },
                         colors = SwitchDefaults.colors(
                             checkedTrackColor = DuckTheme.colors.accent,
-                            checkedThumbColor = DuckTheme.colors.textOnAccent
+                            checkedThumbColor = DuckTheme.colors.textOnAccent,
+                            uncheckedTrackColor = DuckOrange500.copy(alpha = 0.3f),
+                            uncheckedThumbColor = DuckTheme.colors.cardBackground,
+                            uncheckedBorderColor = DuckOrange500.copy(alpha = 0.5f)
                         )
                     )
                 }
@@ -310,6 +331,24 @@ fun SettingsScreen(
                 color = DuckTheme.colors.textSecondary.copy(alpha = 0.1f)
             )
 
+            // ── Legal ──
+            DrawerItemRow(
+                icon = Icons.Default.Description,
+                label = "Privacy Policy",
+                onClick = onNavigateToPrivacy
+            )
+
+            DrawerItemRow(
+                icon = Icons.Default.Gavel,
+                label = "Terms of Service",
+                onClick = onNavigateToTerms
+            )
+
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                color = DuckTheme.colors.textSecondary.copy(alpha = 0.1f)
+            )
+
             // ── Sign Out ──
             DrawerItemRow(
                 icon = Icons.AutoMirrored.Filled.ExitToApp,
@@ -318,6 +357,15 @@ fun SettingsScreen(
                     viewModel.signOut()
                     onLogout()
                 }
+            )
+
+            // ── Delete Account ──
+            DrawerItemRow(
+                icon = Icons.Default.DeleteForever,
+                label = stringResource(R.string.settings_delete_account),
+                labelColor = Color(0xFFD32F2F),
+                iconTint = Color(0xFFD32F2F),
+                onClick = { showDeleteDialog = true }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -448,6 +496,52 @@ fun SettingsScreen(
             }
         )
     }
+
+    // ── Delete Account Dialog ──
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { if (!uiState.isSaving) showDeleteDialog = false },
+            title = {
+                Text(
+                    stringResource(R.string.settings_delete_title),
+                    color = Color(0xFFD32F2F),
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(stringResource(R.string.settings_delete_body))
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteAccount {
+                            showDeleteDialog = false
+                            onLogout()
+                        }
+                    },
+                    enabled = !uiState.isSaving,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = Color(0xFFD32F2F)
+                    )
+                ) {
+                    if (uiState.isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(stringResource(R.string.settings_delete_confirm))
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDeleteDialog = false },
+                    enabled = !uiState.isSaving
+                ) { Text(stringResource(R.string.common_cancel)) }
+            }
+        )
+    }
 }
 
 @Composable
@@ -456,7 +550,9 @@ private fun DrawerItemRow(
     label: String,
     badge: String? = null,
     onClick: (() -> Unit)? = null,
-    action: (@Composable () -> Unit)? = null
+    action: (@Composable () -> Unit)? = null,
+    labelColor: Color = DuckTheme.colors.textPrimary,
+    iconTint: Color = DuckTheme.colors.textPrimary.copy(alpha = 0.7f)
 ) {
     Row(
         modifier = Modifier
@@ -471,7 +567,7 @@ private fun DrawerItemRow(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = DuckTheme.colors.textPrimary.copy(alpha = 0.7f),
+            tint = iconTint,
             modifier = Modifier.size(24.dp)
         )
 
@@ -480,7 +576,7 @@ private fun DrawerItemRow(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
-            color = DuckTheme.colors.textPrimary,
+            color = labelColor,
             modifier = Modifier.weight(1f)
         )
 
@@ -496,7 +592,7 @@ private fun DrawerItemRow(
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    color = DuckTheme.colors.textPrimary
+                    color = DuckTheme.colors.textOnAccent
                 )
             }
         }

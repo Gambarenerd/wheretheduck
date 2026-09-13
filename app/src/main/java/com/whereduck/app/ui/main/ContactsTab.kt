@@ -73,14 +73,11 @@ fun ContactsTab(
     onNavigateToContactDetail: (String) -> Unit,
     onNavigateToGroupDetail: (String) -> Unit,
     onNavigateToInvites: () -> Unit,
-    inviteTrigger: Int = 0,
     viewModel: HomeViewModel = hiltViewModel(),
     historyViewModel: HistoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val historyState by historyViewModel.uiState.collectAsState()
-    var showInviteDialog by remember { mutableStateOf(false) }
-
     // Last starnazzo time per contact (sent to them)
     val lastStarnazzoMap = remember(historyState.sentAlerts) {
         val fmt = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault())
@@ -98,15 +95,6 @@ fun ContactsTab(
     }
     val receivedCountMap = remember(historyState.receivedAlerts) {
         historyState.receivedAlerts.groupBy { it.fromUserId }.mapValues { it.value.size }
-    }
-
-    // Open invite dialog when FAB triggers it
-    var lastHandledTrigger by remember { mutableStateOf(0) }
-    LaunchedEffect(inviteTrigger) {
-        if (inviteTrigger > lastHandledTrigger) {
-            lastHandledTrigger = inviteTrigger
-            showInviteDialog = true
-        }
     }
 
     when {
@@ -309,15 +297,6 @@ fun ContactsTab(
         }
     }
 
-    if (showInviteDialog) {
-        InviteContactDialog(
-            onDismiss = { showInviteDialog = false },
-            onInvite = { email ->
-                viewModel.sendContactInvite(email)
-                showInviteDialog = false
-            }
-        )
-    }
 }
 
 @Composable
@@ -393,7 +372,8 @@ private fun ContactListCard(
                                 Text(
                                     text = contact.motto,
                                     fontSize = 13.sp,
-                                    color = DuckTheme.colors.textPrimary,
+                                    fontWeight = FontWeight.Bold,
+                                    color = DuckOrange500,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -605,61 +585,3 @@ private fun GroupCard(
     }
 }
 
-@Composable
-private fun InviteContactDialog(
-    onDismiss: () -> Unit,
-    onInvite: (String) -> Unit
-) {
-    var email by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.contacts_invite_title)) },
-        text = {
-            Column {
-                Text(
-                    text = stringResource(R.string.contacts_invite_body),
-                    fontSize = 14.sp,
-                    color = DuckTheme.colors.textSecondary
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it.trim() },
-                    label = { Text(stringResource(R.string.contacts_invite_field)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            if (email.isNotBlank()) onInvite(email)
-                        }
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                    trailingIcon = {
-                        if (email.isNotBlank()) {
-                            IconButton(onClick = { email = "" }) {
-                                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.contacts_invite_clear_desc))
-                            }
-                        }
-                    }
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onInvite(email) },
-                enabled = email.isNotBlank() && email.contains("@")
-            ) {
-                Text(stringResource(R.string.contacts_invite_confirm))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel))
-            }
-        }
-    )
-}

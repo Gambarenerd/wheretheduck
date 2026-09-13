@@ -282,7 +282,7 @@ fun GroupDetailScreen(
                                             Icons.Default.Campaign,
                                             contentDescription = stringResource(R.string.dashboard_duck_desc),
                                             modifier = Modifier.size(20.dp),
-                                            tint = DuckTheme.colors.sectionTitle
+                                            tint = DuckTheme.colors.textOnAccent
                                         )
                                     }
                                 }

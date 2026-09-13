@@ -370,8 +370,8 @@ fun ContactDetailScreen(
                                     Text(
                                         text = contact.motto,
                                         fontSize = 14.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = if (isCalling) Color.White else DuckTheme.colors.textPrimary,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isCalling) Color.White else DuckOrange500,
                                         textAlign = TextAlign.Center,
                                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                                     )

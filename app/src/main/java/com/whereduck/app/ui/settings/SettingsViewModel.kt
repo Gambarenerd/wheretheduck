@@ -11,6 +11,7 @@ import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageMetadata
 import com.whereduck.app.data.model.User
+import com.whereduck.app.data.remote.CloudFunctionsDataSource
 import com.whereduck.app.data.remote.FirestoreDataSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -49,6 +50,7 @@ data class SettingsUiState(
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val firestoreDataSource: FirestoreDataSource,
+    private val cloudFunctions: CloudFunctionsDataSource,
     private val auth: FirebaseAuth,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -188,6 +190,7 @@ class SettingsViewModel @Inject constructor(
     fun setTheme(theme: AppTheme) {
         prefs.edit().putString("theme", theme.name).apply()
         _uiState.value = _uiState.value.copy(currentTheme = theme)
+        com.whereduck.app.ui.theme.ThemeState.isDark.value = (theme == AppTheme.DARK)
     }
 
     fun updateMotto(newMotto: String) {
@@ -219,6 +222,29 @@ class SettingsViewModel @Inject constructor(
 
     fun clearMessage() {
         _uiState.value = _uiState.value.copy(message = null)
+    }
+
+    fun deleteAccount(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isSaving = true)
+            try {
+                cloudFunctions.deleteAccount()
+
+                // Clear local data
+                prefs.edit().clear().apply()
+                val profileFile = File(context.filesDir, "profile_avatar.jpg")
+                if (profileFile.exists()) profileFile.delete()
+
+                auth.signOut()
+                _uiState.value = _uiState.value.copy(isSaving = false)
+                onComplete()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isSaving = false,
+                    message = "Errore: ${e.message}"
+                )
+            }
+        }
     }
 
     fun signOut() {

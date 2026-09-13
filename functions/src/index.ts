@@ -9,6 +9,7 @@ export { removeContact } from "./contacts/removeContact";
 
 // Users
 export { onProfileUpdate } from "./users/onProfileUpdate";
+export { deleteAccount } from "./users/deleteAccount";
 
 // Starnazzo
 export { sendStarnazzo } from "./starnazzo/sendStarnazzo";

@@ -43,9 +43,17 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -73,6 +81,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.whereduck.app.R
+import com.whereduck.app.ui.theme.DuckBrown900
 import com.whereduck.app.ui.theme.DuckTheme
 import kotlinx.coroutines.launch
 
@@ -96,13 +105,14 @@ fun MainShell(
     onOpenUserMenu: () -> Unit,
     onCreateGroup: () -> Unit,
     dashboardContent: @Composable () -> Unit,
-    contactsContent: @Composable (inviteTrigger: Int) -> Unit,
+    contactsContent: @Composable () -> Unit,
+    onInviteContact: (String) -> Unit,
     historyContent: @Composable () -> Unit = {},
     customizeContent: @Composable () -> Unit,
 ) {
     val pagerState = rememberPagerState(pageCount = { 4 })
     val scope = rememberCoroutineScope()
-    var inviteTrigger by remember { mutableStateOf(0) }
+    var showInviteDialog by remember { mutableStateOf(false) }
 
     // Animate background color between sections
     val sectionColors = listOf(
@@ -225,7 +235,7 @@ fun MainShell(
                     Box(modifier = Modifier.fillMaxSize()) {
                         when (page) {
                             0 -> dashboardContent()
-                            1 -> contactsContent(inviteTrigger)
+                            1 -> contactsContent()
                             2 -> customizeContent()
                             3 -> historyContent()
                         }
@@ -299,7 +309,7 @@ fun MainShell(
                         Icon(
                             imageVector = tab.icon,
                             contentDescription = stringResource(tab.labelRes),
-                            tint = if (selected) DuckTheme.colors.sectionTitle
+                            tint = if (selected) DuckBrown900
                             else DuckTheme.colors.bottomBarIcon,
                             modifier = Modifier.size(22.dp)
                         )
@@ -350,7 +360,7 @@ fun MainShell(
                 .background(DuckTheme.colors.bottomBarBackground)
                 .clickable(enabled = fabExpanded) {
                     fabExpanded = false
-                    inviteTrigger++
+                    showInviteDialog = true
                 },
             contentAlignment = Alignment.Center
         ) {
@@ -414,5 +424,66 @@ fun MainShell(
                 tint = DuckTheme.colors.textOnButtonPrimary
             )
         }
+    }
+
+    // ── Invite Contact Dialog (accessible from any tab) ──
+    if (showInviteDialog) {
+        var email by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { showInviteDialog = false },
+            title = { Text(stringResource(R.string.contacts_invite_title)) },
+            text = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.contacts_invite_body),
+                        fontSize = 14.sp,
+                        color = DuckTheme.colors.textSecondary
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it.trim() },
+                        label = { Text(stringResource(R.string.contacts_invite_field)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                if (email.isNotBlank()) {
+                                    onInviteContact(email)
+                                    showInviteDialog = false
+                                }
+                            }
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        trailingIcon = {
+                            if (email.isNotBlank()) {
+                                IconButton(onClick = { email = "" }) {
+                                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.contacts_invite_clear_desc))
+                                }
+                            }
+                        }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onInviteContact(email)
+                        showInviteDialog = false
+                    },
+                    enabled = email.isNotBlank() && email.contains("@")
+                ) {
+                    Text(stringResource(R.string.contacts_invite_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showInviteDialog = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            }
+        )
     }
 }

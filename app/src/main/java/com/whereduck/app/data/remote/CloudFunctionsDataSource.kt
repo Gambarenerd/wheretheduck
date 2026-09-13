@@ -127,6 +127,17 @@ class CloudFunctionsDataSource @Inject constructor(
         return result.getData() as Map<String, Any>
     }
 
+    // ── Account ──
+
+    suspend fun deleteAccount(): Map<String, Any> {
+        ensureFreshToken()
+        val result = functions.getHttpsCallable("deleteAccount")
+            .call()
+            .await()
+        @Suppress("UNCHECKED_CAST")
+        return result.getData() as Map<String, Any>
+    }
+
     suspend fun revengeStarnazzo(alertId: String): Map<String, Any> {
         ensureFreshToken()
         val data = hashMapOf("alertId" to alertId)

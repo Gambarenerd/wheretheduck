@@ -244,6 +244,10 @@
     <string name="settings_motto_dialog_placeholder">E.g. Serial Ducker</string>
     <string name="settings_motto_counter">%1$d/50</string>
     <string name="settings_language_dialog_title">Language</string>
+    <string name="settings_delete_account">Delete account</string>
+    <string name="settings_delete_title">Delete account\?</string>
+    <string name="settings_delete_body">All your data will be permanently deleted: contacts, groups, history, and profile photo. This action cannot be undone.</string>
+    <string name="settings_delete_confirm">Delete permanently</string>
 
     <!-- ═══ Offline ═══ -->
     <string name="offline_title">Sorry, you\'re offline!</string>

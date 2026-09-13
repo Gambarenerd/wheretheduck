@@ -14,6 +14,7 @@ import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.data.remote.CloudFunctionsDataSource
 import com.whereduck.app.service.StarnazzoFcmService
 import com.whereduck.app.service.StarnazzoSoundService
+import com.whereduck.app.ui.theme.ThemeState
 import com.whereduck.app.ui.theme.WhereTheDuckTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -52,6 +53,8 @@ class IncomingAlertActivity : ComponentActivity() {
         } else {
             registerReceiver(cancelReceiver, filter)
         }
+
+        ThemeState.init(this)
 
         val fromName = intent.getStringExtra("fromName") ?: "Qualcuno"
         val levelKey = intent.getStringExtra("level") ?: "medium"

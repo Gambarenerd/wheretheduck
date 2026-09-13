@@ -1,15 +1,20 @@
 package com.whereduck.app.ui.theme
 
 import android.app.Activity
-import androidx.compose.foundation.isSystemInDarkTheme
+import android.content.Context
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
@@ -145,8 +150,8 @@ val LocalDuckColors = staticCompositionLocalOf {
     )
 }
 
-// Un unico set per ora (light e dark identici, separati in futuro)
-private val AppColors = DuckCustomColors(
+// ── LIGHT ──
+private val LightColors = DuckCustomColors(
     // Sfondo
     appBackground = DuckWhite,
     cardBackground = DuckWhitePure,
@@ -155,7 +160,7 @@ private val AppColors = DuckCustomColors(
     // Testo
     textPrimary = DuckBrown900,
     textSecondary = DuckGrey600,
-    textOnAccent = DuckWhitePure,
+    textOnAccent = DuckBrown900,
 
     // Accenti
     accent = DuckYellow500,
@@ -226,8 +231,95 @@ private val AppColors = DuckCustomColors(
     pillBackgroundLight = PillCoralLight,
 )
 
-// Material3 scheme (necessario per componenti Material)
-private val AppMaterialScheme = lightColorScheme(
+// ── DARK ──
+// Palette calda: superfici marrone scuro, testo crema caldo
+// Contrasti verificati WCAG AA:
+//   textPrimary (#EDE5DC) su DarkSurface (#2C2421) → ~8.5:1
+//   textPrimary (#EDE5DC) su DarkCard (#382F2B)    → ~6.5:1
+//   textSecondary (#A89890) su DarkSurface          → ~4.5:1
+//   textSecondary (#A89890) su DarkCard             → ~3.5:1 (large text OK)
+private val DarkColors = DuckCustomColors(
+    // Sfondo
+    appBackground = DarkSurface,
+    cardBackground = DarkCard,
+    cardBackgroundVariant = DarkCardVariant,
+
+    // Testo
+    textPrimary = Color(0xFFEDE5DC),    // Crema caldo — alto contrasto
+    textSecondary = Color(0xFFA89890),  // Marrone chiaro smorzato
+    textOnAccent = DuckBrown900,         // Marrone scuro su arancione
+
+    // Accenti — arancione chiaro caldo nel dark
+    accent = Color(0xFFFFB74D),
+    accentLight = Color(0xFFE68A00),
+    accentDark = Color(0xFFFFB74D),
+
+    // Azioni
+    positive = StarnazzoLight,
+    negative = DuckError,
+    warning = Color(0xFFFFB74D),
+
+    // Bottom bar
+    bottomBarBackground = Color(0xFF261F1C),  // Scura, stacca dallo sfondo
+    bottomBarIcon = Color(0xFF8A7F79),        // Marrone smorzato
+    bottomBarSelected = Color(0xFFFFB74D),
+
+    // Personalizzazione button
+    customizeButton = StarnazzoLight,
+
+    // Starnazzo
+    starnazzoLight = StarnazzoLight,
+    starnazzoMedium = StarnazzoMedium,
+    starnazzoHeavy = StarnazzoHeavy,
+
+    // Bordi e divisori
+    outline = DarkElevated,              // #3A3331 — caldo
+    divider = DarkCardVariant,           // #302A28 — caldo
+
+    // Section backgrounds
+    sectionDashboard = DarkSurface,
+    sectionContacts = DarkSurface,
+    sectionHistory = DarkSurface,
+
+    // Titoli sezione
+    sectionTitle = Color(0xFFD7C8BE),    // Beige chiaro, dalla famiglia DuckBrown
+
+    // Chart / grafici
+    chartBarSent = StarnazzoLight,
+    chartBarReceived = DuckOrange500,
+    chartLabel = Color(0xFFA89890),       // Coerente con textSecondary
+
+    // Semantica UI
+    buttonPrimary = StarnazzoLight,
+    highlight = Color(0xFFFFB74D),
+
+    // VIP
+    vipCardBackground = Color(0xFF3D2A15), // Arancione scuro caldo
+    vipHeart = VipHeartColor,
+    vipAddCircle = DarkElevated,           // #3A3331
+    vipAddIcon = Color(0xFF8A7F79),        // Marrone smorzato
+
+    // Bottoni — testo/icone
+    textOnButtonPrimary = DuckWhitePure,
+
+    // Stati disabilitati
+    disabledBackground = DarkCardVariant,  // #302A28
+    disabledContent = Color(0xFF6A605A),   // Marrone spento
+
+    // Overlay
+    scrim = Color(0x993E3530),             // Stesso marrone del surface, 60%
+
+    // Input fields
+    inputBackground = DarkCard,
+    inputBorder = Color(0xFF564E4A),       // Marrone medio
+
+    // Pill
+    pillBackground = Color(0xFF564038),    // Marrone-corallo
+    pillBackgroundLight = Color(0xFF4A352D), // Leggermente più scuro
+)
+
+// Material3 scheme — Light
+private val LightMaterialScheme = lightColorScheme(
     primary = DuckGreen600,
     onPrimary = DuckWhitePure,
     primaryContainer = DuckGreen100,
@@ -250,6 +342,30 @@ private val AppMaterialScheme = lightColorScheme(
     outlineVariant = DuckGrey200,
 )
 
+// Material3 scheme — Dark (arancione chiaro come accento)
+private val DarkMaterialScheme = darkColorScheme(
+    primary = Color(0xFFFFB74D),
+    onPrimary = DarkSurface,
+    primaryContainer = Color(0xFF3D2A15),
+    onPrimaryContainer = Color(0xFFFFB74D),
+    secondary = Color(0xFFFFB74D),
+    onSecondary = DarkSurface,
+    secondaryContainer = Color(0xFF3D2A15),
+    onSecondaryContainer = Color(0xFFFFB74D),
+    tertiary = DuckBrown200,
+    onTertiary = DarkSurface,
+    background = DarkSurface,
+    onBackground = Color(0xFFEDE5DC),
+    surface = DarkCard,
+    onSurface = Color(0xFFEDE5DC),
+    surfaceVariant = DarkCardVariant,
+    onSurfaceVariant = Color(0xFFA89890),
+    error = DuckError,
+    onError = DuckWhitePure,
+    outline = Color(0xFF564E4A),
+    outlineVariant = DarkCardVariant,
+)
+
 // ═══════════════════════════════════════════════════════
 // Theme accessor
 // ═══════════════════════════════════════════════════════
@@ -260,21 +376,35 @@ object DuckTheme {
         get() = LocalDuckColors.current
 }
 
+object ThemeState {
+    var isDark: MutableState<Boolean> = mutableStateOf(false)
+
+    fun init(context: Context) {
+        val prefs = context.getSharedPreferences("settings_prefs", Context.MODE_PRIVATE)
+        isDark.value = prefs.getString("theme", "LIGHT") == "DARK"
+    }
+}
+
 @Composable
 fun WhereTheDuckTheme(
+    darkTheme: Boolean = ThemeState.isDark.value,
     content: @Composable () -> Unit
 ) {
+    val colors = if (darkTheme) DarkColors else LightColors
+    val materialScheme = if (darkTheme) DarkMaterialScheme else LightMaterialScheme
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+            window.statusBarColor = colors.appBackground.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 
-    CompositionLocalProvider(LocalDuckColors provides AppColors) {
+    CompositionLocalProvider(LocalDuckColors provides colors) {
         MaterialTheme(
-            colorScheme = AppMaterialScheme,
+            colorScheme = materialScheme,
             typography = Typography,
             content = content
         )

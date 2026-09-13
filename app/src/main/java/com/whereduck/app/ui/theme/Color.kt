@@ -41,6 +41,12 @@ val DuckOrange500 = Color(0xFFFF9800)
 val DuckWhite    = Color(0xFFFFFDF7)  // Caldo, leggermente crema
 val DuckWhitePure = Color(0xFFFFFFFF)
 
+// ── DARK MODE (Superfici scure — marroncino papera) ──
+val DarkSurface     = Color(0xFF3E3530)  // Marrone scuro caldo
+val DarkCard        = Color(0xFF4A413C)  // Card — marroncino medio
+val DarkCardVariant = Color(0xFF564D48)  // Variante più chiara
+val DarkElevated    = Color(0xFF625953)  // Massima elevazione
+
 // ═══════════════════════════════════════════════════════
 // Colori funzionali
 // ═══════════════════════════════════════════════════════
