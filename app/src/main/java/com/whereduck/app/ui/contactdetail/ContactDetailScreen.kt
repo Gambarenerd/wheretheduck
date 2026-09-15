@@ -575,75 +575,114 @@ fun ContactDetailScreen(
                                     ) { page ->
                                         val (level, animal) = levelAnimals[page % levelAnimals.size]
                                         val lvlColor = levelColor(level)
+                                        val tenueBg = levelTenueColor(level)
 
+                                        // ── Playing Card style ──
                                         Card(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            shape = RoundedCornerShape(20.dp),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .aspectRatio(0.75f),
+                                            shape = RoundedCornerShape(16.dp),
                                             colors = CardDefaults.cardColors(containerColor = DuckTheme.colors.cardBackground),
                                             elevation = CardDefaults.cardElevation(0.dp)
                                         ) {
-                                            Column(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(20.dp),
-                                                horizontalAlignment = Alignment.CenterHorizontally
-                                            ) {
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    horizontalArrangement = Arrangement.SpaceBetween
-                                                ) {
-                                                    Surface(shape = CircleShape, color = lvlColor) {
-                                                        Text(
-                                                            text = level.displayName,
-                                                            fontSize = 11.sp,
-                                                            fontWeight = FontWeight.Bold,
-                                                            color = Color.White,
-                                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                                                        )
-                                                    }
-                                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                                        Icon(Icons.Default.VolumeUp, null, Modifier.size(14.dp), tint = DuckTheme.colors.textSecondary)
-                                                        Spacer(modifier = Modifier.width(6.dp))
-                                                        Box(
-                                                            modifier = Modifier
-                                                                .width(60.dp)
-                                                                .height(12.dp)
-                                                                .background(DuckTheme.colors.cardBackgroundVariant, RoundedCornerShape(6.dp))
-                                                        ) {
-                                                            Box(
-                                                                modifier = Modifier
-                                                                    .fillMaxWidth(fraction = animal.noisiness)
-                                                                    .height(12.dp)
-                                                                    .background(lvlColor, RoundedCornerShape(6.dp))
-                                                            )
-                                                        }
-                                                    }
-                                                }
-
-                                                Spacer(modifier = Modifier.height(16.dp))
-
+                                            Column(modifier = Modifier.fillMaxSize().padding(10.dp)) {
+                                                // Riquadro colorato: chip + barra + animale
                                                 Box(
                                                     modifier = Modifier
-                                                        .size(140.dp)
-                                                        .clip(CircleShape)
-                                                        .background(levelTenueColor(level)),
-                                                    contentAlignment = Alignment.Center
+                                                        .fillMaxWidth()
+                                                        .weight(1f)
+                                                        .background(tenueBg, RoundedCornerShape(12.dp))
                                                 ) {
-                                                    AnimalEmoji(
-                                                        animalKey = animal.key,
-                                                        emoji = animal.emoji,
-                                                        size = 80.dp,
-                                                        fontSize = 72.sp
-                                                    )
+                                                    // Top row: chip livello + barra fastidiosità (allineati)
+                                                    Row(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .align(Alignment.TopCenter)
+                                                            .padding(10.dp),
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        horizontalArrangement = Arrangement.SpaceBetween
+                                                    ) {
+                                                        Surface(
+                                                            shape = CircleShape,
+                                                            color = lvlColor
+                                                        ) {
+                                                            Text(
+                                                                text = level.displayName,
+                                                                fontSize = 13.sp,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = Color.White,
+                                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                                                            )
+                                                        }
+                                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                                            Icon(Icons.Default.VolumeUp, null, Modifier.size(20.dp), tint = lvlColor.copy(alpha = 0.7f))
+                                                            Spacer(modifier = Modifier.width(5.dp))
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .width(44.dp)
+                                                                    .height(10.dp)
+                                                                    .background(Color.White.copy(alpha = 0.5f), RoundedCornerShape(5.dp))
+                                                            ) {
+                                                                Box(
+                                                                    modifier = Modifier
+                                                                        .fillMaxWidth(fraction = animal.noisiness)
+                                                                        .height(10.dp)
+                                                                        .background(lvlColor, RoundedCornerShape(5.dp))
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+
+                                                    // Animale allineato in basso al centro
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxSize()
+                                                            .padding(top = 36.dp),
+                                                        contentAlignment = Alignment.BottomCenter
+                                                    ) {
+                                                        AnimalEmoji(
+                                                            animalKey = animal.key,
+                                                            emoji = animal.emoji,
+                                                            size = 120.dp,
+                                                            fontSize = 100.sp
+                                                        )
+                                                    }
                                                 }
 
-                                                Spacer(modifier = Modifier.height(12.dp))
-                                                Text(animal.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DuckTheme.colors.textPrimary)
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                Text(animal.description, fontSize = 13.sp, color = DuckTheme.colors.textSecondary, textAlign = TextAlign.Center, minLines = 2, maxLines = 2)
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                Text(animal.quote, fontSize = 12.sp, fontWeight = FontWeight.Medium, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = lvlColor, textAlign = TextAlign.Center, minLines = 2, maxLines = 2)
+                                                // Sezione bianca: nome, citazione, descrizione
+                                                Column(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                                                    horizontalAlignment = Alignment.CenterHorizontally
+                                                ) {
+                                                    Text(
+                                                        text = animal.name,
+                                                        fontSize = 19.sp,
+                                                        fontWeight = FontWeight.ExtraBold,
+                                                        color = DuckTheme.colors.textPrimary,
+                                                        textAlign = TextAlign.Center
+                                                    )
+                                                    Spacer(modifier = Modifier.height(3.dp))
+                                                    Text(
+                                                        text = animal.quote,
+                                                        fontSize = 13.sp,
+                                                        fontWeight = FontWeight.Medium,
+                                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                                                        color = lvlColor,
+                                                        textAlign = TextAlign.Center,
+                                                        maxLines = 1
+                                                    )
+                                                    Spacer(modifier = Modifier.height(3.dp))
+                                                    Text(
+                                                        text = animal.description,
+                                                        fontSize = 12.sp,
+                                                        color = DuckTheme.colors.textSecondary,
+                                                        textAlign = TextAlign.Center,
+                                                        maxLines = 2
+                                                    )
+                                                }
                                             }
                                         }
                                     }

@@ -1,14 +1,12 @@
 package com.whereduck.app.ui.main
 
 import android.media.MediaPlayer
-import com.whereduck.app.R
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.aspectRatio
+import com.whereduck.app.R
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +29,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -270,8 +267,10 @@ private fun SingleAnimalCard(
 
     Box(modifier = Modifier.padding(horizontal = 20.dp)) {
         Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(0.75f),
+            shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = DuckTheme.colors.cardBackground),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
@@ -279,12 +278,10 @@ private fun SingleAnimalCard(
                 animal = animal,
                 level = level,
                 levelColor = levelColor,
-                showSelectButton = false,
-                showChangeButton = false,
                 isPlaying = isPlaying,
+                showTryButton = true,
                 onTestSound = onTestSound,
-                onStopSound = onStopSound,
-                onActionButton = {}
+                onStopSound = onStopSound
             )
         }
     }
@@ -314,21 +311,6 @@ private fun CarouselLevelSection(
     val selectedAnimal = animals.find { it.key == selectedKey } ?: animals.first()
     val selectedIndex = animals.indexOf(selectedAnimal)
 
-    // All animations on the same composable — no tree swaps
-    val liftProgress by animateFloatAsState(
-        targetValue = if (isExpanded) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "lift"
-    )
-    val neighborAlpha by animateFloatAsState(
-        targetValue = if (isExpanded) 1f else 0f,
-        animationSpec = tween(400),
-        label = "neighbor_alpha"
-    )
-
     val loopCount = 1000
     val loopMiddle = (loopCount / 2) - ((loopCount / 2) % animals.size) + selectedIndex
 
@@ -346,69 +328,55 @@ private fun CarouselLevelSection(
         }
     }
 
-    // Animated padding: 20dp collapsed → 48dp expanded (reveals neighbor edges)
-    val sidePadding = lerp(20f, 48f, liftProgress)
+    // Collapsed: carta larga (poco padding). Expanded: si restringe e mostra le vicine.
+    val sidePadding by animateDpAsState(
+        targetValue = if (isExpanded) 48.dp else 20.dp,
+        animationSpec = tween(350),
+        label = "sidePadding"
+    )
+    val spacing by animateDpAsState(
+        targetValue = if (isExpanded) 14.dp else 0.dp,
+        animationSpec = tween(350),
+        label = "spacing"
+    )
 
     HorizontalPager(
         state = pagerState,
-        contentPadding = PaddingValues(horizontal = sidePadding.dp),
-        pageSpacing = lerp(0f, 12f, liftProgress).dp,
+        contentPadding = PaddingValues(horizontal = sidePadding),
+        pageSpacing = spacing,
         userScrollEnabled = isExpanded,
         modifier = Modifier
             .fillMaxWidth()
-            .graphicsLayer {
-                // Lift: slight scale down + move up
-                val scale = lerp(1f, 0.97f, liftProgress)
-                scaleX = scale
-                scaleY = scale
-                translationY = lerp(0f, -20f, liftProgress)
-            }
     ) { page ->
         val actualIndex = page % animals.size
         val animal = animals[actualIndex]
-        val isSelected = animal.key == selectedKey
-        val isCenterPage = page == pagerState.currentPage
-
         val pageOffset = ((pagerState.currentPage - page) +
-                pagerState.currentPageOffsetFraction).absoluteValue
+                pagerState.currentPageOffsetFraction).absoluteValue.coerceIn(0f, 1f)
 
-        val isNeighbor = pageOffset > 0.01f
-        val neighborScale = lerp(0.92f, 1f, 1f - pageOffset.coerceIn(0f, 1f))
-        val pageAlpha = if (isNeighbor) {
-            lerp(0.85f, 1f, 1f - pageOffset.coerceIn(0f, 1f)) * neighborAlpha
-        } else {
-            1f
-        }
+        val pageScale = lerp(1f, 0.9f, pageOffset)
+        val pageAlpha = lerp(1f, 0.6f, pageOffset)
 
-        // Animated border: appears when expanded
-        val borderWidth = lerp(0f, 2.5f, liftProgress)
-
-        Box(
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .aspectRatio(0.75f)
                 .graphicsLayer {
-                    scaleX = if (isNeighbor) neighborScale else 1f
-                    scaleY = if (isNeighbor) neighborScale else 1f
+                    scaleX = pageScale
+                    scaleY = pageScale
                     alpha = pageAlpha
-                }
-                .then(
-                    if (borderWidth > 0f) {
-                        Modifier.border(
-                            width = borderWidth.dp,
-                            color = levelColor.copy(alpha = liftProgress * 0.5f),
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                    } else Modifier
-                )
-                .background(DuckTheme.colors.cardBackground, RoundedCornerShape(24.dp))
+                },
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = DuckTheme.colors.cardBackground),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             AnimalCardContent(
                 animal = animal,
                 level = level,
                 levelColor = levelColor,
-                showSelectButton = isExpanded,
-                showChangeButton = !isExpanded,
                 isPlaying = playingAnimalKey == animal.key,
+                showTryButton = true,
+                showChangeButton = true,
+                isExpanded = isExpanded,
                 onTestSound = { onTestSound(animal) },
                 onStopSound = onStopSound,
                 onActionButton = { onToggleCarousel() }
@@ -424,210 +392,174 @@ private fun AnimalCardContent(
     animal: AnimalOption,
     level: StarnazzoLevel,
     levelColor: Color,
-    showSelectButton: Boolean,
-    showChangeButton: Boolean,
-    isPlaying: Boolean,
-    onTestSound: () -> Unit,
-    onStopSound: () -> Unit,
-    onActionButton: () -> Unit
+    isPlaying: Boolean = false,
+    showTryButton: Boolean = false,
+    showChangeButton: Boolean = false,
+    isExpanded: Boolean = false,
+    onTestSound: () -> Unit = {},
+    onStopSound: () -> Unit = {},
+    onActionButton: () -> Unit = {}
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Top row: level chip (left) + noisiness bar (right)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Surface(
-                shape = CircleShape,
-                color = levelColor
-            ) {
-                Text(
-                    text = level.displayName,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (ThemeState.isDark.value) DuckBrown900 else Color.White,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                )
-            }
+    val tenueBg = when (level) {
+        StarnazzoLevel.LIGHT -> DuckTheme.colors.starnazzoLightTenue
+        StarnazzoLevel.MEDIUM -> DuckTheme.colors.starnazzoMediumTenue
+        StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavyTenue
+    }
 
-            // Compact noisiness bar
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Default.VolumeUp,
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp),
-                    tint = DuckTheme.colors.textSecondary
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Box(
-                    modifier = Modifier
-                        .width(60.dp)
-                        .height(12.dp)
-                        .background(
-                            DuckTheme.colors.cardBackgroundVariant,
-                            RoundedCornerShape(6.dp)
-                        )
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(fraction = animal.noisiness)
-                            .height(12.dp)
-                            .background(levelColor, RoundedCornerShape(6.dp))
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Animal emoji in circle
-        val tenueBg = when (level) {
-            StarnazzoLevel.LIGHT -> DuckTheme.colors.starnazzoLightTenue
-            StarnazzoLevel.MEDIUM -> DuckTheme.colors.starnazzoMediumTenue
-            StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavyTenue
-        }
+    Column(modifier = Modifier.fillMaxSize().padding(10.dp)) {
+        // Riquadro colorato: chip + barra + animale
         Box(
             modifier = Modifier
-                .size(140.dp)
-                .clip(CircleShape)
-                .background(tenueBg),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .weight(1f)
+                .background(tenueBg, RoundedCornerShape(12.dp))
         ) {
-            AnimalEmoji(
-                animalKey = animal.key,
-                emoji = animal.emoji,
-                size = 80.dp,
-                fontSize = 72.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Animal name
-        Text(
-            text = animal.name,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = DuckTheme.colors.textPrimary
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // Description
-        Text(
-            text = animal.description,
-            fontSize = 13.sp,
-            color = DuckTheme.colors.textSecondary,
-            textAlign = TextAlign.Center,
-            minLines = 2,
-            maxLines = 2
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Iconic quote
-        Text(
-            text = animal.quote,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-            color = levelColor,
-            textAlign = TextAlign.Center,
-            minLines = 2,
-            maxLines = 2
-        )
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        // Stats section
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            // Reaction time
+            // Top row: chip livello + barra fastidiosità
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Icon(
-                    Icons.Default.Timer,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = DuckTheme.colors.textSecondary
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = stringResource(R.string.customize_reaction_time),
-                    fontSize = 12.sp,
-                    color = DuckTheme.colors.textSecondary,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = animal.reactionTime,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = DuckTheme.colors.textPrimary
+                Surface(
+                    shape = CircleShape,
+                    color = levelColor
+                ) {
+                    Text(
+                        text = level.displayName,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (ThemeState.isDark.value) DuckBrown900 else Color.White,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.VolumeUp, null, Modifier.size(20.dp), tint = levelColor.copy(alpha = 0.7f))
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Box(
+                        modifier = Modifier
+                            .width(44.dp)
+                            .height(10.dp)
+                            .background(Color.White.copy(alpha = 0.5f), RoundedCornerShape(5.dp))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(fraction = animal.noisiness)
+                                .height(10.dp)
+                                .background(levelColor, RoundedCornerShape(5.dp))
+                        )
+                    }
+                }
+            }
+
+            // Animale allineato in basso al centro
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 36.dp),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                AnimalEmoji(
+                    animalKey = animal.key,
+                    emoji = animal.emoji,
+                    size = 120.dp,
+                    fontSize = 100.sp
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Buttons — sempre verde (Prova) e giallo (Cambia), indipendenti dal livello
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+        // Sezione inferiore: nome, citazione, descrizione
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 2.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            FilledTonalButton(
-                onClick = if (isPlaying) onStopSound else onTestSound,
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = DuckTheme.colors.starnazzoLightTenue,
-                    contentColor = StarnazzoLight
-                )
-            ) {
-                Icon(
-                    if (isPlaying) Icons.Default.Pause else Icons.Default.VolumeUp,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    if (isPlaying) stringResource(R.string.customize_btn_stop)
-                    else stringResource(R.string.customize_btn_try),
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp
-                )
-            }
+            Text(
+                text = animal.name,
+                fontSize = 19.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = DuckTheme.colors.textPrimary,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(
+                text = animal.quote,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                color = levelColor,
+                textAlign = TextAlign.Center,
+                maxLines = 1
+            )
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(
+                text = animal.description,
+                fontSize = 12.sp,
+                color = DuckTheme.colors.textSecondary,
+                textAlign = TextAlign.Center,
+                maxLines = 2
+            )
 
-            FilledTonalButton(
-                onClick = onActionButton,
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = DuckTheme.colors.starnazzoMediumTenue,
-                    contentColor = DuckOrange500
-                )
-            ) {
-                Icon(
-                    if (showSelectButton) Icons.Default.Check else Icons.Default.Edit,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    if (showSelectButton) stringResource(R.string.customize_btn_done)
-                    else stringResource(R.string.customize_btn_change),
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp
-                )
+            // Bottoni dentro la carta
+            if (showTryButton || showChangeButton) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (showTryButton) {
+                        FilledTonalButton(
+                            onClick = if (isPlaying) onStopSound else onTestSound,
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = DuckTheme.colors.starnazzoLightTenue,
+                                contentColor = StarnazzoLight
+                            )
+                        ) {
+                            Icon(
+                                if (isPlaying) Icons.Default.Pause else Icons.Default.VolumeUp,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                if (isPlaying) stringResource(R.string.customize_btn_stop)
+                                else stringResource(R.string.customize_btn_try),
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
+                    if (showTryButton && showChangeButton) {
+                        Spacer(modifier = Modifier.width(10.dp))
+                    }
+                    if (showChangeButton) {
+                        FilledTonalButton(
+                            onClick = onActionButton,
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = DuckTheme.colors.starnazzoMediumTenue,
+                                contentColor = DuckOrange500
+                            )
+                        ) {
+                            Icon(
+                                if (isExpanded) Icons.Default.Check else Icons.Default.Edit,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                if (isExpanded) stringResource(R.string.customize_btn_done)
+                                else stringResource(R.string.customize_btn_change),
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
+                }
             }
         }
     }
