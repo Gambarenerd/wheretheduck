@@ -83,6 +83,7 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToPrivacy: () -> Unit = {},
     onNavigateToTerms: () -> Unit = {},
+    onNavigateToPlans: () -> Unit = {},
     onLogout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
@@ -288,7 +289,7 @@ fun SettingsScreen(
                             checkedThumbColor = DuckTheme.colors.textOnAccent,
                             uncheckedTrackColor = DuckOrange500.copy(alpha = 0.3f),
                             uncheckedThumbColor = DuckTheme.colors.cardBackground,
-                            uncheckedBorderColor = DuckOrange500.copy(alpha = 0.5f)
+                            uncheckedBorderColor = Color.Transparent
                         )
                     )
                 }
@@ -298,7 +299,7 @@ fun SettingsScreen(
                 icon = Icons.Default.WorkspacePremium,
                 label = stringResource(R.string.settings_plan),
                 badge = uiState.currentTier.replaceFirstChar { it.uppercase() },
-                onClick = { /* TODO: PlansScreen */ }
+                onClick = onNavigateToPlans
             )
 
             HorizontalDivider(
@@ -557,8 +558,8 @@ private fun DrawerItemRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
-            .height(56.dp)
+            .padding(horizontal = 16.dp, vertical = 2.dp)
+            .height(48.dp)
             .clip(RoundedCornerShape(12.dp))
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
             .padding(horizontal = 8.dp),

@@ -43,9 +43,9 @@ val DuckWhitePure = Color(0xFFFFFFFF)
 
 // ── DARK MODE (Superfici scure — marroncino papera) ──
 val DarkSurface     = Color(0xFF3E3530)  // Marrone scuro caldo
-val DarkCard        = Color(0xFF4A413C)  // Card — marroncino medio
-val DarkCardVariant = Color(0xFF564D48)  // Variante più chiara
-val DarkElevated    = Color(0xFF625953)  // Massima elevazione
+val DarkCard        = Color(0xFF524842)  // Card — marroncino medio
+val DarkCardVariant = Color(0xFF5E554F)  // Variante più chiara
+val DarkElevated    = Color(0xFF6A615B)  // Massima elevazione
 
 // ═══════════════════════════════════════════════════════
 // Colori funzionali
@@ -65,6 +65,11 @@ val StarnazzoHeavyCard  = Color(0xFFD84B4B)
 val StarnazzoLightTenue  = Color(0xFFDFEDCC)
 val StarnazzoMediumTenue = Color(0xFFFFF3CD)
 val StarnazzoHeavyTenue  = Color(0xFFF4D4D4)
+
+// Livelli Duck tenue — dark mode (stessi colori di "Arma preferita")
+val StarnazzoLightTenueDark  = Color(0xFFCFE4B2)
+val StarnazzoMediumTenueDark = Color(0xFFFFECB4)
+val StarnazzoHeavyTenueDark  = Color(0xFFEECAC5)
 
 // Errore / distruttivo
 val DuckError = Color(0xFFD32F2F)

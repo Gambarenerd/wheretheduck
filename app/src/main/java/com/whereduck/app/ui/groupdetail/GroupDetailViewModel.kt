@@ -8,9 +8,12 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageMetadata
+import com.whereduck.app.ads.AdManager
+import com.whereduck.app.ads.RewardCreditsManager
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.Contact
 import com.whereduck.app.data.model.StarnazzoLevel
+import com.whereduck.app.data.remote.FirestoreDataSource
 import com.whereduck.app.data.repository.AlertRepository
 import com.whereduck.app.data.repository.ContactRepository
 import com.whereduck.app.data.repository.GroupRepository
@@ -37,7 +40,9 @@ data class GroupDetailUiState(
     val sendingToUserId: String? = null,
     val isBroadcasting: Boolean = false,
     val lastSendResult: String? = null,
-    val error: String? = null
+    val error: String? = null,
+    val showOutOfDucks: Boolean = false,
+    val isPremium: Boolean = false
 )
 
 data class StarnazzoSentEvent(
@@ -53,7 +58,10 @@ class GroupDetailViewModel @Inject constructor(
     private val groupRepository: GroupRepository,
     private val contactRepository: ContactRepository,
     private val alertRepository: AlertRepository,
-    private val auth: FirebaseAuth
+    private val firestoreDataSource: FirestoreDataSource,
+    private val auth: FirebaseAuth,
+    val adManager: AdManager,
+    val creditsManager: RewardCreditsManager
 ) : ViewModel() {
 
     val groupId: String = savedStateHandle.get<String>("groupId") ?: ""
@@ -67,6 +75,24 @@ class GroupDetailViewModel @Inject constructor(
 
     init {
         loadGroupWithContacts()
+        observeUserTier()
+    }
+
+    private fun observeUserTier() {
+        if (userId.isEmpty()) return
+        viewModelScope.launch {
+            firestoreDataSource.observeUser(userId)
+                .catch { /* ignore */ }
+                .collect { user ->
+                    _uiState.value = _uiState.value.copy(
+                        isPremium = user?.plan == "premium"
+                    )
+                }
+        }
+    }
+
+    fun dismissOutOfDucks() {
+        _uiState.value = _uiState.value.copy(showOutOfDucks = false)
     }
 
     private fun loadGroupWithContacts() {
@@ -139,6 +165,14 @@ class GroupDetailViewModel @Inject constructor(
         val toName = toContact?.displayName ?: "Qualcuno"
         val selectedAnimal = AnimalRegistry.getSelectedAnimal(app, level)
 
+        // Check credits for free users
+        if (!_uiState.value.isPremium) {
+            if (!creditsManager.useDuck()) {
+                _uiState.value = _uiState.value.copy(showOutOfDucks = true)
+                return
+            }
+        }
+
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
                 sendingToUserId = toUserId,
@@ -177,6 +211,14 @@ class GroupDetailViewModel @Inject constructor(
     fun sendBroadcast() {
         val level = _uiState.value.selectedLevel
         val selectedAnimal = AnimalRegistry.getSelectedAnimal(app, level)
+
+        // Check credits for free users
+        if (!_uiState.value.isPremium) {
+            if (!creditsManager.useDuck()) {
+                _uiState.value = _uiState.value.copy(showOutOfDucks = true)
+                return
+            }
+        }
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(

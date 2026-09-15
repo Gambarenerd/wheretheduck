@@ -101,6 +101,11 @@ data class DuckCustomColors(
     // Pill (motto, tag)
     val pillBackground: Color,
     val pillBackgroundLight: Color,
+
+    // Starnazzo tenue (sfondo cerchio animale)
+    val starnazzoLightTenue: Color,
+    val starnazzoMediumTenue: Color,
+    val starnazzoHeavyTenue: Color,
 )
 
 val LocalDuckColors = staticCompositionLocalOf {
@@ -147,6 +152,9 @@ val LocalDuckColors = staticCompositionLocalOf {
         inputBorder = Color.Unspecified,
         pillBackground = Color.Unspecified,
         pillBackgroundLight = Color.Unspecified,
+        starnazzoLightTenue = Color.Unspecified,
+        starnazzoMediumTenue = Color.Unspecified,
+        starnazzoHeavyTenue = Color.Unspecified,
     )
 }
 
@@ -229,6 +237,11 @@ private val LightColors = DuckCustomColors(
     // Pill
     pillBackground = PillCoral,
     pillBackgroundLight = PillCoralLight,
+
+    // Starnazzo tenue
+    starnazzoLightTenue = StarnazzoLightTenue,
+    starnazzoMediumTenue = StarnazzoMediumTenue,
+    starnazzoHeavyTenue = StarnazzoHeavyTenue,
 )
 
 // ── DARK ──
@@ -270,7 +283,7 @@ private val DarkColors = DuckCustomColors(
     // Starnazzo
     starnazzoLight = StarnazzoLight,
     starnazzoMedium = StarnazzoMedium,
-    starnazzoHeavy = StarnazzoHeavy,
+    starnazzoHeavy = Color(0xFFE57373),  // Rosso salmone caldo per dark
 
     // Bordi e divisori
     outline = DarkElevated,              // #3A3331 — caldo
@@ -295,7 +308,7 @@ private val DarkColors = DuckCustomColors(
 
     // VIP
     vipCardBackground = Color(0xFF3D2A15), // Arancione scuro caldo
-    vipHeart = VipHeartColor,
+    vipHeart = Color(0xFFE57373),          // Rosso salmone caldo, coerente col dark
     vipAddCircle = DarkElevated,           // #3A3331
     vipAddIcon = Color(0xFF8A7F79),        // Marrone smorzato
 
@@ -316,6 +329,11 @@ private val DarkColors = DuckCustomColors(
     // Pill
     pillBackground = Color(0xFF564038),    // Marrone-corallo
     pillBackgroundLight = Color(0xFF4A352D), // Leggermente più scuro
+
+    // Starnazzo tenue
+    starnazzoLightTenue = StarnazzoLightTenueDark,
+    starnazzoMediumTenue = StarnazzoMediumTenueDark,
+    starnazzoHeavyTenue = StarnazzoHeavyTenueDark,
 )
 
 // Material3 scheme — Light

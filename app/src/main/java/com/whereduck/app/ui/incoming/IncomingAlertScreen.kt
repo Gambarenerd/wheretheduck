@@ -97,13 +97,13 @@ fun IncomingAlertScreen(
     val lvlColor = when (level) {
         StarnazzoLevel.LIGHT -> StarnazzoLight
         StarnazzoLevel.MEDIUM -> StarnazzoMedium
-        StarnazzoLevel.HEAVY -> StarnazzoHeavy
+        StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavy
     }
 
     val levelTenueColor = when (level) {
-        StarnazzoLevel.LIGHT -> StarnazzoLightTenue
-        StarnazzoLevel.MEDIUM -> StarnazzoMediumTenue
-        StarnazzoLevel.HEAVY -> StarnazzoHeavyTenue
+        StarnazzoLevel.LIGHT -> DuckTheme.colors.starnazzoLightTenue
+        StarnazzoLevel.MEDIUM -> DuckTheme.colors.starnazzoMediumTenue
+        StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavyTenue
     }
 
     // Find the animal display info

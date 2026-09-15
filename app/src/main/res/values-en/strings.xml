@@ -257,6 +257,34 @@
     <string name="chart_sent">Dealt: </string>
     <string name="chart_received">Taken: </string>
 
+    <!-- ═══ Ads / Reward ═══ -->
+    <string name="reward_duck_icon">\uD83E\uDD86</string>
+    <string name="reward_ducks_available">Ducks available</string>
+    <string name="reward_counter">%1$d</string>
+    <string name="reward_watch_ad">Recharge</string>
+    <string name="out_of_ducks_title">Out of Ducks!</string>
+    <string name="out_of_ducks_icon">\uD83E\uDD86</string>
+    <string name="out_of_ducks_body">You\'ve run out of Ducks! Watch a short video to recharge 5.</string>
+    <string name="out_of_ducks_watch">Watch video</string>
+    <string name="ad_sponsored">Sponsored</string>
+
+    <!-- ═══ Plans / Tier ═══ -->
+    <string name="plans_title">Plans</string>
+    <string name="plans_free_name">Free</string>
+    <string name="plans_free_desc">Limited Ducks with video recharge\nAd banners</string>
+    <string name="plans_premium_name">Premium</string>
+    <string name="plans_premium_desc">Unlimited Ducks\nNo ads</string>
+    <string name="plans_current">Current plan</string>
+    <string name="plans_upgrade">Upgrade to Premium</string>
+    <string name="plans_manage">Manage subscription</string>
+    <string name="tier_free_ducks">5 initial Ducks</string>
+    <string name="tier_free_reward">Recharge by watching videos</string>
+    <string name="tier_free_ads">Contains ads</string>
+    <string name="tier_free_unlimited">Unlimited Ducks</string>
+    <string name="tier_premium_unlimited">Unlimited Ducks</string>
+    <string name="tier_premium_no_ads">No ads</string>
+    <string name="tier_premium_support">Priority support</string>
+
     <!-- ═══ Common ═══ -->
     <string name="common_cancel">Cancel</string>
     <string name="common_save">Save</string>

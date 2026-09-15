@@ -5,8 +5,11 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.whereduck.app.ads.AdManager
+import com.whereduck.app.ads.RewardCreditsManager
 import com.whereduck.app.data.model.Contact
 import com.whereduck.app.data.model.Group
+import com.whereduck.app.data.remote.FirestoreDataSource
 import com.whereduck.app.data.repository.ContactRepository
 import com.whereduck.app.data.repository.GroupRepository
 import android.content.SharedPreferences
@@ -25,15 +28,22 @@ data class HomeUiState(
     val vipContactIds: List<String> = emptyList(),
     val pendingInviteCount: Int = 0,
     val zenMode: Boolean = false,
+    val currentTier: String = "free",
     val error: String? = null
-)
+) {
+    val isPremium: Boolean get() = currentTier == "premium"
+    val shouldShowAds: Boolean get() = !isPremium
+}
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val app: Application,
     private val groupRepository: GroupRepository,
     private val contactRepository: ContactRepository,
-    private val auth: FirebaseAuth
+    private val firestoreDataSource: FirestoreDataSource,
+    private val auth: FirebaseAuth,
+    val adManager: AdManager,
+    val creditsManager: RewardCreditsManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -57,7 +67,27 @@ class HomeViewModel @Inject constructor(
         loadPendingInvites()
         loadVipContacts()
         loadZenMode()
+        observeUserTier()
+        preloadAdsIfNeeded()
         vipPrefs.registerOnSharedPreferenceChangeListener(vipListener)
+    }
+
+    private fun observeUserTier() {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            firestoreDataSource.observeUser(userId)
+                .catch { /* ignore */ }
+                .collect { user ->
+                    val tier = user?.plan ?: "free"
+                    _uiState.value = _uiState.value.copy(currentTier = tier)
+                }
+        }
+    }
+
+    private fun preloadAdsIfNeeded() {
+        if (_uiState.value.shouldShowAds) {
+            adManager.preloadRewardedAd()
+        }
     }
 
     override fun onCleared() {

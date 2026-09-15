@@ -23,6 +23,10 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // AdMob — test IDs for debug, replace with real IDs for production
+        buildConfigField("String", "ADMOB_BANNER_ID", "\"ca-app-pub-3940256099942544/6300978111\"")
+        buildConfigField("String", "ADMOB_REWARDED_ID", "\"ca-app-pub-3940256099942544/5224354917\"")
     }
 
     buildTypes {
@@ -47,6 +51,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {

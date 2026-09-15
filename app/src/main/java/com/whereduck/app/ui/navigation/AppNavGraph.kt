@@ -22,6 +22,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.firebase.auth.FirebaseAuth
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.whereduck.app.ui.home.HomeViewModel
 import com.whereduck.app.ui.disclaimer.DisclaimerScreen
 import com.whereduck.app.ui.legal.PrivacyPolicyScreen
@@ -37,6 +39,7 @@ import com.whereduck.app.ui.main.DashboardTab
 import com.whereduck.app.ui.main.CustomizeTab
 import com.whereduck.app.ui.main.HistoryTab
 import com.whereduck.app.ui.main.MainShell
+import com.whereduck.app.ui.premium.TierScreen
 import com.whereduck.app.ui.permissions.PermissionSetupScreen
 import com.whereduck.app.ui.settings.SettingsScreen
 import com.whereduck.app.ui.starnazzocall.StarnazzoCallScreen
@@ -56,6 +59,7 @@ object Route {
     const val PRIVACY_POLICY = "privacy_policy"
     const val TERMS_OF_SERVICE = "terms_of_service"
     const val CUSTOMIZE = "customize"
+    const val PLANS = "plans"
 
     fun contactDetail(contactId: String) = "contact_detail/$contactId"
     fun groupDetail(groupId: String) = "group_detail/$groupId"
@@ -107,6 +111,8 @@ fun AppNavGraph() {
         }
         composable(Route.HOME) {
             val homeViewModel: HomeViewModel = hiltViewModel()
+            val homeState by homeViewModel.uiState.collectAsState()
+            val showAds = homeState.shouldShowAds
             MainShell(
                 onOpenUserMenu = {
                     navController.navigate(Route.SETTINGS)
@@ -124,7 +130,10 @@ fun AppNavGraph() {
                         },
                         onNavigateToContact = { contactId ->
                             navController.navigate(Route.contactDetail(contactId))
-                        }
+                        },
+                        showAds = showAds,
+                        adManager = homeViewModel.adManager,
+                        creditsManager = homeViewModel.creditsManager
                     )
                 },
                 contactsContent = {
@@ -138,14 +147,16 @@ fun AppNavGraph() {
                         onNavigateToInvites = {
                             navController.navigate(Route.PENDING_INVITES)
                         },
-                        viewModel = homeViewModel
+                        viewModel = homeViewModel,
+                        showAds = showAds
                     )
                 },
                 historyContent = {
                     HistoryTab(
                         onNavigateToContactDetail = { contactId ->
                             navController.navigate(Route.contactDetail(contactId))
-                        }
+                        },
+                        showAds = showAds
                     )
                 },
                 customizeContent = {
@@ -257,6 +268,7 @@ fun AppNavGraph() {
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToPrivacy = { navController.navigate(Route.PRIVACY_POLICY) },
                 onNavigateToTerms = { navController.navigate(Route.TERMS_OF_SERVICE) },
+                onNavigateToPlans = { navController.navigate(Route.PLANS) },
                 onLogout = {
                     navController.navigate(Route.LOGIN) {
                         popUpTo(0) { inclusive = true }
@@ -281,6 +293,15 @@ fun AppNavGraph() {
             popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
         ) {
             TermsOfServiceScreen(onBack = { navController.popBackStack() })
+        }
+        composable(
+            Route.PLANS,
+            enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300)) },
+            exitTransition = { fadeOut(tween(150)) },
+            popEnterTransition = { fadeIn(tween(150)) },
+            popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) }
+        ) {
+            TierScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

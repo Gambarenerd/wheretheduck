@@ -65,7 +65,9 @@ import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.ui.components.AnimalEmoji
 import com.whereduck.app.ui.theme.DuckOrange500
+import com.whereduck.app.ui.theme.DuckBrown900
 import com.whereduck.app.ui.theme.DuckTheme
+import com.whereduck.app.ui.theme.ThemeState
 import com.whereduck.app.ui.theme.StarnazzoHeavy
 import com.whereduck.app.ui.theme.StarnazzoLight
 import com.whereduck.app.ui.theme.StarnazzoMedium
@@ -263,7 +265,7 @@ private fun SingleAnimalCard(
     val levelColor = when (level) {
         StarnazzoLevel.LIGHT -> StarnazzoLight
         StarnazzoLevel.MEDIUM -> StarnazzoMedium
-        StarnazzoLevel.HEAVY -> StarnazzoHeavy
+        StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavy
     }
 
     Box(modifier = Modifier.padding(horizontal = 20.dp)) {
@@ -306,7 +308,7 @@ private fun CarouselLevelSection(
     val levelColor = when (level) {
         StarnazzoLevel.LIGHT -> StarnazzoLight
         StarnazzoLevel.MEDIUM -> StarnazzoMedium
-        StarnazzoLevel.HEAVY -> StarnazzoHeavy
+        StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavy
     }
 
     val selectedAnimal = animals.find { it.key == selectedKey } ?: animals.first()
@@ -449,7 +451,7 @@ private fun AnimalCardContent(
                     text = level.displayName,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = if (ThemeState.isDark.value) DuckBrown900 else Color.White,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                 )
             }
@@ -487,11 +489,16 @@ private fun AnimalCardContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Animal emoji in circle
+        val tenueBg = when (level) {
+            StarnazzoLevel.LIGHT -> DuckTheme.colors.starnazzoLightTenue
+            StarnazzoLevel.MEDIUM -> DuckTheme.colors.starnazzoMediumTenue
+            StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavyTenue
+        }
         Box(
             modifier = Modifier
                 .size(140.dp)
                 .clip(CircleShape)
-                .background(levelColor.copy(alpha = 0.15f)),
+                .background(tenueBg),
             contentAlignment = Alignment.Center
         ) {
             AnimalEmoji(
@@ -574,7 +581,7 @@ private fun AnimalCardContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Buttons
+        // Buttons — sempre verde (Prova) e giallo (Cambia), indipendenti dal livello
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -583,8 +590,8 @@ private fun AnimalCardContent(
                 onClick = if (isPlaying) onStopSound else onTestSound,
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = levelColor.copy(alpha = 0.15f),
-                    contentColor = levelColor
+                    containerColor = DuckTheme.colors.starnazzoLightTenue,
+                    contentColor = StarnazzoLight
                 )
             ) {
                 Icon(
@@ -605,10 +612,8 @@ private fun AnimalCardContent(
                 onClick = onActionButton,
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = if (showSelectButton) levelColor.copy(alpha = 0.15f)
-                                     else DuckOrange500.copy(alpha = 0.15f),
-                    contentColor = if (showSelectButton) levelColor
-                                   else DuckOrange500
+                    containerColor = DuckTheme.colors.starnazzoMediumTenue,
+                    contentColor = DuckOrange500
                 )
             ) {
                 Icon(

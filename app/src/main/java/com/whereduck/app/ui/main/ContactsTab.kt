@@ -63,6 +63,7 @@ import com.whereduck.app.data.model.Contact
 import com.whereduck.app.data.model.Group
 import com.whereduck.app.ui.history.HistoryViewModel
 import com.whereduck.app.ui.home.HomeViewModel
+import com.whereduck.app.ads.AdBannerTile
 import com.whereduck.app.ui.theme.DuckOrange500
 import com.whereduck.app.ui.theme.DuckTheme
 import java.text.SimpleDateFormat
@@ -74,7 +75,8 @@ fun ContactsTab(
     onNavigateToGroupDetail: (String) -> Unit,
     onNavigateToInvites: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
-    historyViewModel: HistoryViewModel = hiltViewModel()
+    historyViewModel: HistoryViewModel = hiltViewModel(),
+    showAds: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val historyState by historyViewModel.uiState.collectAsState()
@@ -162,6 +164,14 @@ fun ContactsTab(
                                 )
                             }
                         }
+                    }
+                }
+
+                // Ad banner (free users)
+                if (showAds) {
+                    item {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        AdBannerTile()
                     }
                 }
 

@@ -75,6 +75,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.ui.components.AnimalEmoji
+import com.whereduck.app.ads.OutOfDucksDialog
 import com.whereduck.app.ui.components.ContactCard
 import com.whereduck.app.ui.main.rememberAnimalsPerLevel
 import com.whereduck.app.ui.theme.DuckOrange500
@@ -327,10 +328,11 @@ fun GroupDetailScreen(
                                 }
                             }
 
+                            @Composable
                             fun levelColor(level: StarnazzoLevel): Color = when (level) {
                                 StarnazzoLevel.LIGHT -> StarnazzoLight
                                 StarnazzoLevel.MEDIUM -> StarnazzoMedium
-                                StarnazzoLevel.HEAVY -> StarnazzoHeavy
+                                StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavy
                             }
 
                             val virtualPageCount = 1000
@@ -524,5 +526,14 @@ fun GroupDetailScreen(
                 }
             }
         }
+    }
+
+    // Out of Ducks dialog
+    if (uiState.showOutOfDucks) {
+        OutOfDucksDialog(
+            adManager = viewModel.adManager,
+            creditsManager = viewModel.creditsManager,
+            onDismiss = { viewModel.dismissOutOfDucks() }
+        )
     }
 }

@@ -6,11 +6,14 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.whereduck.app.ads.AdManager
+import com.whereduck.app.ads.RewardCreditsManager
 import com.whereduck.app.data.model.Alert
 import com.whereduck.app.data.model.Contact
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.data.remote.CloudFunctionsDataSource
+import com.whereduck.app.data.remote.FirestoreDataSource
 import com.whereduck.app.data.repository.AlertRepository
 import com.whereduck.app.data.repository.ContactRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,7 +48,9 @@ data class ContactDetailUiState(
     val streakDays: Int = 0,
     val recentAlerts: List<Alert> = emptyList(),
     val isMuted: Boolean = false,
-    val muteExpiresAt: Long = 0L
+    val muteExpiresAt: Long = 0L,
+    val showOutOfDucks: Boolean = false,
+    val isPremium: Boolean = false
 )
 
 @HiltViewModel
@@ -54,8 +59,11 @@ class ContactDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val contactRepository: ContactRepository,
     private val alertRepository: AlertRepository,
+    private val firestoreDataSource: FirestoreDataSource,
     private val auth: FirebaseAuth,
-    private val cloudFunctions: CloudFunctionsDataSource
+    private val cloudFunctions: CloudFunctionsDataSource,
+    val adManager: AdManager,
+    val creditsManager: RewardCreditsManager
 ) : ViewModel() {
 
     val contactId: String = savedStateHandle.get<String>("contactId") ?: ""
@@ -77,6 +85,24 @@ class ContactDetailViewModel @Inject constructor(
         loadVipStatus()
         loadMuteStatus()
         loadContactAlerts()
+        observeUserTier()
+    }
+
+    private fun observeUserTier() {
+        if (userId.isEmpty()) return
+        viewModelScope.launch {
+            firestoreDataSource.observeUser(userId)
+                .catch { /* ignore */ }
+                .collect { user ->
+                    _uiState.value = _uiState.value.copy(
+                        isPremium = user?.plan == "premium"
+                    )
+                }
+        }
+    }
+
+    fun dismissOutOfDucks() {
+        _uiState.value = _uiState.value.copy(showOutOfDucks = false)
     }
 
     private fun loadVipStatus() {
@@ -223,6 +249,14 @@ class ContactDetailViewModel @Inject constructor(
     fun sendStarnazzo() {
         val contact = _uiState.value.contact ?: return
         val level = _uiState.value.selectedLevel
+
+        // Check credits for free users
+        if (!_uiState.value.isPremium) {
+            if (!creditsManager.useDuck()) {
+                _uiState.value = _uiState.value.copy(showOutOfDucks = true)
+                return
+            }
+        }
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isSending = true, lastSendResult = null)

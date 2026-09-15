@@ -257,6 +257,34 @@
     <string name="chart_sent">Infligés : </string>
     <string name="chart_received">Subis : </string>
 
+    <!-- ═══ Ads / Reward ═══ -->
+    <string name="reward_duck_icon">\uD83E\uDD86</string>
+    <string name="reward_ducks_available">Duck disponibles</string>
+    <string name="reward_counter">%1$d</string>
+    <string name="reward_watch_ad">Recharger</string>
+    <string name="out_of_ducks_title">Plus de Duck !</string>
+    <string name="out_of_ducks_icon">\uD83E\uDD86</string>
+    <string name="out_of_ducks_body">Tu n\'as plus de Duck ! Regarde une courte vid\u00E9o pour en recharger 5.</string>
+    <string name="out_of_ducks_watch">Regarder la vid\u00E9o</string>
+    <string name="ad_sponsored">Sponsoris\u00E9</string>
+
+    <!-- ═══ Plans / Tier ═══ -->
+    <string name="plans_title">Plans</string>
+    <string name="plans_free_name">Gratuit</string>
+    <string name="plans_free_desc">Duck limit\u00E9s avec recharge vid\u00E9o\nBanni\u00E8res publicitaires</string>
+    <string name="plans_premium_name">Premium</string>
+    <string name="plans_premium_desc">Duck illimit\u00E9s\nAucune publicit\u00E9</string>
+    <string name="plans_current">Plan actuel</string>
+    <string name="plans_upgrade">Passer \u00E0 Premium</string>
+    <string name="plans_manage">G\u00E9rer l\'abonnement</string>
+    <string name="tier_free_ducks">5 Duck initiaux</string>
+    <string name="tier_free_reward">Recharge en regardant des vid\u00E9os</string>
+    <string name="tier_free_ads">Contient de la publicit\u00E9</string>
+    <string name="tier_free_unlimited">Duck illimit\u00E9s</string>
+    <string name="tier_premium_unlimited">Duck illimit\u00E9s</string>
+    <string name="tier_premium_no_ads">Aucune publicit\u00E9</string>
+    <string name="tier_premium_support">Support prioritaire</string>
+
     <!-- ═══ Common ═══ -->
     <string name="common_cancel">Annuler</string>
     <string name="common_save">Enregistrer</string>

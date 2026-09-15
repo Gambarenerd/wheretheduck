@@ -54,6 +54,7 @@ import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.ui.components.AnimalEmoji
 import com.whereduck.app.ui.history.HistoryViewModel
+import com.whereduck.app.ads.AdBannerTile
 import com.whereduck.app.ui.theme.DuckOrange500
 import com.whereduck.app.ui.theme.DuckTheme
 import com.whereduck.app.ui.theme.StarnazzoHeavy
@@ -89,7 +90,8 @@ private data class DaySection(
 @Composable
 fun HistoryTab(
     onNavigateToContactDetail: (String) -> Unit = {},
-    viewModel: HistoryViewModel = hiltViewModel()
+    viewModel: HistoryViewModel = hiltViewModel(),
+    showAds: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -194,6 +196,13 @@ fun HistoryTab(
                     }
                 }
 
+                // Ad banner (free users)
+                if (showAds) {
+                    item {
+                        AdBannerTile()
+                    }
+                }
+
                 daySections.forEach { section ->
                     item {
                         val sectionLabel = when (section.label) {
@@ -292,7 +301,7 @@ private fun GroupedAlertCard(group: GroupedAlert, onClick: () -> Unit) {
     val levelColor = when (group.level) {
         StarnazzoLevel.LIGHT -> StarnazzoLight
         StarnazzoLevel.MEDIUM -> StarnazzoMedium
-        StarnazzoLevel.HEAVY -> StarnazzoHeavy
+        StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavy
     }
 
     Card(

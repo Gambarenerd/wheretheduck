@@ -56,6 +56,10 @@ import com.whereduck.app.R
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.ui.components.AnimalEmoji
 import com.whereduck.app.data.model.StarnazzoLevel
+import com.whereduck.app.ads.AdBannerTile
+import com.whereduck.app.ads.AdManager
+import com.whereduck.app.ads.RewardBar
+import com.whereduck.app.ads.RewardCreditsManager
 import com.whereduck.app.ui.theme.DuckGrey300
 import com.whereduck.app.ui.theme.DuckOrange500
 import com.whereduck.app.ui.theme.StarnazzoHeavy
@@ -83,7 +87,10 @@ fun DashboardTab(
     onSendStarnazzo: ((String) -> Unit)? = null,
     onNavigateToContact: ((String) -> Unit)? = null,
     historyViewModel: HistoryViewModel = hiltViewModel(),
-    homeViewModel: HomeViewModel = hiltViewModel()
+    homeViewModel: HomeViewModel = hiltViewModel(),
+    showAds: Boolean = false,
+    adManager: AdManager? = null,
+    creditsManager: RewardCreditsManager? = null
 ) {
     val historyState by historyViewModel.uiState.collectAsState()
     val homeState by homeViewModel.uiState.collectAsState()
@@ -177,9 +184,17 @@ fun DashboardTab(
             .padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Ad banner in cima (free users only)
+        if (showAds) {
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                AdBannerTile()
+            }
+        }
+
         // Victims section
         item {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(if (showAds) 0.dp else 8.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -243,6 +258,16 @@ fun DashboardTab(
                 repeat(emptySlots.coerceAtLeast(0)) {
                     Spacer(modifier = Modifier.weight(1f))
                 }
+            }
+        }
+
+        // Reward bar (free users only)
+        if (showAds && adManager != null && creditsManager != null) {
+            item {
+                RewardBar(
+                    adManager = adManager,
+                    creditsManager = creditsManager
+                )
             }
         }
 
@@ -348,7 +373,7 @@ fun DashboardTab(
                     when (topLevel.first) {
                         StarnazzoLevel.LIGHT -> StarnazzoLight
                         StarnazzoLevel.MEDIUM -> StarnazzoMedium
-                        StarnazzoLevel.HEAVY -> StarnazzoHeavy
+                        StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavy
                     }
                 } else DuckTheme.colors.textSecondary
 

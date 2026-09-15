@@ -98,6 +98,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.whereduck.app.data.model.Alert
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
+import com.whereduck.app.ads.OutOfDucksDialog
 import com.whereduck.app.ui.components.AnimalEmoji
 import com.whereduck.app.ui.main.rememberAnimalsPerLevel
 import com.whereduck.app.ui.theme.DuckOrange500
@@ -153,16 +154,18 @@ fun ContactDetailScreen(
         }
     }
 
+    @Composable
     fun levelColor(level: StarnazzoLevel): Color = when (level) {
         StarnazzoLevel.LIGHT -> StarnazzoLight
         StarnazzoLevel.MEDIUM -> StarnazzoMedium
-        StarnazzoLevel.HEAVY -> StarnazzoHeavy
+        StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavy
     }
 
+    @Composable
     fun levelTenueColor(level: StarnazzoLevel): Color = when (level) {
-        StarnazzoLevel.LIGHT -> StarnazzoLightTenue
-        StarnazzoLevel.MEDIUM -> StarnazzoMediumTenue
-        StarnazzoLevel.HEAVY -> StarnazzoHeavyTenue
+        StarnazzoLevel.LIGHT -> DuckTheme.colors.starnazzoLightTenue
+        StarnazzoLevel.MEDIUM -> DuckTheme.colors.starnazzoMediumTenue
+        StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavyTenue
     }
 
     // Call animations
@@ -425,7 +428,7 @@ fun ContactDetailScreen(
                                         Surface(
                                             onClick = { viewModel.toggleVip() },
                                             shape = CircleShape,
-                                            color = DuckTheme.colors.outline
+                                            color = DuckTheme.colors.cardBackground
                                         ) {
                                             Box(
                                                 modifier = Modifier.size(64.dp),
@@ -451,7 +454,7 @@ fun ContactDetailScreen(
                                                 }
                                             },
                                             shape = CircleShape,
-                                            color = DuckTheme.colors.outline
+                                            color = DuckTheme.colors.cardBackground
                                         ) {
                                             Box(
                                                 modifier = Modifier.size(64.dp),
@@ -471,7 +474,7 @@ fun ContactDetailScreen(
                                         Surface(
                                             onClick = { showRemoveDialog = true },
                                             shape = CircleShape,
-                                            color = DuckTheme.colors.outline
+                                            color = DuckTheme.colors.cardBackground
                                         ) {
                                             Box(
                                                 modifier = Modifier.size(64.dp),
@@ -932,6 +935,15 @@ fun ContactDetailScreen(
             }
         )
     }
+
+    // Out of Ducks dialog
+    if (uiState.showOutOfDucks) {
+        OutOfDucksDialog(
+            adManager = viewModel.adManager,
+            creditsManager = viewModel.creditsManager,
+            onDismiss = { viewModel.dismissOutOfDucks() }
+        )
+    }
 }
 
 @Composable
@@ -963,13 +975,13 @@ private fun RecentAlertRow(
     val levelColor = when (level) {
         StarnazzoLevel.LIGHT -> StarnazzoLight
         StarnazzoLevel.MEDIUM -> StarnazzoMedium
-        StarnazzoLevel.HEAVY -> StarnazzoHeavy
+        StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavy
     }
 
     val tenueColor = when (level) {
-        StarnazzoLevel.LIGHT -> StarnazzoLightTenue
-        StarnazzoLevel.MEDIUM -> StarnazzoMediumTenue
-        StarnazzoLevel.HEAVY -> StarnazzoHeavyTenue
+        StarnazzoLevel.LIGHT -> DuckTheme.colors.starnazzoLightTenue
+        StarnazzoLevel.MEDIUM -> DuckTheme.colors.starnazzoMediumTenue
+        StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavyTenue
     }
 
     Card(

@@ -69,7 +69,7 @@ fun StarnazzoCallScreen(
     val bgColor = when (uiState.level) {
         StarnazzoLevel.LIGHT -> StarnazzoLight
         StarnazzoLevel.MEDIUM -> StarnazzoMedium
-        StarnazzoLevel.HEAVY -> StarnazzoHeavy
+        StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavy
     }
 
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp

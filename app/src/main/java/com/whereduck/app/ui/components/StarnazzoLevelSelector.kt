@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
-import com.whereduck.app.ui.theme.StarnazzoHeavy
+import com.whereduck.app.ui.theme.DuckTheme
 import com.whereduck.app.ui.theme.StarnazzoLight
 import com.whereduck.app.ui.theme.StarnazzoMedium
 
@@ -44,7 +44,7 @@ fun StarnazzoLevelSelector(
             val color = when (level) {
                 StarnazzoLevel.LIGHT -> StarnazzoLight
                 StarnazzoLevel.MEDIUM -> StarnazzoMedium
-                StarnazzoLevel.HEAVY -> StarnazzoHeavy
+                StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavy
             }
 
             Surface(

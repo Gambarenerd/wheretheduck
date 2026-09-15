@@ -9,6 +9,7 @@ import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import coil.request.CachePolicy
 
+import com.google.android.gms.ads.MobileAds
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
@@ -17,6 +18,7 @@ class WhereTheDuckApp : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannels()
+        MobileAds.initialize(this)
     }
 
     override fun newImageLoader(): ImageLoader {
