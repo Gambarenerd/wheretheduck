@@ -1,6 +1,7 @@
 package com.whereduck.app.ui.contactdetail
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
@@ -86,6 +87,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -594,7 +596,34 @@ fun ContactDetailScreen(
                                                         .weight(1f)
                                                         .background(tenueBg, RoundedCornerShape(12.dp))
                                                 ) {
-                                                    // Top row: chip livello + barra fastidiosità (allineati)
+                                                    // Animale (dietro la chip row)
+                                                    val cardRes = AnimalRegistry.findAnimal(animal.key)?.cardRes
+                                                    if (cardRes != null) {
+                                                        Image(
+                                                            painter = painterResource(cardRes),
+                                                            contentDescription = animal.name,
+                                                            contentScale = ContentScale.Crop,
+                                                            modifier = Modifier
+                                                                .fillMaxSize()
+                                                                .clip(RoundedCornerShape(12.dp))
+                                                        )
+                                                    } else {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .fillMaxSize()
+                                                                .padding(top = 36.dp),
+                                                            contentAlignment = Alignment.BottomCenter
+                                                        ) {
+                                                            AnimalEmoji(
+                                                                animalKey = animal.key,
+                                                                emoji = animal.emoji,
+                                                                size = 120.dp,
+                                                                fontSize = 100.sp
+                                                            )
+                                                        }
+                                                    }
+
+                                                    // Chip row sopra l'immagine (z-order)
                                                     Row(
                                                         modifier = Modifier
                                                             .fillMaxWidth()
@@ -633,22 +662,9 @@ fun ContactDetailScreen(
                                                             }
                                                         }
                                                     }
-
-                                                    // Animale allineato in basso al centro
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .fillMaxSize()
-                                                            .padding(top = 36.dp),
-                                                        contentAlignment = Alignment.BottomCenter
-                                                    ) {
-                                                        AnimalEmoji(
-                                                            animalKey = animal.key,
-                                                            emoji = animal.emoji,
-                                                            size = 120.dp,
-                                                            fontSize = 100.sp
-                                                        )
-                                                    }
                                                 }
+
+                                                Spacer(modifier = Modifier.height(6.dp))
 
                                                 // Sezione bianca: nome, citazione, descrizione
                                                 Column(
@@ -659,7 +675,7 @@ fun ContactDetailScreen(
                                                 ) {
                                                     Text(
                                                         text = animal.name,
-                                                        fontSize = 19.sp,
+                                                        fontSize = 21.sp,
                                                         fontWeight = FontWeight.ExtraBold,
                                                         color = DuckTheme.colors.textPrimary,
                                                         textAlign = TextAlign.Center
@@ -718,10 +734,20 @@ fun ContactDetailScreen(
                                                 )
                                             }
 
-                                            // Top row: level chip + noisiness bar
+                                            // Animal (behind chip row)
+                                            AnimalEmoji(
+                                                animalKey = selectedAnimal.key,
+                                                emoji = selectedAnimal.emoji,
+                                                size = 200.dp,
+                                                fontSize = 120.sp,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+
+                                            // Top row: level chip + noisiness bar (on top)
                                             Row(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
+                                                    .align(Alignment.TopCenter)
                                                     .padding(16.dp),
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.SpaceBetween
@@ -729,44 +755,29 @@ fun ContactDetailScreen(
                                                 Surface(shape = CircleShape, color = selectedLvlColor) {
                                                     Text(
                                                         text = selectedLevel.displayName,
-                                                        fontSize = 11.sp,
+                                                        fontSize = 13.sp,
                                                         fontWeight = FontWeight.Bold,
                                                         color = Color.White,
                                                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                                                     )
                                                 }
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Icon(Icons.Default.VolumeUp, null, Modifier.size(14.dp), tint = DuckTheme.colors.textSecondary)
-                                                    Spacer(modifier = Modifier.width(6.dp))
+                                                    Icon(Icons.Default.VolumeUp, null, Modifier.size(20.dp), tint = Color.White.copy(alpha = 0.7f))
+                                                    Spacer(modifier = Modifier.width(5.dp))
                                                     Box(
                                                         modifier = Modifier
-                                                            .width(60.dp)
-                                                            .height(12.dp)
-                                                            .background(DuckTheme.colors.cardBackgroundVariant, RoundedCornerShape(6.dp))
+                                                            .width(44.dp)
+                                                            .height(10.dp)
+                                                            .background(Color.White.copy(alpha = 0.5f), RoundedCornerShape(5.dp))
                                                     ) {
                                                         Box(
                                                             modifier = Modifier
                                                                 .fillMaxWidth(fraction = selectedAnimal.noisiness)
-                                                                .height(12.dp)
-                                                                .background(selectedLvlColor, RoundedCornerShape(6.dp))
+                                                                .height(10.dp)
+                                                                .background(selectedLvlColor, RoundedCornerShape(5.dp))
                                                         )
                                                     }
                                                 }
-                                            }
-
-                                            // Animal aligned to bottom
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .padding(top = 48.dp, start = 20.dp, end = 20.dp),
-                                                contentAlignment = Alignment.BottomCenter
-                                            ) {
-                                                AnimalEmoji(
-                                                    animalKey = selectedAnimal.key,
-                                                    emoji = selectedAnimal.emoji,
-                                                    size = 200.dp,
-                                                    fontSize = 120.sp
-                                                )
                                             }
 
                                             // Fading text

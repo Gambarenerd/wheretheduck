@@ -390,25 +390,19 @@ fun DashboardTab(
                     Box(
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        Text(
-                            text = stringResource(R.string.dashboard_weapon),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = weaponTextColor,
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .padding(top = 14.dp)
-                        )
                         if (topLevel != null) {
                             val dashCtx = LocalContext.current
                             val dashAnimalKey = AnimalRegistry.getSelectedAnimal(dashCtx, topLevel.first)
+                            // Immagine dietro (z-order)
                             AnimalEmoji(
                                 animalKey = dashAnimalKey,
                                 emoji = AnimalRegistry.getEmoji(dashAnimalKey, topLevel.first),
                                 size = 100.dp,
                                 fontSize = 70.sp,
+                                contentScale = ContentScale.Crop,
+                                alignment = Alignment.BottomCenter,
                                 modifier = Modifier
-                                    .fillMaxHeight(0.8f)
+                                    .fillMaxSize()
                                     .align(Alignment.BottomCenter)
                             )
                         } else {
@@ -419,6 +413,16 @@ fun DashboardTab(
                                 modifier = Modifier.align(Alignment.Center)
                             )
                         }
+                        // Testo sopra l'immagine (z-order)
+                        Text(
+                            text = stringResource(R.string.dashboard_weapon),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = weaponTextColor,
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = 14.dp)
+                        )
                     }
                 }
 

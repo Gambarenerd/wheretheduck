@@ -21,11 +21,23 @@ fun AnimalEmoji(
     emoji: String,
     size: Dp,
     fontSize: TextUnit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Fit,
+    alignment: Alignment = Alignment.BottomCenter
 ) {
     val animal = AnimalRegistry.findAnimal(animalKey)
+    val cardRes = animal?.cardRes
     val drawableRes = animal?.drawableRes
-    if (drawableRes != null) {
+    if (cardRes != null) {
+        Image(
+            painter = painterResource(cardRes),
+            contentDescription = animalKey,
+            contentScale = contentScale,
+            alignment = alignment,
+            modifier = modifier
+                .fillMaxSize()
+        )
+    } else if (drawableRes != null) {
         Image(
             painter = painterResource(drawableRes),
             contentDescription = animalKey,

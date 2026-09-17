@@ -185,10 +185,20 @@ fun IncomingAlertScreen(
             elevation = CardDefaults.cardElevation(0.dp)
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                // Top row: level chip + noisiness bar
+                // Animal (behind chip row)
+                AnimalEmoji(
+                    animalKey = animalKey,
+                    emoji = animalEmoji,
+                    size = 200.dp,
+                    fontSize = 120.sp,
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                // Top row: level chip + noisiness bar (on top of image)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .align(Alignment.TopCenter)
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -196,44 +206,29 @@ fun IncomingAlertScreen(
                     Surface(shape = CircleShape, color = lvlColor) {
                         Text(
                             text = level.displayName,
-                            fontSize = 11.sp,
+                            fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.VolumeUp, null, Modifier.size(14.dp), tint = DuckTheme.colors.textSecondary)
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Icon(Icons.Default.VolumeUp, null, Modifier.size(20.dp), tint = Color.White.copy(alpha = 0.7f))
+                        Spacer(modifier = Modifier.width(5.dp))
                         Box(
                             modifier = Modifier
-                                .width(60.dp)
-                                .height(12.dp)
-                                .background(DuckTheme.colors.cardBackgroundVariant, RoundedCornerShape(6.dp))
+                                .width(44.dp)
+                                .height(10.dp)
+                                .background(Color.White.copy(alpha = 0.5f), RoundedCornerShape(5.dp))
                         ) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth(fraction = noisiness)
-                                    .height(12.dp)
-                                    .background(lvlColor, RoundedCornerShape(6.dp))
+                                    .height(10.dp)
+                                    .background(lvlColor, RoundedCornerShape(5.dp))
                             )
                         }
                     }
-                }
-
-                // Animal aligned to bottom
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 48.dp, start = 20.dp, end = 20.dp),
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    AnimalEmoji(
-                        animalKey = animalKey,
-                        emoji = animalEmoji,
-                        size = 200.dp,
-                        fontSize = 120.sp
-                    )
                 }
             }
         }

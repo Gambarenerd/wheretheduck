@@ -3,7 +3,10 @@ package com.whereduck.app.ui.main
 import android.media.MediaPlayer
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import com.whereduck.app.R
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -414,7 +417,34 @@ private fun AnimalCardContent(
                 .weight(1f)
                 .background(tenueBg, RoundedCornerShape(12.dp))
         ) {
-            // Top row: chip livello + barra fastidiosità
+            // Animale allineato in basso al centro (dietro la chip row)
+            val cardRes = AnimalRegistry.findAnimal(animal.key)?.cardRes
+            if (cardRes != null) {
+                Image(
+                    painter = painterResource(cardRes),
+                    contentDescription = animal.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(12.dp))
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 36.dp),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    AnimalEmoji(
+                        animalKey = animal.key,
+                        emoji = animal.emoji,
+                        size = 120.dp,
+                        fontSize = 100.sp
+                    )
+                }
+            }
+
+            // Chip row sopra l'immagine (z-order: dopo = sopra)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -453,22 +483,9 @@ private fun AnimalCardContent(
                     }
                 }
             }
-
-            // Animale allineato in basso al centro
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 36.dp),
-                contentAlignment = Alignment.BottomCenter
-            ) {
-                AnimalEmoji(
-                    animalKey = animal.key,
-                    emoji = animal.emoji,
-                    size = 120.dp,
-                    fontSize = 100.sp
-                )
-            }
         }
+
+        Spacer(modifier = Modifier.height(6.dp))
 
         // Sezione inferiore: nome, citazione, descrizione
         Column(
@@ -479,7 +496,7 @@ private fun AnimalCardContent(
         ) {
             Text(
                 text = animal.name,
-                fontSize = 19.sp,
+                fontSize = 21.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = DuckTheme.colors.textPrimary,
                 textAlign = TextAlign.Center

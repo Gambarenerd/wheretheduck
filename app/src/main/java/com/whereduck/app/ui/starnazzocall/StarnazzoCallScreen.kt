@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -50,10 +49,17 @@ import com.whereduck.app.R
 import com.whereduck.app.data.model.AnimalRegistry
 import com.whereduck.app.data.model.StarnazzoLevel
 import com.whereduck.app.ui.components.AnimalEmoji
+import com.whereduck.app.ui.main.rememberAnimalsPerLevel
 import com.whereduck.app.ui.theme.DuckTheme
 import com.whereduck.app.ui.theme.StarnazzoHeavy
 import com.whereduck.app.ui.theme.StarnazzoLight
 import com.whereduck.app.ui.theme.StarnazzoMedium
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import kotlinx.coroutines.delay
 
 @Composable
@@ -273,32 +279,84 @@ fun StarnazzoCallScreen(
         // Fill space — push animal + button to bottom
         Spacer(modifier = Modifier.weight(1f))
 
-        // Animal emoji with ripple
-        Box(
+        // Animal card with level chip + noisiness bar
+        val animalsPerLevel = rememberAnimalsPerLevel()
+        val animalOption = animalsPerLevel[uiState.level]?.find { it.key == animalKey }
+        val noisiness = animalOption?.noisiness ?: 0.5f
+        val levelTenueColor = when (uiState.level) {
+            StarnazzoLevel.LIGHT -> DuckTheme.colors.starnazzoLightTenue
+            StarnazzoLevel.MEDIUM -> DuckTheme.colors.starnazzoMediumTenue
+            StarnazzoLevel.HEAVY -> DuckTheme.colors.starnazzoHeavyTenue
+        }
+
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp),
-            contentAlignment = Alignment.BottomCenter
+                .aspectRatio(1f)
+                .scale(if (uiState.phase == CallPhase.RESPONDED) 1f else emojiScale),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = levelTenueColor),
+            elevation = CardDefaults.cardElevation(0.dp)
         ) {
-            if (uiState.phase == CallPhase.RINGING) {
-                Box(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .scale(rippleScale)
-                        .alpha(rippleAlpha)
-                        .background(Color.White, CircleShape)
-                        .align(Alignment.Center)
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Ripple behind animal
+                if (uiState.phase == CallPhase.RINGING) {
+                    Box(
+                        modifier = Modifier
+                            .size(120.dp)
+                            .scale(rippleScale)
+                            .alpha(rippleAlpha)
+                            .background(Color.White, CircleShape)
+                            .align(Alignment.Center)
+                    )
+                }
+
+                // Animal image
+                AnimalEmoji(
+                    animalKey = animalKey,
+                    emoji = animalEmoji,
+                    size = 200.dp,
+                    fontSize = 120.sp,
+                    modifier = Modifier.fillMaxSize()
                 )
+
+                // Level chip + noisiness bar (on top)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.TopCenter)
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Surface(shape = CircleShape, color = bgColor) {
+                        Text(
+                            text = uiState.level.displayName,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                        )
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.VolumeUp, null, Modifier.size(20.dp), tint = Color.White.copy(alpha = 0.7f))
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Box(
+                            modifier = Modifier
+                                .width(44.dp)
+                                .height(10.dp)
+                                .background(Color.White.copy(alpha = 0.5f), RoundedCornerShape(5.dp))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(fraction = noisiness)
+                                    .height(10.dp)
+                                    .background(bgColor, RoundedCornerShape(5.dp))
+                            )
+                        }
+                    }
+                }
             }
-            AnimalEmoji(
-                animalKey = animalKey,
-                emoji = animalEmoji,
-                size = 180.dp,
-                fontSize = 180.sp,
-                modifier = Modifier
-                    .offset(y = 60.dp)
-                    .scale(if (uiState.phase == CallPhase.RESPONDED) 1f else emojiScale)
-            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
